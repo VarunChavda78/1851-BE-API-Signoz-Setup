@@ -6,7 +6,7 @@ Nest Starter Kit
 
 ```bash
 $ copy .env.example to .env file
- # Access the app http://localhost:3000/v5/hello-world
+ # Access the app http://localhost:3000/v1
 ```
 
 ## Docker
@@ -14,7 +14,7 @@ $ copy .env.example to .env file
 ```bash
 $ cp .env.example .env
 $ docker-compose up --build
- # Access the app http://localhost:3000/v5/hello-world
+ # Access the app http://localhost:3000/v1
 ```
 
 ```bash
