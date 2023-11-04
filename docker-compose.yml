@@ -3,7 +3,7 @@ version: '3.8'
 services:
 
   api:
-    container_name: Supplier Database API
+    container_name: Supplier-Database-API
     image: supplier-database-api-dev
     restart: unless-stopped
     build:
