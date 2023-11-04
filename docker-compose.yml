@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+
+  api:
+    container_name: Supplier Database API
+    image: supplier-database-api-dev
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile   
+    ports:
+      - 3000:3000
+    env_file:
+      - .env      
+    depends_on:
+      - postgres
+    networks:
+      - supplier-database-api 
+
+  postgres:
+    image: postgres:latest
+    restart: always
+    container_name: supplier-database-api-postgres
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+      - POSTGRES_DB=${DB_NAME}
+    volumes:
+      - ./psql-data:/var/lib/postgresql/data:delegated
+    networks:
+      - supplier-database-api      
+    ports:
+      - "5432:5432"
+
+volumes:
+  psqldata:
+
+networks:
+  supplier-database-api:
+    name: supplier-database-api 
