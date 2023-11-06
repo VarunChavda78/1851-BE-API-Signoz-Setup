@@ -14,11 +14,11 @@ services:
     env_file:
       - .env      
     depends_on:
-      - postgres
+      - db
     networks:
       - supplier-database-api 
 
-  postgres:
+  db:
     image: postgres:latest
     restart: always
     container_name: supplier-database-api-postgres
@@ -32,9 +32,24 @@ services:
       - supplier-database-api      
     ports:
       - "5432:5432"
+      
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4_container
+    restart: always
+    ports:
+      - "8888:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: test@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: password
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - supplier-database-api  
 
 volumes:
-  psqldata:
+  psql-data:
+  pgadmin-data:
 
 networks:
   supplier-database-api:
