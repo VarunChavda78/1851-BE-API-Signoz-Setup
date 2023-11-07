@@ -13,7 +13,7 @@ $ copy .env.example to .env file
 
 ```bash
 $ cp .env.example .env
-$ docker-compose up --build
+$ docker-compose up -d --build
  # Access the app http://localhost:3000/v1
 
 ```
