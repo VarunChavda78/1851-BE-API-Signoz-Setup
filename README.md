@@ -4,6 +4,7 @@
 Nest Starter Kit
 ## Installation
 
+loom video : https://www.loom.com/share/2095288c62ff47bfa4e03bff8764f758?sid=c10470b8-ea4b-48d0-8d9d-3b1d941f1b01
 ```bash
 $ copy .env.example to .env file
  # Access the app http://localhost:3000/v1
