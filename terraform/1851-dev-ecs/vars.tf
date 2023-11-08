@@ -24,7 +24,7 @@ variable "source_branch_name" {
 }
 
 variable "domain_name" {
-  default = "apisupplier.1851dev.com"
+  default = "1851dev.com"
 }
 
 variable "task_count" {
