@@ -47,5 +47,5 @@ variable "Sandbox"{
 }
 
 variable "secret_manager_arn" {
-  default = "arn:aws:secretsmanager:us-east-1:025212946569:secret:dev/env-jVIVCa"
+  default = "arn:aws:secretsmanager:us-east-1:025212946569:secret:supplier-api.env-1PXhe8"
 }

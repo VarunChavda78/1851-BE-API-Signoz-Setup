@@ -76,7 +76,7 @@ resource "aws_ecs_task_definition" "service" {
           hostPort      = var.container_port
         }
       ]
-     #secrets = local.secret
+      secrets = local.secret
       logConfiguration = {
         logDriver = "awslogs",
         options = {
