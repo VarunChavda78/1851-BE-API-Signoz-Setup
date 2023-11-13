@@ -9,6 +9,6 @@ export default (): any => ({
     pass: process.env.DB_PASS,
   },
   s3: {
-    imageUrl: process.env.IMAGE_S3_URL,
+    imageUrl: process.env.AWS_IMAGE_PROXY_URL,
   },
 });

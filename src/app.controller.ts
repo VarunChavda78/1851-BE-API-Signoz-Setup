@@ -11,9 +11,4 @@ export class AppController {
   getHello(): string {
     return this.appService.getHello();
   }
-
-  @Get('top-header')
-  getTopHeader() {
-    return this.appService.getTopHeader();
-  }
 }
