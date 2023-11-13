@@ -1,11 +1,30 @@
-import { Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Param, Post } from '@nestjs/common';
+import { ReviewRepository } from '../repositories/review.repository';
+import { ReviewService } from '../services/review.service';
+import { reviewCreateDto } from '../dtos/reviewDto';
 
 @Controller('review')
 export class ReviewController {
-  constructor() {}
+  constructor(
+    private reviewRepository: ReviewRepository,
+    private reviewService: ReviewService,
+  ) {}
 
-  @Post('review:id')
-  async saveReview() {
-    return {};
+  @Get(':id')
+  async getReviews(@Param('id') id: number) {
+    const reviews = await this.reviewRepository.getBySupplierId(id);
+    const data = await this.reviewService.getDetails(reviews);
+    return { data: data };
+  }
+
+  @Post(':id')
+  async saveReview(
+    @Param('id') id: number,
+    @Body() reviewRequest: reviewCreateDto,
+  ) {
+    await this.reviewRepository.createOrUpdateReview(id, reviewRequest);
+    return {
+      statusCode: HttpStatus.CREATED,
+    };
   }
 }
