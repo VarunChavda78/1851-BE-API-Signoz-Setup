@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { SupplierService } from '../services/supplier.service';
 import { SupplierRepository } from '../repositories/supplier.repository';
 
@@ -9,10 +9,17 @@ export class SupplierController {
     private supplierRepository: SupplierRepository,
   ) {}
 
-  @Get()
-  async getSuppliers() {
+  @Get('list')
+  async getSuppliersList() {
     const suppliers = await this.supplierRepository.getAll();
     const data = await this.supplierService.getDetails(suppliers);
+    return { data: data };
+  }
+
+  @Get(':id')
+  async getSupplier(@Param('id') id: number) {
+    const supplier = await this.supplierRepository.getById(id);
+    const data = await this.supplierService.getDetails(supplier);
     return { data: data };
   }
 }
