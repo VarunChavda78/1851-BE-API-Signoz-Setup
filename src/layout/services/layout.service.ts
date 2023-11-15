@@ -40,7 +40,7 @@ export class LayoutService {
           url: 'https://stachecow.com',
           logo: `${this.configService.get(
             's3.imageUrl',
-          )}/static/Stachecow_header.svg`,
+          )}/static/Stachecow_header.png`,
         },
       ],
       logo: {
