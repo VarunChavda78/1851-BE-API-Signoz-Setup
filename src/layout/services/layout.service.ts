@@ -11,20 +11,26 @@ export class LayoutService {
         id: '1851',
         name: '1851 Franchise',
         url: 'https://1851franchise.com',
-        logo: `${this.configService.get('s3.imageUrl')}/static/1851_header.png`,
+        logo: `${this.configService.get(
+          's3.imageUrl',
+        )}/supplier-db/static/1851_header.png`,
       },
       otherPublication: [
         {
           id: 'growth-club',
           name: '1851 Growth Club',
           url: 'https://1851growthclub.com',
-          logo: `${this.configService.get('s3.imageUrl')}/static/GC-logo.svg`,
+          logo: `${this.configService.get(
+            's3.imageUrl',
+          )}/supplier-db/static/GC-logo.svg`,
         },
         {
           id: 'EE',
           name: 'Estatenvy',
           url: 'https://estatenvy.com',
-          logo: `${this.configService.get('s3.imageUrl')}/static/EE_header.png`,
+          logo: `${this.configService.get(
+            's3.imageUrl',
+          )}/supplier-db/static/EE_header.png`,
         },
         {
           id: 'ROOM-1903',
@@ -32,7 +38,7 @@ export class LayoutService {
           url: 'https://room1903.com',
           logo: `${this.configService.get(
             's3.imageUrl',
-          )}/static/ROOM-1903_header.png`,
+          )}/supplier-db/static/ROOM-1903_header.png`,
         },
         {
           id: 'Stachecow',
@@ -40,14 +46,16 @@ export class LayoutService {
           url: 'https://stachecow.com',
           logo: `${this.configService.get(
             's3.imageUrl',
-          )}/static/Stachecow_header.png`,
+          )}/supplier-db/static/Stachecow_header.png`,
         },
       ],
       logo: {
         width: 54,
         height: 54,
         url: '/',
-        image: `${this.configService.get('s3.imageUrl')}/static/1851Logo.svg`,
+        image: `${this.configService.get(
+          's3.imageUrl',
+        )}/supplier-db/static/1851Logo.svg`,
       },
       socialMedia: [
         'https://www.facebook.com/1851magazine',
