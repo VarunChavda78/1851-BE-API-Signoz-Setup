@@ -7,8 +7,8 @@ services:
     image: supplier-database-api-dev
     restart: unless-stopped
     build:
-      context: ./Docker
-      dockerfile: Dockerfile   
+      context: ./
+      dockerfile: Dockerfile-local
     ports:
       - 3000:3000
     volumes:
