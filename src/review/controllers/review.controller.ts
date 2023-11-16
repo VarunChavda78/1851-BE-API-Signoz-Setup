@@ -3,7 +3,10 @@ import { ReviewRepository } from '../repositories/review.repository';
 import { ReviewService } from '../services/review.service';
 import { reviewCreateDto } from '../dtos/reviewDto';
 
-@Controller('review')
+@Controller({
+  version: '1',
+  path: 'review',
+})
 export class ReviewController {
   constructor(
     private reviewRepository: ReviewRepository,
@@ -11,7 +14,7 @@ export class ReviewController {
   ) {}
 
   @Get(':id')
-  async getReviews(@Param('id') id: number) {
+  async show(@Param('id') id: number) {
     const reviews = await this.reviewRepository.getBySupplierId(id);
     const data = await this.reviewService.getDetails(reviews);
     return { data: data };
