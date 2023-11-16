@@ -70,6 +70,7 @@ resource "aws_ecs_task_definition" "service" {
       image = "${data.aws_ecr_repository.app.repository_url}:<changeme>"
 
       essential = true
+      command = ["yarn run migration:run"],
       portMappings = [
         {
           containerPort = var.container_port
@@ -96,6 +97,7 @@ resource "aws_ecs_task_definition" "service" {
           hostPort      = var.nginx_container_port
         }
       ]
+      
       logConfiguration = {
         logDriver = "awslogs",
         options = {
