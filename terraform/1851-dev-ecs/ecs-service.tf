@@ -70,7 +70,6 @@ resource "aws_ecs_task_definition" "service" {
       image = "${data.aws_ecr_repository.app.repository_url}:<changeme>"
 
       essential = true
-      command = ["yarn run migration:run"],
       portMappings = [
         {
           containerPort = var.container_port
