@@ -19,14 +19,14 @@ export class Supplier {
   @Column()
   slug: string;
 
-  @Column()
+  @Column({ nullable: true })
   location: string;
 
   @Column()
   description: string;
 
-  @Column()
-  logo: string;
+  @Column({ nullable: true })
+  logo?: string | null;
 
   @OneToOne(() => Category, (category) => category.id, {
     eager: true,
@@ -36,20 +36,20 @@ export class Supplier {
   @Column()
   isFeatured: boolean;
 
-  @Column()
-  founded: number;
+  @Column({ nullable: true })
+  founded?: number;
 
-  @Column()
-  videoUrl: string;
+  @Column({ nullable: true })
+  videoUrl?: string | null;
 
-  @Column()
-  createdBy: number;
+  @Column({ nullable: true })
+  createdBy?: number | null;
 
-  @Column()
-  updatedBy: number;
+  @Column({ nullable: true })
+  updatedBy?: number | null;
 
-  @Column()
-  deletedAt: Date;
+  @Column({ nullable: true })
+  deletedAt?: Date;
 
   @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
