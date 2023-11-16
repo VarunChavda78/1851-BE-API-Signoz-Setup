@@ -37,13 +37,16 @@ export class Supplier {
   isFeatured: boolean;
 
   @Column()
-  foundedDate: Date;
+  founded: number;
 
   @Column()
-  createdBy: Date;
+  videoUrl: string;
 
   @Column()
-  updatedBy: Date;
+  createdBy: number;
+
+  @Column()
+  updatedBy: number;
 
   @Column()
   deletedAt: Date;

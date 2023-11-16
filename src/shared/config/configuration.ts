@@ -11,4 +11,7 @@ export default (): any => ({
   s3: {
     imageUrl: process.env.AWS_IMAGE_PROXY_URL,
   },
+  aws: {
+    bucketName: process.env.AWS_BUCKET_NAME,
+  },
 });
