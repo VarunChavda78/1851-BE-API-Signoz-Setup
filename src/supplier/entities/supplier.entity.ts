@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -31,7 +32,8 @@ export class Supplier {
   @OneToOne(() => Category, (category) => category.id, {
     eager: true,
   })
-  categoryId: Category;
+  @JoinColumn()
+  categoryId: number;
 
   @Column()
   isFeatured: boolean;

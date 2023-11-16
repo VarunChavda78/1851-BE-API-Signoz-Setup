@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 
 import { Supplier } from '../entities/supplier.entity';
+import { PaginationDto } from '../dtos/supplierDto';
 
 @Injectable()
 export class SupplierRepository extends Repository<Supplier> {
@@ -18,8 +19,13 @@ export class SupplierRepository extends Repository<Supplier> {
     return supplier;
   }
 
-  async getAll(): Promise<Supplier[]> {
-    const suppliers = await this.find();
+  async findAll(paginationDto: PaginationDto): Promise<Supplier[]> {
+    const { page, limit } = paginationDto;
+    const skip = (page - 1) * limit;
+    const suppliers = await this.find({
+      skip,
+      take: limit,
+    });
     if (!suppliers.length) {
       throw new NotFoundException();
     }
