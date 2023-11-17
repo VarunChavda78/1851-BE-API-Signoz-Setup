@@ -7,8 +7,8 @@ ENV NODE_ENV=development
 COPY . .
 
 COPY start.sh /app
-RUN chmod +x /app/start.sh
+RUN chmod +X /app/start.sh
 
 RUN yarn install --frozen-lockfile
 
-ENTRYPOINT ["/app/start.sh"]
+CMD ["sh",  "/app/start.sh"]

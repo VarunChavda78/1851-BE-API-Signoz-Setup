@@ -1,4 +1,3 @@
 #!/bin/bash
 
-yarn run start:dev
-yarn run migration:run
+yarn run migration:run ; yarn run start:dev
