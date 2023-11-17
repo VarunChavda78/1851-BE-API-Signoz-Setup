@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 
 import { Review } from '../entities/review.entity';
-import { ReviewFilterDto } from '../dtos/reviewDto';
+import { PaginationDto, ReviewFilterDto } from '../dtos/reviewDto';
 
 @Injectable()
 export class ReviewRepository extends Repository<Review> {
@@ -39,28 +39,35 @@ export class ReviewRepository extends Repository<Review> {
     return review;
   }
 
-  async getBySupplierId(id: number): Promise<Review[]> {
-    const review = await this.find({ where: { supplier_id: id } });
+  async getBySupplierId(
+    id: number,
+    pagination: PaginationDto,
+  ): Promise<Review[]> {
+    let { page, limit }: any = pagination;
+    page = page ?? 1;
+    limit = limit ?? 10;
+    const skip = (page - 1) * limit;
+    const review = await this.find({
+      skip,
+      take: limit,
+      where: { supplier_id: id },
+    });
     if (!review.length) {
       throw new NotFoundException();
     }
     return review;
   }
 
-  async createOrUpdateReview(id: number, reviewRequest: any): Promise<Review> {
-    const review = await this.findOne({ where: { supplier_id: id } });
+  async createReview(id: number, reviewRequest: any): Promise<Review> {
+    const review = new Review();
+    review.name = reviewRequest?.name;
+    review.supplier_id = id;
+    review.comment = reviewRequest?.comment;
+    review.rating = reviewRequest?.rating ?? 0;
+    review.title = reviewRequest?.title;
+    review.company = reviewRequest?.company;
 
-    const data = {
-      ...reviewRequest,
-      supplier_id: id,
-    };
-
-    let result: any = null;
-    if (review) {
-      result = await this.update(data, { supplier_id: id });
-    } else {
-      result = await this.create(data);
-    }
+    const result = await this.save(review);
 
     return result;
   }

@@ -9,7 +9,11 @@ import {
 } from '@nestjs/common';
 import { ReviewRepository } from '../repositories/review.repository';
 import { ReviewService } from '../services/review.service';
-import { ReviewFilterDto, reviewCreateDto } from '../dtos/reviewDto';
+import {
+  PaginationDto,
+  ReviewFilterDto,
+  reviewCreateDto,
+} from '../dtos/reviewDto';
 
 @Controller({
   version: '1',
@@ -29,8 +33,14 @@ export class ReviewController {
   }
 
   @Get(':supplierId')
-  async show(@Param('supplierId') supplierId: number) {
-    const reviews = await this.reviewRepository.getBySupplierId(supplierId);
+  async show(
+    @Param('supplierId') supplierId: number,
+    @Query() pagination: PaginationDto,
+  ) {
+    const reviews = await this.reviewRepository.getBySupplierId(
+      supplierId,
+      pagination,
+    );
     const data = await this.reviewService.getDetails(reviews);
     return { data: data };
   }
@@ -40,9 +50,10 @@ export class ReviewController {
     @Param('supplierId') supplierId: number,
     @Body() reviewRequest: reviewCreateDto,
   ) {
-    await this.reviewRepository.createOrUpdateReview(supplierId, reviewRequest);
+    await this.reviewRepository.createReview(supplierId, reviewRequest);
     return {
       statusCode: HttpStatus.CREATED,
+      status: 'Your review created successfully.',
     };
   }
 }
