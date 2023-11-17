@@ -51,7 +51,7 @@ export class supplierDto {
   createdBy: number;
 }
 
-export class PaginationDto {
+export class FilterDto {
   @IsOptional()
   @Type(() => Number)
   @IsInt()
@@ -64,4 +64,14 @@ export class PaginationDto {
   @Min(1)
   @Max(100)
   limit: number = 10;
+
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsInt()
+  featured: boolean = false;
+
+  @IsOptional()
+  @Type(() => String)
+  @IsInt()
+  category: string;
 }

@@ -14,13 +14,13 @@ export class Supplier {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ unique: false })
   name: string;
 
-  @Column()
+  @Column({ unique: true })
   slug: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, unique: false })
   location: string;
 
   @Column()
@@ -30,7 +30,7 @@ export class Supplier {
   logo?: string | null;
 
   @OneToOne(() => Category, (category) => category.id, {
-    eager: true,
+    cascade: true,
   })
   @JoinColumn()
   categoryId: number;

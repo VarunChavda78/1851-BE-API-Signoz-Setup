@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { SupplierService } from '../services/supplier.service';
 import { SupplierRepository } from '../repositories/supplier.repository';
-import { PaginationDto, supplierDto } from '../dtos/supplierDto';
+import { FilterDto, supplierDto } from '../dtos/supplierDto';
 import { Supplier } from '../entities/supplier.entity';
 import * as lodash from 'lodash';
 
@@ -24,9 +24,10 @@ export class SupplierController {
   ) {}
 
   @Get()
-  async list(@Query() paginationDto: PaginationDto) {
-    const suppliers = await this.supplierRepository.findAll(paginationDto);
-    const data = await this.supplierService.getDetails(suppliers);
+  async list(@Query() filterData: FilterDto) {
+    const suppliers =
+      await this.supplierRepository.findAllWithFilter(filterData);
+    const data = await this.supplierService.getData(suppliers);
     return { data: data };
   }
 
@@ -34,19 +35,6 @@ export class SupplierController {
   async show(@Param('id') id: number) {
     const supplier = await this.supplierRepository.getById(id);
     const data = await this.supplierService.getDetails(supplier);
-    return { data: data };
-  }
-
-  @Get('featured')
-  async featuredList(@Query() paginationDto: PaginationDto) {
-    const { page, limit } = paginationDto;
-    const skip = (page - 1) * limit;
-    const suppliers = await this.supplierRepository.find({
-      skip,
-      take: limit,
-      where: { isFeatured: true },
-    });
-    const data = await this.supplierService.getDetails(suppliers);
     return { data: data };
   }
 
@@ -77,7 +65,18 @@ export class SupplierController {
         ...request,
         slug: lodash.kebabCase(request?.name),
       };
-      await this.supplierRepository.update({ id }, data);
+      try {
+        // Your update logic here
+        await this.supplierRepository.update({ id }, data);
+      } catch (error) {
+        if (error.code === '23505') {
+          // Handle uniqueness violation error here
+          console.error('Unique constraint violation:', error.detail);
+        } else {
+          // Handle other errors
+          console.error('Error:', error.message);
+        }
+      }
       return {
         statusCode: HttpStatus.CREATED,
         status: 'Supplier updated successfully',
