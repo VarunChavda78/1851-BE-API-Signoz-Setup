@@ -14,7 +14,14 @@ export class CategoryRepository extends Repository<Category> {
     if (!category) {
       throw new NotFoundException();
     }
-
     return category;
+  }
+
+  async getAll(): Promise<Category[]> {
+    const categories = await this.find();
+    if (!categories.length) {
+      throw new NotFoundException();
+    }
+    return categories;
   }
 }
