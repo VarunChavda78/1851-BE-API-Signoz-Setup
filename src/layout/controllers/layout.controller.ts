@@ -31,7 +31,7 @@ export class LayoutController {
     return { data: data };
   }
 
-  @Get('brand-benefits')
+  @Get('benefits')
   async benefits() {
     const data = await this.layoutService.brandBenefits();
     return { data: data };
