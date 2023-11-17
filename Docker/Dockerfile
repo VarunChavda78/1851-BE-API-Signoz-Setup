@@ -8,4 +8,4 @@ COPY . .
 
 RUN yarn install --frozen-lockfile
 
-CMD sh -c "yarn run migration:run && yarn run start:dev"
+CMD sh -c "yarn run start:dev && yarn run migration:run"
