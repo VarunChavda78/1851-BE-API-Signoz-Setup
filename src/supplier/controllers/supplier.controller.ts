@@ -10,7 +10,6 @@ import {
 import { SupplierService } from '../services/supplier.service';
 import { SupplierRepository } from '../repositories/supplier.repository';
 import { FilterDto, supplierDto } from '../dtos/supplierDto';
-import { Supplier } from '../entities/supplier.entity';
 import * as lodash from 'lodash';
 
 @Controller({
@@ -40,17 +39,16 @@ export class SupplierController {
 
   @Post()
   async create(@Body() request: supplierDto) {
-    const supplier = new Supplier();
-    supplier.name = request?.name;
-    supplier.slug = lodash.kebabCase(request?.name);
-    supplier.location = request?.location;
-    supplier.description = request?.description;
-    supplier.categoryId = Number(request?.categoryId);
-    supplier.isFeatured = request?.isFeatured;
-    supplier.founded = Number(request?.founded);
-    supplier.videoUrl = request?.videoUrl;
-    supplier.createdBy = request?.createdBy ?? null;
-    await this.supplierRepository.save(supplier);
+    const data = {
+      ...request,
+      slug: lodash.kebabCase(request?.name),
+      categoryId: Number(request?.categoryId),
+      isFeatured: Boolean(request?.isFeatured),
+      founded: Number(request?.founded),
+      createdBy: request?.createdBy ?? null,
+      rating: null,
+    };
+    await this.supplierRepository.save(data);
     return {
       statusCode: HttpStatus.CREATED,
       status: 'Supplier created successfully',

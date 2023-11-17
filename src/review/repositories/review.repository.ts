@@ -3,10 +3,14 @@ import { DataSource, Repository } from 'typeorm';
 
 import { Review } from '../entities/review.entity';
 import { PaginationDto, ReviewFilterDto } from '../dtos/reviewDto';
+import { SupplierRepository } from 'src/supplier/repositories/supplier.repository';
 
 @Injectable()
 export class ReviewRepository extends Repository<Review> {
-  constructor(private dataSource: DataSource) {
+  constructor(
+    private dataSource: DataSource,
+    private supplierRepository: SupplierRepository,
+  ) {
     super(Review, dataSource.createEntityManager());
   }
 
@@ -68,6 +72,14 @@ export class ReviewRepository extends Repository<Review> {
     review.company = reviewRequest?.company;
 
     const result = await this.save(review);
+    const reviewResults = await this.find({ where: { supplier_id: id } });
+    const total = reviewResults?.length;
+    let count = 0;
+    reviewResults.forEach(function (reviewResult) {
+      count += reviewResult?.rating;
+    });
+    const rating = count / total;
+    await this.supplierRepository.update({ id }, { rating });
 
     return result;
   }

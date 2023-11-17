@@ -33,6 +33,7 @@ export class SupplierService {
       logo: data?.logo,
       location: data?.location,
       founded: data?.foundedDate,
+      rating: data?.rating,
       description: data?.description,
       isFeatured: data?.isFeatured ? data?.isFeatured : false,
       category: category,

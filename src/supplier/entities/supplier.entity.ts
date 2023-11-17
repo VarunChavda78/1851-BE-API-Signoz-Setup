@@ -43,6 +43,9 @@ export class Supplier {
   @Column({ nullable: true })
   videoUrl?: string | null;
 
+  @Column({ nullable: true, type: 'decimal', default: 0 })
+  rating?: number;
+
   @Column({ nullable: true })
   createdBy?: number | null;
 
