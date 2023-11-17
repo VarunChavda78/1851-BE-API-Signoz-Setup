@@ -12,4 +12,3 @@ RUN chmod +x /app/start.sh
 RUN yarn install --frozen-lockfile
 
 ENTRYPOINT ["/app/start.sh"]
-CMD [ "yarn", "run", "migration:run" ]
