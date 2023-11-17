@@ -74,4 +74,9 @@ export class FilterDto {
   @Type(() => String)
   @IsInt()
   category: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  rating: number;
 }

@@ -23,7 +23,7 @@ export class SupplierRepository extends Repository<Supplier> {
     let { page, limit } = filterData;
     page = page ?? 1;
     limit = limit ?? 10;
-    const { featured, category } = filterData;
+    const { featured, category, rating } = filterData;
     const skip = (page - 1) * limit;
     const queryBuilder = this.createQueryBuilder('suppliers');
     if (featured) {
@@ -36,6 +36,14 @@ export class SupplierRepository extends Repository<Supplier> {
       const categoryId = await this.transformStringToArray(category);
       queryBuilder.andWhere('suppliers.categoryId IN (:...categoryId)', {
         categoryId,
+      });
+    }
+    if (rating) {
+      const end = Number(rating);
+      const start = Number(rating - 1);
+      queryBuilder.andWhere('suppliers.rating BETWEEN :start AND :end', {
+        start,
+        end,
       });
     }
     const suppliers = await queryBuilder.skip(skip).take(limit).getMany();
