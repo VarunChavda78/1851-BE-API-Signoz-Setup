@@ -13,13 +13,13 @@ export class Supplier {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ unique: false })
   name: string;
 
-  @Column()
+  @Column({ unique: true })
   slug: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, unique: false })
   location: string;
 
   @Column()
@@ -28,10 +28,11 @@ export class Supplier {
   @Column({ nullable: true })
   logo?: string | null;
 
-  @OneToOne(() => Category, (category) => category.id, {
-    eager: true,
-  })
-  categoryId: Category;
+  @OneToOne(() => Category, (category) => category.id)
+  // @JoinColumn({ name: 'categoryId', referencedColumnName: 'id' })
+  // category: Category;
+  @Column({ nullable: true, unique: false })
+  categoryId: number;
 
   @Column()
   isFeatured: boolean;

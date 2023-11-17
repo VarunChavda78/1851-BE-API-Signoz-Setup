@@ -25,6 +25,18 @@ export class LayoutController {
     return { data: data };
   }
 
+  @Get('footer')
+  async footer() {
+    const data = await this.layoutService.getFooter();
+    return { data: data };
+  }
+
+  @Get('benefits')
+  async benefits() {
+    const data = await this.layoutService.brandBenefits();
+    return { data: data };
+  }
+
   @Get('save-supplier')
   async saveSupplier() {
     AWS.config.update({
@@ -60,7 +72,7 @@ export class LayoutController {
             : '';
         data.founded = Number(row?.Founded);
         data.isFeatured = row?.isFeatured === 'Yes' ? true : false;
-        data.categoryId = category?.id;
+        data.categoryId = Number(category?.id);
         await this.supplierRepository.save(data);
       });
     return true;

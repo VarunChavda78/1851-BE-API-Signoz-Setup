@@ -17,4 +17,7 @@ export default (): any => ({
     secretKey: process.env.AWS_SECRET_ACCESS_KEY,
     region: process.env.AWS_REGION,
   },
+  franchise: {
+    url: process.env.FRANCHISE_1851_URL,
+  },
 });

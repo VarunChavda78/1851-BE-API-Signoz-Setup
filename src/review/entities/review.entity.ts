@@ -13,27 +13,26 @@ export class Review {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Supplier, (supplier) => supplier.id, {
-    eager: true,
-  })
+  @ManyToOne(() => Supplier, (supplier) => supplier.id)
+  @Column({ unique: false, nullable: true })
   supplier_id: number;
 
   @Column()
   name: string;
 
-  @Column()
+  @Column({ nullable: true })
   comment: string;
 
-  @Column()
+  @Column({ nullable: true })
   rating: number;
 
-  @Column()
+  @Column({ nullable: true })
   title: string;
 
-  @Column()
+  @Column({ nullable: true })
   company: string;
 
-  @Column()
+  @Column({ nullable: true })
   deletedAt: Date;
 
   @CreateDateColumn({ name: 'createdAt' })
