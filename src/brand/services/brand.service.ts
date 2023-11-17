@@ -11,6 +11,7 @@ export class BrandService {
       data.push({
         id: brand?.id,
         name: brand?.name,
+        slug: brand?.slug,
         logo: `${this.config.get(
           's3.imageUrl',
         )}/supplier-db/brand/${brand?.logo}`,

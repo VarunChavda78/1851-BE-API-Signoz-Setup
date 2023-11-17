@@ -15,6 +15,9 @@ export class Brand {
   name: string;
 
   @Column()
+  slug: string;
+
+  @Column()
   logo: string;
 
   @Column()

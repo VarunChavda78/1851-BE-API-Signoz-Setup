@@ -2,7 +2,7 @@ import { Body, Controller, Get, HttpStatus, Post, Query } from '@nestjs/common';
 import { BrandService } from '../services/brand.service';
 import { BrandRepository } from '../repositories/brand.repository';
 import { BrandDto, BrandPainationDto } from '../dtos/brandDto';
-import { Brand } from '../entities/brand.entity';
+import * as lodash from 'lodash';
 
 @Controller({
   version: '1',
@@ -23,11 +23,13 @@ export class BrandController {
 
   @Post()
   async create(@Body() request: BrandDto) {
-    const category = new Brand();
-    category.name = request?.name;
-    category.logo = request?.logo;
-    category.url = request?.url;
-    await this.brandRepository.save(category);
+    const data = {
+      name: request?.name,
+      slug: lodash.kebabCase(request?.name),
+      logo: request?.logo,
+      url: request?.url,
+    };
+    await this.brandRepository.save(data);
     return {
       statusCode: HttpStatus.CREATED,
       status: 'Brand created successfully',

@@ -10,9 +10,9 @@ export class ReviewService {
     for (const review of reviews) {
       let supplier = {};
       if (review?.supplier_id) {
-        const supplierData = await this.supplierRepositroy.getById(
-          review?.supplier_id,
-        );
+        const supplierData = await this.supplierRepositroy.findOne({
+          where: { id: review?.supplier_id },
+        });
         if (supplierData) {
           supplier = {
             id: supplierData?.id,
