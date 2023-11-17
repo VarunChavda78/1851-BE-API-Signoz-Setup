@@ -3,7 +3,6 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -29,10 +28,10 @@ export class Supplier {
   @Column({ nullable: true })
   logo?: string | null;
 
-  @OneToOne(() => Category, (category) => category.id, {
-    cascade: true,
-  })
-  @JoinColumn()
+  @OneToOne(() => Category, (category) => category.id)
+  // @JoinColumn({ name: 'categoryId', referencedColumnName: 'id' })
+  // category: Category;
+  @Column({ nullable: true, unique: false })
   categoryId: number;
 
   @Column()

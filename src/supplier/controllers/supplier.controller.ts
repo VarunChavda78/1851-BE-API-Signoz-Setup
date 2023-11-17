@@ -65,18 +65,7 @@ export class SupplierController {
         ...request,
         slug: lodash.kebabCase(request?.name),
       };
-      try {
-        // Your update logic here
-        await this.supplierRepository.update({ id }, data);
-      } catch (error) {
-        if (error.code === '23505') {
-          // Handle uniqueness violation error here
-          console.error('Unique constraint violation:', error.detail);
-        } else {
-          // Handle other errors
-          console.error('Error:', error.message);
-        }
-      }
+      await this.supplierRepository.update({ id }, data);
       return {
         statusCode: HttpStatus.CREATED,
         status: 'Supplier updated successfully',

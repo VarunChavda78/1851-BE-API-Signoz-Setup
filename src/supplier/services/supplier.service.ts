@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { CategoryRepository } from 'src/category/repositories/category.repository';
 
 @Injectable()
 export class SupplierService {
-  constructor() {}
+  constructor(private categoryRepository: CategoryRepository) {}
 
   async getData(datas) {
     const details = [];
@@ -13,6 +14,18 @@ export class SupplierService {
   }
 
   async getDetails(data) {
+    let category = {};
+    if (data?.categoryId) {
+      const categoryData = await this.categoryRepository.getById(
+        data?.categoryId,
+      );
+      if (categoryData) {
+        category = {
+          id: categoryData?.id,
+          name: categoryData?.name,
+        };
+      }
+    }
     return {
       id: data?.id,
       name: data?.name,
@@ -22,7 +35,7 @@ export class SupplierService {
       founded: data?.foundedDate,
       description: data?.description,
       isFeatured: data?.isFeatured ? data?.isFeatured : false,
-      category: data?.categoryId ?? null,
+      category: category,
     };
   }
 }

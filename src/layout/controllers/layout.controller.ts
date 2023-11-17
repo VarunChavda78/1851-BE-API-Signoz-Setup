@@ -60,7 +60,7 @@ export class LayoutController {
             : '';
         data.founded = Number(row?.Founded);
         data.isFeatured = row?.isFeatured === 'Yes' ? true : false;
-        data.categoryId = category?.id;
+        data.categoryId = Number(category?.id);
         await this.supplierRepository.save(data);
       });
     return true;
