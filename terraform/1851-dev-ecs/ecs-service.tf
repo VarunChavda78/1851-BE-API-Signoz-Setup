@@ -96,6 +96,7 @@ resource "aws_ecs_task_definition" "service" {
           hostPort      = var.nginx_container_port
         }
       ]
+      
       logConfiguration = {
         logDriver = "awslogs",
         options = {
