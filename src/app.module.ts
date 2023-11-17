@@ -6,6 +6,7 @@ import { LayoutModule } from './layout/layout.module';
 import { SupplierModule } from './supplier/supplier.module';
 import { ReviewModule } from './review/review.module';
 import { CategoryModule } from './category/category.module';
+import { BrandModule } from './brand/brand.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { CategoryModule } from './category/category.module';
     SupplierModule,
     ReviewModule,
     CategoryModule,
+    BrandModule,
   ],
   controllers: [AppController],
   providers: [AppService],
