@@ -5,7 +5,9 @@ WORKDIR /app
 ENV NODE_ENV=development
 
 COPY . .
+ADD start.sh /
+RUN chmod +x /start.sh
 
 RUN yarn install --frozen-lockfile
 
-CMD sh -c "yarn run start:dev && yarn run migration:run"
+CMD ["/start.sh"]
