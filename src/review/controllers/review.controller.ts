@@ -1,7 +1,15 @@
-import { Body, Controller, Get, HttpStatus, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpStatus,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { ReviewRepository } from '../repositories/review.repository';
 import { ReviewService } from '../services/review.service';
-import { reviewCreateDto } from '../dtos/reviewDto';
+import { ReviewFilterDto, reviewCreateDto } from '../dtos/reviewDto';
 
 @Controller({
   version: '1',
@@ -13,19 +21,26 @@ export class ReviewController {
     private reviewService: ReviewService,
   ) {}
 
-  @Get(':id')
-  async show(@Param('id') id: number) {
-    const reviews = await this.reviewRepository.getBySupplierId(id);
+  @Get()
+  async list(@Query() filterDto: ReviewFilterDto) {
+    const reviews = await this.reviewRepository.findAll(filterDto);
     const data = await this.reviewService.getDetails(reviews);
     return { data: data };
   }
 
-  @Post(':id')
+  @Get(':supplierId')
+  async show(@Param('supplierId') supplierId: number) {
+    const reviews = await this.reviewRepository.getBySupplierId(supplierId);
+    const data = await this.reviewService.getDetails(reviews);
+    return { data: data };
+  }
+
+  @Post(':supplierId')
   async saveReview(
-    @Param('id') id: number,
+    @Param('supplierId') supplierId: number,
     @Body() reviewRequest: reviewCreateDto,
   ) {
-    await this.reviewRepository.createOrUpdateReview(id, reviewRequest);
+    await this.reviewRepository.createOrUpdateReview(supplierId, reviewRequest);
     return {
       statusCode: HttpStatus.CREATED,
     };
