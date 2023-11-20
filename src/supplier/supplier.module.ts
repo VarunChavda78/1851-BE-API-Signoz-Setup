@@ -5,10 +5,16 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Supplier } from './entities/supplier.entity';
 import { SupplierRepository } from './repositories/supplier.repository';
 import { CategoryRepository } from 'src/category/repositories/category.repository';
+import { ReviewRepository } from 'src/review/repositories/review.repository';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Supplier])],
-  providers: [SupplierService, SupplierRepository, CategoryRepository],
+  providers: [
+    SupplierService,
+    SupplierRepository,
+    CategoryRepository,
+    ReviewRepository,
+  ],
   controllers: [SupplierController],
   exports: [SupplierService],
 })
