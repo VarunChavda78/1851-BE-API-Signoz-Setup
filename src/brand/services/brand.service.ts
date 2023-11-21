@@ -13,14 +13,18 @@ export class BrandService {
   ) {}
 
   async getList(pageOptionsDto: PageOptionsDto) {
-    const { skip, limit } = pageOptionsDto;
+    const { skip, limit, order } = pageOptionsDto;
     const brands = await this.repository.find({ skip, take: limit });
     if (!brands.length) {
       throw new NotFoundException();
     }
     const queryBuilder = this.repository.createQueryBuilder('brand');
     const itemCount = await queryBuilder.getCount();
-    const review = await queryBuilder.skip(skip).take(limit).getMany();
+    const review = await queryBuilder
+      .orderBy('brand.createdAt', order)
+      .skip(skip)
+      .take(limit)
+      .getMany();
     if (!review.length) {
       throw new NotFoundException();
     }
