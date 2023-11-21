@@ -43,7 +43,13 @@ export class Supplier {
   @Column({ nullable: true })
   videoUrl?: string | null;
 
-  @Column({ nullable: true, type: 'decimal', default: 0 })
+  @Column({
+    nullable: true,
+    type: 'decimal',
+    default: 0,
+    precision: 5,
+    scale: 2,
+  })
   rating?: number;
 
   @Column({ nullable: true })

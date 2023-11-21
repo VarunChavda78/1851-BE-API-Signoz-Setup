@@ -61,7 +61,7 @@ export class FilterDto {
   category: string;
 
   @IsOptional()
-  @Type(() => Number)
+  @Type(() => String)
   @IsInt()
-  rating: number;
+  rating: string;
 }

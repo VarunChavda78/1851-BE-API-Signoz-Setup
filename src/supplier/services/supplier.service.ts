@@ -37,12 +37,15 @@ export class SupplierService {
       });
     }
     if (rating) {
-      const end = Number(rating);
-      const start = Number(rating - 1);
-      queryBuilder.andWhere('suppliers.rating BETWEEN :start AND :end', {
-        start,
-        end,
-      });
+      const ratings = await this.repository.transformStringToArray(rating);
+      const minRating = Math.min(...ratings);
+      const maxRating = Math.max(...ratings);
+      queryBuilder
+        .andWhere('suppliers.rating IN (:...ratings)', { ratings })
+        .andWhere('suppliers.rating BETWEEN :minRating AND :maxRating', {
+          minRating,
+          maxRating,
+        });
     }
     const itemCount = await queryBuilder.getCount();
     const suppliers = await queryBuilder
