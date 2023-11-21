@@ -66,13 +66,16 @@ export class LayoutController {
           row?.City && row?.State
             ? `${row?.City}, ${row?.State}`
             : row?.City && !row?.State
-            ? `${row.State}`
-            : !row?.City && row?.State
-            ? `${row.City}`
-            : '';
+              ? `${row.State}`
+              : !row?.City && row?.State
+                ? `${row.City}`
+                : '';
         data.founded = Number(row?.Founded);
         data.isFeatured = row?.isFeatured === 'Yes' ? true : false;
         data.categoryId = Number(category?.id);
+        data.logo = row?.Logo;
+        data.videoUrl = row?.Video;
+        data.rating = row?.Rating;
         await this.supplierRepository.save(data);
       });
     return true;
