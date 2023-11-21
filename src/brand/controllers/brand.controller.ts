@@ -1,8 +1,9 @@
 import { Body, Controller, Get, HttpStatus, Post, Query } from '@nestjs/common';
 import { BrandService } from '../services/brand.service';
 import { BrandRepository } from '../repositories/brand.repository';
-import { BrandDto, BrandPainationDto } from '../dtos/brandDto';
+import { BrandDto } from '../dtos/brandDto';
 import * as lodash from 'lodash';
+import { PageOptionsDto } from 'src/shared/dtos/pageOptionsDto';
 
 @Controller({
   version: '1',
@@ -15,10 +16,8 @@ export class BrandController {
   ) {}
 
   @Get()
-  async list(@Query() pagination: BrandPainationDto) {
-    const categories = await this.brandRepository.findAll(pagination);
-    const data = await this.brandService.getDetails(categories);
-    return { data: data };
+  async list(@Query() pageOptionsDto: PageOptionsDto) {
+    return await this.brandService.getList(pageOptionsDto);
   }
 
   @Post()

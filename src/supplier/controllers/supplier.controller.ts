@@ -11,6 +11,7 @@ import { SupplierService } from '../services/supplier.service';
 import { SupplierRepository } from '../repositories/supplier.repository';
 import { FilterDto, supplierDto } from '../dtos/supplierDto';
 import * as lodash from 'lodash';
+import { PageOptionsDto } from 'src/shared/dtos/pageOptionsDto';
 
 @Controller({
   version: '1',
@@ -23,11 +24,14 @@ export class SupplierController {
   ) {}
 
   @Get()
-  async list(@Query() filterData: FilterDto) {
-    const suppliers =
-      await this.supplierRepository.findAllWithFilter(filterData);
-    const data = await this.supplierService.getData(suppliers);
-    return { data: data };
+  async list(
+    @Query() filterData: FilterDto,
+    @Query() pageOptionsDto: PageOptionsDto,
+  ) {
+    return await this.supplierService.getSupplierLists(
+      filterData,
+      pageOptionsDto,
+    );
   }
 
   @Get(':id')
