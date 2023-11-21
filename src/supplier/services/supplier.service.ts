@@ -21,7 +21,7 @@ export class SupplierService {
     filterData: FilterDto,
     pageOptionsDto: PageOptionsDto,
   ) {
-    const { skip, limit, order } = pageOptionsDto;
+    const { skip, limit, order, sort } = pageOptionsDto;
     const { featured, category, rating } = filterData;
     const queryBuilder = this.repository.createQueryBuilder('suppliers');
     if (featured) {
@@ -49,7 +49,7 @@ export class SupplierService {
     }
     const itemCount = await queryBuilder.getCount();
     const suppliers = await queryBuilder
-      .orderBy('suppliers.createdAt', order)
+      .orderBy(sort, order)
       .skip(skip)
       .take(limit)
       .getMany();
