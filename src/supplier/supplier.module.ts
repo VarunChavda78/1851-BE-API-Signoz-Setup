@@ -6,7 +6,7 @@ import { Supplier } from './entities/supplier.entity';
 import { SupplierRepository } from './repositories/supplier.repository';
 import { CategoryRepository } from 'src/category/repositories/category.repository';
 import { ReviewRepository } from 'src/review/repositories/review.repository';
-import { ConfigService } from 'aws-sdk';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Supplier])],
