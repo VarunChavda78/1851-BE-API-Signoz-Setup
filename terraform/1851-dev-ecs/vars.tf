@@ -13,7 +13,7 @@ variable "environment" {
 }
 variable "as_max_count" {
   type = number
-  default = 1
+  default = 3
 }
 variable "allow_overwrite" {
   type = bool
