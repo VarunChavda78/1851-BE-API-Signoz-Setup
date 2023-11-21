@@ -1,12 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsNumber,
-  IsOptional,
-  IsString,
-  IsInt,
-  Min,
-  Max,
-} from 'class-validator';
+import { IsNumber, IsOptional, IsString, IsInt } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class reviewCreateDto {
@@ -37,35 +30,7 @@ export class reviewCreateDto {
 
 export class ReviewFilterDto {
   @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  page: number = 1;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @Max(100)
-  limit: number = 10;
-
-  @IsOptional()
   @Type(() => String)
   @IsInt()
   supplier: string;
-}
-
-export class PaginationDto {
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  page: number = 1;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @Max(100)
-  limit: number = 10;
 }
