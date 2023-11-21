@@ -4,7 +4,8 @@ provider "aws" {
     tags = {
       ManagedBy = "terraform"
       Workspace = terraform.workspace
-      Project   = var.ProjectName
+      Project   = Supplier-Database
+      Billing = API
     }
   }
 }
