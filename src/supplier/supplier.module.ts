@@ -6,6 +6,7 @@ import { Supplier } from './entities/supplier.entity';
 import { SupplierRepository } from './repositories/supplier.repository';
 import { CategoryRepository } from 'src/category/repositories/category.repository';
 import { ReviewRepository } from 'src/review/repositories/review.repository';
+import { ConfigService } from 'aws-sdk';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Supplier])],
@@ -14,6 +15,7 @@ import { ReviewRepository } from 'src/review/repositories/review.repository';
     SupplierRepository,
     CategoryRepository,
     ReviewRepository,
+    ConfigService,
   ],
   controllers: [SupplierController],
   exports: [SupplierService],
