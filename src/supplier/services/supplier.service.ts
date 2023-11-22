@@ -98,7 +98,7 @@ export class SupplierService {
           )}/supplier-db/supplier/client-logo.png`,
       location: data?.location ?? '',
       founded: data?.founded,
-      rating: data?.rating.toFixed(1) ?? 0,
+      rating: data?.rating ?? 0,
       review: reviews?.length ?? 0,
       description: data?.description,
       isFeatured: data?.isFeatured ? data?.isFeatured : false,
