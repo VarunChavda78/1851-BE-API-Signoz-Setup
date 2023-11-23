@@ -7,11 +7,13 @@ export class CategoryService {
 
   async getDetails(categories) {
     const data = [];
-    for (const category of categories) {
-      data.push({
-        id: category.id,
-        name: category.name,
-      });
+    if (categories.length) {
+      for (const category of categories) {
+        data.push({
+          id: category.id,
+          name: category.name,
+        });
+      }
     }
     return data;
   }
