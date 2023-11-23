@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CategoryRepository } from 'src/category/repositories/category.repository';
 import { ReviewRepository } from 'src/review/repositories/review.repository';
 import { FilterDto } from '../dtos/supplierDto';
@@ -23,6 +23,7 @@ export class SupplierService {
   ) {
     const { skip, limit, order, sort } = pageOptionsDto;
     const { featured, category, rating } = filterData;
+    const orderBy: any = order?.toUpperCase() ?? 'ASC';
     const queryBuilder = this.repository.createQueryBuilder('suppliers');
     if (featured) {
       const isFeatured = Boolean(featured);
@@ -49,13 +50,10 @@ export class SupplierService {
     }
     const itemCount = await queryBuilder.getCount();
     const suppliers = await queryBuilder
-      .orderBy(sort, order)
+      .orderBy(sort, orderBy)
       .skip(skip)
       .take(limit)
       .getMany();
-    if (!suppliers.length) {
-      throw new NotFoundException();
-    }
 
     const data = await this.getData(suppliers);
     const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
@@ -65,8 +63,10 @@ export class SupplierService {
 
   async getData(datas) {
     const details = [];
-    for (const data of datas) {
-      details.push(await this.getDetails(data));
+    if (datas.length) {
+      for (const data of datas) {
+        details.push(await this.getDetails(data));
+      }
     }
     return details;
   }
@@ -74,9 +74,9 @@ export class SupplierService {
   async getDetails(data) {
     let category = {};
     if (data?.categoryId) {
-      const categoryData = await this.categoryRepository.getById(
-        data?.categoryId,
-      );
+      const categoryData = await this.categoryRepository.findOne({
+        where: { id: data?.categoryId },
+      });
       if (categoryData) {
         category = {
           id: categoryData?.id,

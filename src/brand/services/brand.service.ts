@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PageOptionsDto } from 'src/shared/dtos/pageOptionsDto';
 import { BrandRepository } from '../repositories/brand.repository';
@@ -14,37 +14,33 @@ export class BrandService {
 
   async getList(pageOptionsDto: PageOptionsDto) {
     const { skip, limit, order, sort } = pageOptionsDto;
-    const brands = await this.repository.find({ skip, take: limit });
-    if (!brands.length) {
-      throw new NotFoundException();
-    }
+    const orderBy: any = order?.toUpperCase() ?? 'ASC';
     const queryBuilder = this.repository.createQueryBuilder('brand');
     const itemCount = await queryBuilder.getCount();
-    const review = await queryBuilder
-      .orderBy(sort, order)
+    const brands = await queryBuilder
+      .orderBy(sort, orderBy)
       .skip(skip)
       .take(limit)
       .getMany();
-    if (!review.length) {
-      throw new NotFoundException();
-    }
-    const data = await this.getDetails(review);
+    const data = await this.getDetails(brands);
     const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
     return new PageDto(data, pageMetaDto);
   }
 
   async getDetails(brands) {
     const data = [];
-    for (const brand of brands) {
-      data.push({
-        id: brand?.id,
-        name: brand?.name,
-        slug: brand?.slug,
-        logo: `${this.config.get(
-          's3.imageUrl',
-        )}/supplier-db/brand/${brand?.logo}`,
-        url: brand?.url,
-      });
+    if (brands.length) {
+      for (const brand of brands) {
+        data.push({
+          id: brand?.id,
+          name: brand?.name,
+          slug: brand?.slug,
+          logo: `${this.config.get(
+            's3.imageUrl',
+          )}/supplier-db/brand/${brand?.logo}`,
+          url: brand?.url,
+        });
+      }
     }
     return data;
   }

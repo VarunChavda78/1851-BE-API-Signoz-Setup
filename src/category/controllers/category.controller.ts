@@ -16,7 +16,7 @@ export class CategoryController {
 
   @Get()
   async list() {
-    const categories = await this.categoryRepository.getAll();
+    const categories = await this.categoryRepository.find();
     const data = await this.categoryService.getDetails(categories);
     return { data: data };
   }
