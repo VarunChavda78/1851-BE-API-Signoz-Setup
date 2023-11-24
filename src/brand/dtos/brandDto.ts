@@ -12,5 +12,5 @@ export class BrandDto {
 
   @ApiProperty({ required: true })
   @IsString()
-  url: string;
+  slug: string;
 }

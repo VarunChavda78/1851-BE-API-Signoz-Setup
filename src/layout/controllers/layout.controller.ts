@@ -7,6 +7,9 @@ import { SupplierRepository } from 'src/supplier/repositories/supplier.repositor
 import { CategoryRepository } from 'src/category/repositories/category.repository';
 import { ConfigService } from '@nestjs/config';
 import * as lodash from 'lodash';
+import { HighlightRepository } from 'src/highlight/repositories/highlight.repository';
+import { SupplierInfoRepository } from 'src/supplier_info/repositories/supplier_info.repository';
+import { MediaRepository } from 'src/media/repositories/media.repository';
 
 @Controller({
   version: '1',
@@ -15,7 +18,10 @@ export class LayoutController {
   constructor(
     private layoutService: LayoutService,
     private supplierRepository: SupplierRepository,
+    private highlightRepository: HighlightRepository,
     private categoryRepository: CategoryRepository,
+    private supplierInfoRepository: SupplierInfoRepository,
+    private mediaRepo: MediaRepository,
     private config: ConfigService,
   ) {}
 
@@ -71,12 +77,86 @@ export class LayoutController {
                 ? `${row.City}`
                 : '';
         data.founded = Number(row?.Founded);
-        data.isFeatured = row?.isFeatured === 'Yes' ? true : false;
-        data.categoryId = Number(category?.id);
+        data.is_featured = row?.isFeatured === 'Yes' ? true : false;
+        data.category_id = Number(category?.id);
         data.logo = row?.Logo;
-        data.videoUrl = row?.Video;
+        data.video_url = row?.Video;
         data.rating = row?.Rating;
-        await this.supplierRepository.save(data);
+        const supplier = await this.supplierRepository.save(data);
+        const highlightData1 = {
+          supplier_id: supplier?.id,
+          logo: row?.['Highlight Logo1'],
+          title: row?.['Highlight Summary1'],
+          content: row?.['Highlight Content1'],
+        };
+        await this.highlightRepository.save(highlightData1);
+        const highlightData2 = {
+          supplier_id: supplier?.id,
+          logo: row?.['Highlight Logo2'],
+          title: row?.['Highlight Summary2'],
+          content: row?.['Highlight Content2'],
+        };
+        await this.highlightRepository.save(highlightData2);
+        const highlightData3 = {
+          supplier_id: supplier?.id,
+          logo: row?.['Highlight Logo3'],
+          title: row?.['Highlight Summary3'],
+          content: row?.['Highlight Content3'],
+        };
+        await this.highlightRepository.save(highlightData3);
+
+        const mtsImage = (await this.layoutService.isUrl(
+          row?.['Supplier Difference Media'],
+        ))
+          ? await this.layoutService.getThumbnailUrl(
+              row?.['Supplier Difference Media'],
+            )
+          : row?.['Supplier Difference Media'];
+        const mtsMediaData = {
+          image: mtsImage,
+          url: (await this.layoutService.isUrl(
+            row?.['Meet The Supplier Media'],
+          ))
+            ? row?.['Meet The Supplier Media']
+            : null,
+          type: (await this.layoutService.isUrl(
+            row?.['Meet The Supplier Media'],
+          ))
+            ? 'image'
+            : 'video',
+        };
+        const mtsMedia = await this.mediaRepo.save(mtsMediaData);
+        const differenceImage = (await this.layoutService.isUrl(
+          row?.['Supplier Difference Media'],
+        ))
+          ? await this.layoutService.getThumbnailUrl(
+              row?.['Supplier Difference Media'],
+            )
+          : row?.['Supplier Difference Media'];
+        const differenceMediaData = {
+          image: differenceImage,
+          url: (await this.layoutService.isUrl(
+            row?.['Supplier Difference Media'],
+          ))
+            ? row?.['Supplier Difference Media']
+            : null,
+          type: (await this.layoutService.isUrl(
+            row?.['Supplier Difference Media'],
+          ))
+            ? 'image'
+            : 'video',
+        };
+        const differenceMedia = await this.mediaRepo.save(differenceMediaData);
+        const info = {
+          supplier_id: supplier?.id,
+          highlight_title: row?.['Highlight Title'],
+          mts_media_id: mtsMedia?.id,
+          mts_content: row?.['Meet The Supplier Text'],
+          difference_media_id: differenceMedia?.id,
+          difference_content: row?.['Supplier Difference'],
+          services: row?.['Services'],
+        };
+        await this.supplierInfoRepository.save(info);
       });
     return true;
   }

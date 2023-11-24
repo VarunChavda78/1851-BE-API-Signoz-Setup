@@ -20,12 +20,9 @@ export class Brand {
   @Column()
   logo: string;
 
-  @Column()
-  url: string;
+  @CreateDateColumn({ name: 'created_at' })
+  created_at: Date;
 
-  @CreateDateColumn({ name: 'createdAt' })
-  createdAt: Date;
-
-  @UpdateDateColumn({ name: 'updatedAt' })
-  updatedAt: Date;
+  @UpdateDateColumn({ name: 'updated_at' })
+  updated_at: Date;
 }

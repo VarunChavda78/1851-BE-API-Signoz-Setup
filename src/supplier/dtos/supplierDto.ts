@@ -21,7 +21,7 @@ export class supplierDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsNumber()
-  categoryId: number;
+  category_id: number;
 
   @ApiProperty({ required: false })
   @IsOptional()
@@ -31,7 +31,7 @@ export class supplierDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsBoolean()
-  isFeatured: boolean;
+  is_featured: boolean;
 
   @ApiProperty({ required: false })
   @IsOptional()
@@ -41,12 +41,12 @@ export class supplierDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  videoUrl: string;
+  video_url: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsNumber()
-  createdBy: number;
+  created_by: number;
 }
 
 export class FilterDto {

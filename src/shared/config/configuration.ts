@@ -20,4 +20,10 @@ export default (): any => ({
   franchise: {
     url: process.env.FRANCHISE_1851_URL,
   },
+  youtube: {
+    baseUrl: process.env.YOUTUBE_PLACEHOLDER_BASE_URL,
+  },
+  vimeo: {
+    baseUrl: process.env.VIMEO_PLACEHOLDER_BASE_URL,
+  },
 });

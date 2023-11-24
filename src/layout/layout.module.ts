@@ -4,6 +4,9 @@ import { LayoutController } from './controllers/layout.controller';
 import { ConfigService } from '@nestjs/config';
 import { SupplierRepository } from 'src/supplier/repositories/supplier.repository';
 import { CategoryRepository } from 'src/category/repositories/category.repository';
+import { HighlightRepository } from 'src/highlight/repositories/highlight.repository';
+import { MediaRepository } from 'src/media/repositories/media.repository';
+import { SupplierInfoRepository } from 'src/supplier_info/repositories/supplier_info.repository';
 
 @Module({
   imports: [],
@@ -12,6 +15,9 @@ import { CategoryRepository } from 'src/category/repositories/category.repositor
     ConfigService,
     SupplierRepository,
     CategoryRepository,
+    HighlightRepository,
+    MediaRepository,
+    SupplierInfoRepository,
   ],
   controllers: [LayoutController],
   exports: [LayoutService],

@@ -14,9 +14,18 @@ export class Category {
   @Column()
   name: string;
 
-  @CreateDateColumn({ name: 'createdAt' })
-  createdAt: Date;
+  @Column({ nullable: true })
+  created_by: string;
 
-  @UpdateDateColumn({ name: 'updatedAt' })
-  updatedAt: Date;
+  @Column({ nullable: true })
+  updated_by: string;
+
+  @Column({ nullable: true })
+  deleted_at: Date;
+
+  @CreateDateColumn({ name: 'created_at' })
+  created_at: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updated_at: Date;
 }

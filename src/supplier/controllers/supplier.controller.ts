@@ -46,11 +46,10 @@ export class SupplierController {
     const data = {
       ...request,
       slug: lodash.kebabCase(request?.name),
-      categoryId: Number(request?.categoryId),
-      isFeatured: Boolean(request?.isFeatured),
+      category_id: Number(request?.category_id),
+      is_featured: Boolean(request?.is_featured),
       founded: Number(request?.founded),
-      createdBy: request?.createdBy ?? null,
-      rating: null,
+      created_by: request?.created_by ?? null,
     };
     await this.supplierRepository.save(data);
     return {

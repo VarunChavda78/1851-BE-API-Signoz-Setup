@@ -5,7 +5,6 @@ import {
   Entity,
   ManyToOne,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('review')
@@ -33,11 +32,11 @@ export class Review {
   company: string;
 
   @Column({ nullable: true })
-  deletedAt: Date;
+  email: string;
 
-  @CreateDateColumn({ name: 'createdAt' })
-  createdAt: Date;
+  @Column({ nullable: true })
+  role: string;
 
-  @UpdateDateColumn({ name: 'updatedAt' })
-  updatedAt: Date;
+  @CreateDateColumn({ name: 'created_at' })
+  created_at: Date;
 }
