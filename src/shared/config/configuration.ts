@@ -29,4 +29,16 @@ export default (): any => ({
   vimeo: {
     baseUrl: process.env.VIMEO_PLACEHOLDER_BASE_URL,
   },
+  mailchimp: {
+    apiKey: process.env.MAILCHIMP_API_KEY,
+    listId: process.env.MAILCHIMP_LIST_ID,
+    apiUrl: process.env.MAILCHIMP_API_URL,
+  },
+  smtp: {
+    host: process.env.SMTP_HOST,
+    port: process.env.SMTP_PORT,
+    username: process.env.SMTP_USERNAME,
+    password: process.env.SMTP_PASSWORD,
+    fromEmail: process.env.ADMIN_FROM_EMAIL || 'admin@example.com',
+  },
 });

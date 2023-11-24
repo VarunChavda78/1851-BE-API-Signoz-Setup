@@ -9,6 +9,7 @@ import { CategoryModule } from './category/category.module';
 import { BrandModule } from './brand/brand.module';
 import { SupplierLibraryModule } from './supplier_library/supplier_library.module';
 import { TestimonialModule } from './testimonial/testimonial.module';
+import { NewsletterModule } from './newsletter/newsletter.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { TestimonialModule } from './testimonial/testimonial.module';
     BrandModule,
     SupplierLibraryModule,
     TestimonialModule,
+    NewsletterModule,
   ],
   controllers: [AppController],
   providers: [AppService],
