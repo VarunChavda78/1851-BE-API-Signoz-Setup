@@ -63,7 +63,7 @@ export class LayoutController {
       .on('data', async (row) => {
         const data = new Supplier();
         const category: any = await this.categoryRepository.findOne({
-          where: { name: row.Category },
+          where: { name: row?.Category },
         });
         data.name = row.Name;
         data.slug = lodash.kebabCase(row.Name);
@@ -78,7 +78,7 @@ export class LayoutController {
                 : '';
         data.founded = Number(row?.Founded);
         data.is_featured = row?.isFeatured === 'Yes' ? true : false;
-        data.category_id = Number(category?.id);
+        data.category_id = Number(category?.id) ?? null;
         data.logo = row?.Logo;
         data.video_url = row?.Video;
         data.rating = row?.Rating;

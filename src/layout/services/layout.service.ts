@@ -162,8 +162,7 @@ export class LayoutService {
     let thumbnail = null;
     if (youtube.test(url)) {
       thumbnail = await this.getYoutubeThumbnail(url);
-    }
-    if (vimeo.test(url)) {
+    } else if (vimeo.test(url)) {
       thumbnail = await this.getVimeoThumbnail(url);
     }
     return thumbnail;
