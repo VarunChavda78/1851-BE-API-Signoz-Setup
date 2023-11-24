@@ -12,7 +12,7 @@ export class SupplierLibrary {
   id: number;
 
   @Column()
-  video_id: number;
+  video_id: string;
 
   @Column()
   description: string;

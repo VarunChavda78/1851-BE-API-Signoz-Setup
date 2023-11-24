@@ -9,10 +9,10 @@ export class PageOptionsDto {
   @IsOptional()
   readonly order?: Order = Order.ASC;
 
-  @ApiPropertyOptional({ default: 'createdAt' })
+  @ApiPropertyOptional({ default: 'id' })
   @Type(() => String)
   @IsOptional()
-  readonly sort?: string = 'createdAt';
+  readonly sort?: string = 'id';
 
   @ApiPropertyOptional({
     minimum: 1,

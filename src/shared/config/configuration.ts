@@ -22,6 +22,9 @@ export default (): any => ({
   },
   youtube: {
     baseUrl: process.env.YOUTUBE_PLACEHOLDER_BASE_URL,
+    apiUrl: process.env.YOUTUBE_PLAYLIST_API_URL,
+    playlistId: process.env.YOUTUBE_PLAYLIST_ID,
+    apiKey: process.env.YOUTUBE_API_KEY,
   },
   vimeo: {
     baseUrl: process.env.VIMEO_PLACEHOLDER_BASE_URL,
