@@ -10,8 +10,8 @@ export class CategoryService {
     if (categories.length) {
       for (const category of categories) {
         data.push({
-          id: category.id,
-          name: category.name,
+          value: category.id,
+          label: category.name,
         });
       }
     }
