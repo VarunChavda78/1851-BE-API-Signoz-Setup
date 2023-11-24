@@ -23,18 +23,19 @@ export class NewsletterService {
         },
       ],
     };
-
-    const response = await this.httpService
-      .post(`${apiUrl}/members`, data, {
-        headers: {
-          Authorization: `Basic ${Buffer.from(`apikey:${apiKey}`).toString(
-            'base64',
-          )}`,
-        },
-      })
-      .toPromise();
-
-    return response.data;
+    try {
+      await this.httpService
+        .post(`${apiUrl}/members`, data, {
+          headers: {
+            Authorization: `Basic ${Buffer.from(`apikey:${apiKey}`).toString(
+              'base64',
+            )}`,
+          },
+        })
+        .toPromise();
+    } catch (e) {
+      console.log(e);
+    }
   }
   async sendEmail(
     fromEmail: string,
