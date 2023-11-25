@@ -106,12 +106,12 @@ export class LayoutController {
         await this.highlightRepository.save(highlightData3);
 
         const mtsImage = (await this.layoutService.isUrl(
-          row?.['Supplier Difference Media'],
+          row?.['Meet The Supplier Media'],
         ))
           ? await this.layoutService.getThumbnailUrl(
-              row?.['Supplier Difference Media'],
+              row?.['Meet The Supplier Media'],
             )
-          : row?.['Supplier Difference Media'];
+          : row?.['Meet The Supplier Media'];
         const mtsMediaData = {
           image: mtsImage,
           url: (await this.layoutService.isUrl(
@@ -122,8 +122,8 @@ export class LayoutController {
           type: (await this.layoutService.isUrl(
             row?.['Meet The Supplier Media'],
           ))
-            ? 'image'
-            : 'video',
+            ? 'video'
+            : 'image',
         };
         const mtsMedia = await this.mediaRepo.save(mtsMediaData);
         const differenceImage = (await this.layoutService.isUrl(
@@ -143,8 +143,8 @@ export class LayoutController {
           type: (await this.layoutService.isUrl(
             row?.['Supplier Difference Media'],
           ))
-            ? 'image'
-            : 'video',
+            ? 'video'
+            : 'image',
         };
         const differenceMedia = await this.mediaRepo.save(differenceMediaData);
         const info = {
