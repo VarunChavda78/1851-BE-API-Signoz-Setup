@@ -1,16 +1,57 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InfoFilter } from '../dtos/supplierInfoDto';
+import { SupplierRepository } from 'src/supplier/repositories/supplier.repository';
+import { SupplierInfoRepository } from '../repositories/supplier_info.repository';
+import { MediaRepository } from 'src/media/repositories/media.repository';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class SupplierInfoService {
-  constructor() {}
+  constructor(
+    private supplierRepo: SupplierRepository,
+    private repository: SupplierInfoRepository,
+    private mediaRepo: MediaRepository,
+    private readonly config: ConfigService,
+  ) {}
 
-  async getDetails(data) {
-    let result = {};
-    if (data) {
-      result = {
-        id: data?.supplier_id,
-      };
+  async getInfo(infoFilter: InfoFilter) {
+    const { slug } = infoFilter;
+    const supplier = await this.supplierRepo.findOne({ where: { slug } });
+    if (!supplier) {
+      throw new NotFoundException();
+    } else {
+      let data = {};
+      const info = await this.repository.findOne({
+        where: { supplier_id: supplier?.id },
+      });
+      if (info) {
+        const mtsMedia = await this.mediaRepo.findOne({
+          where: { id: info?.mts_media_id },
+        });
+        mtsMedia['image'] = `${this.config.get(
+          's3.imageUrl',
+        )}/supplier-db/supplier/${mtsMedia?.image}`;
+        const differenceMedia = await this.mediaRepo.findOne({
+          where: { id: info?.difference_media_id },
+        });
+        differenceMedia['image'] = `${this.config.get(
+          's3.imageUrl',
+        )}/supplier-db/supplier/${differenceMedia?.image}`;
+        data = {
+          id: info?.id,
+          name: supplier?.name,
+          meet_the_supplier: {
+            content: info?.mts_content,
+            media: mtsMedia ?? null,
+          },
+          difference: {
+            content: info?.difference_content,
+            media: differenceMedia ?? null,
+          },
+          services: info?.services,
+        };
+      }
+      return data;
     }
-    return result;
   }
 }

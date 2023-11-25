@@ -16,7 +16,7 @@ export class TestimonialService {
         description: testimonial?.description,
         image: `${this.config.get(
           's3.imageUrl',
-        )}/testimonial/${testimonial?.image}`,
+        )}/supplier-db/testimonial/${testimonial?.image}`,
       };
     }
     return data;

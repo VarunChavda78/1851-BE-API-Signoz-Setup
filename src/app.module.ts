@@ -10,6 +10,8 @@ import { BrandModule } from './brand/brand.module';
 import { SupplierLibraryModule } from './supplier_library/supplier_library.module';
 import { TestimonialModule } from './testimonial/testimonial.module';
 import { NewsletterModule } from './newsletter/newsletter.module';
+import { HighlightModule } from './highlight/highlight.module';
+import { SupplierInfoModule } from './supplier_info/supplier_info.module';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { NewsletterModule } from './newsletter/newsletter.module';
     SupplierLibraryModule,
     TestimonialModule,
     NewsletterModule,
+    HighlightModule,
+    SupplierInfoModule,
   ],
   controllers: [AppController],
   providers: [AppService],
