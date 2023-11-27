@@ -27,13 +27,13 @@ export class SupplierService {
     const queryBuilder = this.repository.createQueryBuilder('suppliers');
     if (featured) {
       const isFeatured = Boolean(featured);
-      queryBuilder.andWhere('suppliers.isFeatured = :isFeatured', {
+      queryBuilder.andWhere('suppliers.is_featured = :isFeatured', {
         isFeatured,
       });
     }
     if (category) {
       const categoryId = await this.repository.transformStringToArray(category);
-      queryBuilder.andWhere('suppliers.categoryId IN (:...categoryId)', {
+      queryBuilder.andWhere('suppliers.category_id IN (:...categoryId)', {
         categoryId,
       });
     }
@@ -73,9 +73,9 @@ export class SupplierService {
 
   async getDetails(data) {
     let category = {};
-    if (data?.categoryId) {
+    if (data?.category_id) {
       const categoryData = await this.categoryRepository.findOne({
-        where: { id: data?.categoryId },
+        where: { id: data?.category_id },
       });
       if (categoryData) {
         category = {
@@ -101,7 +101,7 @@ export class SupplierService {
       rating: data?.rating ?? 0,
       review: reviews?.length ?? 0,
       description: data?.description,
-      isFeatured: data?.isFeatured ? data?.isFeatured : false,
+      isFeatured: data?.is_featured ? data?.is_featured : false,
       category: category,
     };
   }

@@ -13,7 +13,7 @@ export class Supplier {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: false })
+  @Column({ unique: true })
   name: string;
 
   @Column({ unique: true })
@@ -32,16 +32,16 @@ export class Supplier {
   // @JoinColumn({ name: 'categoryId', referencedColumnName: 'id' })
   // category: Category;
   @Column({ nullable: true, unique: false })
-  categoryId: number;
+  category_id: number;
 
   @Column()
-  isFeatured: boolean;
+  is_featured: boolean;
 
   @Column({ nullable: true })
   founded?: number;
 
   @Column({ nullable: true })
-  videoUrl?: string | null;
+  video_url?: string | null;
 
   @Column({
     nullable: true,
@@ -52,18 +52,21 @@ export class Supplier {
   })
   rating?: number;
 
-  @Column({ nullable: true })
-  createdBy?: number | null;
+  @Column({ nullable: true, default: 0 })
+  review?: number;
 
   @Column({ nullable: true })
-  updatedBy?: number | null;
+  created_by?: number | null;
 
   @Column({ nullable: true })
-  deletedAt?: Date;
+  updated_by?: number | null;
 
-  @CreateDateColumn({ name: 'createdAt' })
-  createdAt: Date;
+  @Column({ nullable: true })
+  deleted_at?: Date;
 
-  @UpdateDateColumn({ name: 'updatedAt' })
-  updatedAt: Date;
+  @CreateDateColumn({ name: 'created_at' })
+  created_at: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updated_at: Date;
 }

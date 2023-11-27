@@ -38,7 +38,7 @@ export class BrandService {
           logo: `${this.config.get(
             's3.imageUrl',
           )}/supplier-db/brand/${brand?.logo}`,
-          url: brand?.url,
+          url: `${this.config.get('franchise.url')}/${brand?.slug}`,
         });
       }
     }

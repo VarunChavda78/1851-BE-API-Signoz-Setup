@@ -71,7 +71,7 @@ export class ReviewService {
               name: supplierData?.name,
               logo: supplierData?.logo,
               founded: supplierData?.founded,
-              isFeatured: supplierData?.isFeatured,
+              isFeatured: supplierData?.is_featured,
               description: supplierData?.description,
             };
           }

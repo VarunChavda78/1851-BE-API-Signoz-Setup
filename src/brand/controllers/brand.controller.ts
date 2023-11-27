@@ -2,7 +2,6 @@ import { Body, Controller, Get, HttpStatus, Post, Query } from '@nestjs/common';
 import { BrandService } from '../services/brand.service';
 import { BrandRepository } from '../repositories/brand.repository';
 import { BrandDto } from '../dtos/brandDto';
-import * as lodash from 'lodash';
 import { PageOptionsDto } from 'src/shared/dtos/pageOptionsDto';
 
 @Controller({
@@ -24,9 +23,8 @@ export class BrandController {
   async create(@Body() request: BrandDto) {
     const data = {
       name: request?.name,
-      slug: lodash.kebabCase(request?.name),
+      slug: request?.slug,
       logo: request?.logo,
-      url: request?.url,
     };
     await this.brandRepository.save(data);
     return {
