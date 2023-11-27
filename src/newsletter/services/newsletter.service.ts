@@ -12,19 +12,15 @@ export class NewsletterService {
 
   async addSubscriber(email) {
     const apiKey = this.config.get('mailchimp.apiKey');
-    const listId = this.config.get('mailchimp.listId');
-    const apiUrl = `${this.config.get('mailchimp.apiUrl')}/${listId}`;
+    const audienceId = this.config.get('mailchimp.audienceId');
+    const apiUrl = `${this.config.get('mailchimp.apiUrl')}/${audienceId}`;
 
     const data = {
-      members: [
-        {
-          email_address: email,
-          status: 'subscribed',
-        },
-      ],
+      email_address: email,
+      status: 'subscribed',
     };
     try {
-      await this.httpService
+      const response = await this.httpService
         .post(`${apiUrl}/members`, data, {
           headers: {
             Authorization: `Basic ${Buffer.from(`apikey:${apiKey}`).toString(
@@ -33,8 +29,11 @@ export class NewsletterService {
           },
         })
         .toPromise();
+      if (response.status) {
+        return response.status;
+      }
     } catch (e) {
-      console.log(e);
+      return e?.response?.data?.title;
     }
   }
   async sendEmail(

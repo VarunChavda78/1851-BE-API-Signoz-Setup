@@ -33,6 +33,7 @@ export default (): any => ({
     apiKey: process.env.MAILCHIMP_API_KEY,
     listId: process.env.MAILCHIMP_LIST_ID,
     apiUrl: process.env.MAILCHIMP_API_URL,
+    audienceId: process.env.MAILCHIMP_AUDIENCE_ID,
   },
   smtp: {
     host: process.env.SMTP_HOST,
