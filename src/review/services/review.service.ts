@@ -14,7 +14,8 @@ export class ReviewService {
   ) {}
 
   async getReviewListBySupplierId(id: number, pageOptionsDto: PageOptionsDto) {
-    const { skip, limit, order, sort }: any = pageOptionsDto;
+    const { page, limit, order, sort }: any = pageOptionsDto;
+    const skip = (page - 1) * limit;
     const orderBy: any = order?.toUpperCase() ?? 'ASC';
     const queryBuilder = this.repository.createQueryBuilder('review');
     queryBuilder.andWhere('review.supplier_id = :id', {
@@ -33,7 +34,8 @@ export class ReviewService {
   }
 
   async getList(filterDto: ReviewFilterDto, pageOptionsDto: PageOptionsDto) {
-    const { skip, limit, order, sort } = pageOptionsDto;
+    const { page, limit, order, sort } = pageOptionsDto;
+    const skip = (page - 1) * limit;
     const orderBy: any = order?.toUpperCase() ?? 'ASC';
     const { supplier } = filterDto;
     const queryBuilder = this.repository.createQueryBuilder('review');
@@ -82,7 +84,7 @@ export class ReviewService {
           title: review.title,
           comment: review.comment,
           company: review.company,
-          rating: review.rating,
+          rating: Number(review.rating)?.toFixed(1) ?? 0,
           supplier,
         });
       }

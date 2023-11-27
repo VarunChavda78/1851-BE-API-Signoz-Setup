@@ -13,7 +13,8 @@ export class BrandService {
   ) {}
 
   async getList(pageOptionsDto: PageOptionsDto) {
-    const { skip, limit, order, sort } = pageOptionsDto;
+    const { page, limit, order, sort } = pageOptionsDto;
+    const skip = (page - 1) * limit;
     const orderBy: any = order?.toUpperCase() ?? 'ASC';
     const queryBuilder = this.repository.createQueryBuilder('brand');
     const itemCount = await queryBuilder.getCount();
