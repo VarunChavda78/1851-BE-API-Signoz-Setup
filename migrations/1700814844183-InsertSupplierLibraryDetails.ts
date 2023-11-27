@@ -27,9 +27,7 @@ export class InsertSupplierLibraryDetails1700814844183
       nextPageToken = response.data.nextPageToken;
     } while (nextPageToken);
     for (const item of videos) {
-      const date: any = dayjs(new Date(item?.snippet?.publishedAt)).format(
-        'YYYY-MM-DD',
-      );
+      const date: any = dayjs(item?.snippet?.publishedAt);
       await _queryRunner.query(
         `
         INSERT INTO supplier_library (video_id, description, title, image, url, position, publish_date)

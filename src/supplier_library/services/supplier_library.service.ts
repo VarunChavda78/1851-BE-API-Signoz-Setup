@@ -45,9 +45,11 @@ export class SupplierLibraryService {
         description: playlist?.description,
         title: playlist?.title,
         image: playlist?.image,
-        url: playlist?.video_id,
+        url: playlist?.url,
         position: playlist?.position,
-        publish_date: dayjs(playlist?.publish_date).format('YYYY-MM-DD'),
+        publish_date: dayjs(playlist?.publish_date).format(
+          'MMMM D, YYYY h:mm a',
+        ),
       };
     }
     return details;
