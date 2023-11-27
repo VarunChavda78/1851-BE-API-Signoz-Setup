@@ -49,3 +49,9 @@ export class MediaInfo {
   @IsString()
   url: string;
 }
+
+export class InfoFilter {
+  @ApiProperty({ required: true })
+  @IsString()
+  slug: string;
+}

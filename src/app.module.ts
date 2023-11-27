@@ -7,6 +7,11 @@ import { SupplierModule } from './supplier/supplier.module';
 import { ReviewModule } from './review/review.module';
 import { CategoryModule } from './category/category.module';
 import { BrandModule } from './brand/brand.module';
+import { SupplierLibraryModule } from './supplier_library/supplier_library.module';
+import { TestimonialModule } from './testimonial/testimonial.module';
+import { NewsletterModule } from './newsletter/newsletter.module';
+import { HighlightModule } from './highlight/highlight.module';
+import { SupplierInfoModule } from './supplier_info/supplier_info.module';
 
 @Module({
   imports: [
@@ -16,6 +21,11 @@ import { BrandModule } from './brand/brand.module';
     ReviewModule,
     CategoryModule,
     BrandModule,
+    SupplierLibraryModule,
+    TestimonialModule,
+    NewsletterModule,
+    HighlightModule,
+    SupplierInfoModule,
   ],
   controllers: [AppController],
   providers: [AppService],

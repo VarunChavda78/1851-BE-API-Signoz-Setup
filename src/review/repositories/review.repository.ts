@@ -38,7 +38,7 @@ export class ReviewRepository extends Repository<Review> {
       count += reviewResult?.rating;
     });
     const rating = count / total;
-    await this.supplierRepository.update({ id }, { rating });
+    await this.supplierRepository.update({ id }, { rating, review: total });
 
     return result;
   }

@@ -1,11 +1,11 @@
-import { Body, Controller, Get, HttpStatus, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Post, Query } from '@nestjs/common';
 import { SupplierInfoService } from '../services/supplier_info.service';
 import { SupplierInfoRepository } from '../repositories/supplier_info.repository';
-import { supplierInfoDto } from '../dtos/supplierInfoDto';
+import { InfoFilter, supplierInfoDto } from '../dtos/supplierInfoDto';
 
 @Controller({
   version: '1',
-  path: 'supplier',
+  path: 'info',
 })
 export class SupplierInfoController {
   constructor(
@@ -13,14 +13,13 @@ export class SupplierInfoController {
     private repository: SupplierInfoRepository,
   ) {}
 
-  @Get('info/:id')
-  async show(@Param('id') id: number) {
-    const info = await this.repository.getById(id);
-    const data = await this.service.getDetails(info);
+  @Get()
+  async show(@Query() infoFilter: InfoFilter) {
+    const data = await this.service.getInfo(infoFilter);
     return { data: data };
   }
 
-  @Post('info')
+  @Post()
   async create(@Body() request: supplierInfoDto) {
     const data = {
       ...request,
