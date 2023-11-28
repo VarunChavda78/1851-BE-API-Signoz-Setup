@@ -167,7 +167,7 @@ export class LayoutService {
     // Construct the YouTube thumbnail URL
     const thumbnailUrl = `${this.configService.get(
       'youtube.baseUrl',
-    )}/${videoId}/default.jpg`;
+    )}/${videoId}/maxresdefault.jpg`;
 
     return thumbnailUrl;
   }

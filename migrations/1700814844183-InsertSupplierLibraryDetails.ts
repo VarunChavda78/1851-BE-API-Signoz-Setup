@@ -37,7 +37,7 @@ export class InsertSupplierLibraryDetails1700814844183
           item?.snippet?.resourceId?.videoId,
           item?.snippet?.description ?? null,
           item?.snippet?.title ?? null,
-          item?.snippet?.thumbnails?.high?.url,
+          item?.snippet?.thumbnails?.maxres?.url,
           `https://www.youtube.com/watch?v=${item?.snippet?.resourceId?.videoId}`,
           item?.snippet?.position,
           date,
