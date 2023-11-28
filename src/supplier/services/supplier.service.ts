@@ -103,6 +103,7 @@ export class SupplierService {
       review: reviews?.length ?? 0,
       description: data?.description,
       isFeatured: data?.is_featured ? data?.is_featured : false,
+      video: data?.video_url ?? '',
       category: category,
     };
   }
