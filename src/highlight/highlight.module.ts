@@ -5,7 +5,7 @@ import { HighlightService } from './services/highlight.service';
 import { HighlightRepository } from './repositories/highlight.repository';
 import { HighlightController } from './controllers/highlight.controller';
 import { SupplierRepository } from 'src/supplier/repositories/supplier.repository';
-import { SupplierInfoRepository } from 'src/supplier_info/repositories/supplier_info.repository';
+import { SupplierInfoRepository } from 'src/supplier-info/repositories/supplier-info.repository';
 import { ConfigService } from '@nestjs/config';
 
 @Module({

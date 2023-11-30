@@ -6,8 +6,8 @@ import { SupplierRepository } from 'src/supplier/repositories/supplier.repositor
 import { CategoryRepository } from 'src/category/repositories/category.repository';
 import { HighlightRepository } from 'src/highlight/repositories/highlight.repository';
 import { MediaRepository } from 'src/media/repositories/media.repository';
-import { SupplierInfoRepository } from 'src/supplier_info/repositories/supplier_info.repository';
-import { LatestNewsRepository } from 'src/latest_news/repositories/latest_news.repository';
+import { SupplierInfoRepository } from 'src/supplier-info/repositories/supplier-info.repository';
+import { LatestNewsRepository } from 'src/latest-news/repositories/latest-news.repository';
 
 @Module({
   imports: [],

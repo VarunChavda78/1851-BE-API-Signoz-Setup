@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { HighlightDto } from '../dtos/highlightDto';
 import { HighlightRepository } from '../repositories/highlight.repository';
 import { SupplierRepository } from 'src/supplier/repositories/supplier.repository';
-import { SupplierInfoRepository } from 'src/supplier_info/repositories/supplier_info.repository';
+import { SupplierInfoRepository } from 'src/supplier-info/repositories/supplier-info.repository';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()

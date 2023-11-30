@@ -7,12 +7,12 @@ import { SupplierModule } from './supplier/supplier.module';
 import { ReviewModule } from './review/review.module';
 import { CategoryModule } from './category/category.module';
 import { BrandModule } from './brand/brand.module';
-import { SupplierLibraryModule } from './supplier_library/supplier_library.module';
+import { SupplierLibraryModule } from './supplier-library/supplier-library.module';
 import { TestimonialModule } from './testimonial/testimonial.module';
 import { NewsletterModule } from './newsletter/newsletter.module';
 import { HighlightModule } from './highlight/highlight.module';
-import { SupplierInfoModule } from './supplier_info/supplier_info.module';
-import { LatestNewsModule } from './latest_news/latest_news.module';
+import { SupplierInfoModule } from './supplier-info/supplier-info.module';
+import { LatestNewsModule } from './latest-news/latest-news.module';
 
 @Module({
   imports: [
