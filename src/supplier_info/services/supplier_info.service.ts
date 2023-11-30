@@ -28,18 +28,31 @@ export class SupplierInfoService {
         const mtsMedia = await this.mediaRepo.findOne({
           where: { id: info?.mts_media_id },
         });
-        mtsMedia['image'] = `${this.config.get(
-          's3.imageUrl',
-        )}/supplier-db/supplier/${mtsMedia?.image}`;
+        mtsMedia['image'] =
+          mtsMedia?.type === 'video'
+            ? mtsMedia?.image
+            : `${this.config.get(
+                's3.imageUrl',
+              )}/supplier-db/supplier/${mtsMedia?.image}`;
         const differenceMedia = await this.mediaRepo.findOne({
           where: { id: info?.difference_media_id },
         });
-        differenceMedia['image'] = `${this.config.get(
-          's3.imageUrl',
-        )}/supplier-db/supplier/${differenceMedia?.image}`;
+        differenceMedia['image'] =
+          differenceMedia?.type === 'video'
+            ? differenceMedia?.image
+            : `${this.config.get(
+                's3.imageUrl',
+              )}/supplier-db/supplier/${differenceMedia?.image}`;
         data = {
           id: info?.id,
           name: supplier?.name,
+          logo: supplier?.logo
+            ? `${this.config.get(
+                's3.imageUrl',
+              )}/supplier-db/supplier/${supplier?.logo}`
+            : `${this.config.get(
+                's3.imageUrl',
+              )}/supplier-db/supplier/client-logo.png`,
           meet_the_supplier: {
             content: info?.mts_content,
             media: mtsMedia ?? null,
