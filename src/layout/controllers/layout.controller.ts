@@ -10,6 +10,7 @@ import * as lodash from 'lodash';
 import { HighlightRepository } from 'src/highlight/repositories/highlight.repository';
 import { SupplierInfoRepository } from 'src/supplier_info/repositories/supplier_info.repository';
 import { MediaRepository } from 'src/media/repositories/media.repository';
+import { LatestNewsRepository } from 'src/latest_news/repositories/latest_news.repository';
 
 @Controller({
   version: '1',
@@ -21,6 +22,7 @@ export class LayoutController {
     private highlightRepository: HighlightRepository,
     private categoryRepository: CategoryRepository,
     private supplierInfoRepository: SupplierInfoRepository,
+    private latestNewsRepo: LatestNewsRepository,
     private mediaRepo: MediaRepository,
     private config: ConfigService,
   ) {}
@@ -157,6 +159,11 @@ export class LayoutController {
           services: row?.['Services'],
         };
         await this.supplierInfoRepository.save(info);
+        const news = {
+          supplier_id: supplier?.id,
+          article_id: row?.['News Article IDs'],
+        };
+        await this.latestNewsRepo.save(news);
       });
     return true;
   }

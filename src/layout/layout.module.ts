@@ -7,6 +7,7 @@ import { CategoryRepository } from 'src/category/repositories/category.repositor
 import { HighlightRepository } from 'src/highlight/repositories/highlight.repository';
 import { MediaRepository } from 'src/media/repositories/media.repository';
 import { SupplierInfoRepository } from 'src/supplier_info/repositories/supplier_info.repository';
+import { LatestNewsRepository } from 'src/latest_news/repositories/latest_news.repository';
 
 @Module({
   imports: [],
@@ -18,6 +19,7 @@ import { SupplierInfoRepository } from 'src/supplier_info/repositories/supplier_
     HighlightRepository,
     MediaRepository,
     SupplierInfoRepository,
+    LatestNewsRepository,
   ],
   controllers: [LayoutController],
   exports: [LayoutService],

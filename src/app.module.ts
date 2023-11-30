@@ -12,6 +12,7 @@ import { TestimonialModule } from './testimonial/testimonial.module';
 import { NewsletterModule } from './newsletter/newsletter.module';
 import { HighlightModule } from './highlight/highlight.module';
 import { SupplierInfoModule } from './supplier_info/supplier_info.module';
+import { LatestNewsModule } from './latest_news/latest_news.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { SupplierInfoModule } from './supplier_info/supplier_info.module';
     NewsletterModule,
     HighlightModule,
     SupplierInfoModule,
+    LatestNewsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

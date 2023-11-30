@@ -1,14 +1,20 @@
-import { Controller } from '@nestjs/common';
-import { LatestNewsRepository } from '../repositories/latest_news.repository';
+import { Controller, Get, Query } from '@nestjs/common';
 import { LatestNewsService } from '../services/latest_news.service';
+import { LatestNewsDto } from '../dtos/latestNewsDto';
+import { PageOptionsDto } from 'src/shared/dtos/pageOptionsDto';
 
 @Controller({
   version: '1',
-  path: 'news',
+  path: 'latest-news',
 })
 export class LatestNewsController {
-  constructor(
-    private repository: LatestNewsRepository,
-    private service: LatestNewsService,
-  ) {}
+  constructor(private service: LatestNewsService) {}
+
+  @Get()
+  async list(
+    @Query() filter: LatestNewsDto,
+    @Query() pageOptionsDto: PageOptionsDto,
+  ) {
+    return await this.service.listLatestNews(filter, pageOptionsDto);
+  }
 }
