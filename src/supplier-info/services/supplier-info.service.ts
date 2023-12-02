@@ -43,6 +43,7 @@ export class SupplierInfoService {
             : `${this.config.get(
                 's3.imageUrl',
               )}/supplier-db/supplier/${differenceMedia?.image}`;
+        const videoId = supplier?.video_url.split('v=')[1];
         data = {
           id: info?.id,
           name: supplier?.name,
@@ -53,6 +54,13 @@ export class SupplierInfoService {
             : `${this.config.get(
                 's3.imageUrl',
               )}/supplier-db/supplier/client-logo.png`,
+          media: {
+            type: 'video',
+            image: `${this.config.get(
+              'youtube.baseUrl',
+            )}/${videoId}/maxresdefault.jpg`,
+            url: supplier?.video_url,
+          },
           meet_the_supplier: {
             content: info?.mts_content,
             media: mtsMedia ?? null,
