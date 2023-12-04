@@ -33,4 +33,9 @@ export class ReviewFilterDto {
   @Type(() => String)
   @IsInt()
   supplier: string;
+
+  @IsOptional()
+  @Type(() => String)
+  @IsInt()
+  slug: string;
 }
