@@ -6,12 +6,14 @@ import { PageMetaDto } from 'src/shared/dtos/pageMetaDto';
 import { PageDto } from 'src/shared/dtos/pageDto';
 import { ReviewFilterDto } from '../dtos/reviewDto';
 import * as dayjs from 'dayjs';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ReviewService {
   constructor(
     private supplierRepositroy: SupplierRepository,
     private repository: ReviewRepository,
+    private readonly config: ConfigService,
   ) {}
 
   async getReviewListBySupplierId(id: number, pageOptionsDto: PageOptionsDto) {
@@ -85,7 +87,13 @@ export class ReviewService {
             supplier = {
               id: supplierData?.id,
               name: supplierData?.name,
-              logo: supplierData?.logo,
+              logo: supplierData?.logo
+                ? `${this.config.get(
+                    's3.imageUrl',
+                  )}/supplier-db/supplier/${supplierData?.logo}`
+                : `${this.config.get(
+                    's3.imageUrl',
+                  )}/supplier-db/supplier/client-logo.png`,
               founded: supplierData?.founded,
               isFeatured: supplierData?.is_featured,
               description: supplierData?.description,
