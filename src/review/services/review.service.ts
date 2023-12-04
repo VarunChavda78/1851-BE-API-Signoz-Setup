@@ -99,7 +99,7 @@ export class ReviewService {
           comment: review.comment,
           company: review.company,
           rating: Number(review.rating)?.toFixed(1) ?? 0,
-          createdAt: dayjs(review?.createdAt).format('MM/DD/YYYY'),
+          created_at: dayjs(review?.created_at).format('MM/DD/YYYY'),
           supplier,
         });
       }
