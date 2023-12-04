@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PageOptionsDto } from 'src/shared/dtos/pageOptionsDto';
 import { SupplierRepository } from 'src/supplier/repositories/supplier.repository';
 import { ReviewRepository } from '../repositories/review.repository';
 import { PageMetaDto } from 'src/shared/dtos/pageMetaDto';
 import { PageDto } from 'src/shared/dtos/pageDto';
 import { ReviewFilterDto } from '../dtos/reviewDto';
+import * as dayjs from 'dayjs';
 
 @Injectable()
 export class ReviewService {
@@ -37,7 +38,7 @@ export class ReviewService {
     const { page, limit, order, sort } = pageOptionsDto;
     const skip = (page - 1) * limit;
     const orderBy: any = order?.toUpperCase() ?? 'ASC';
-    const { supplier } = filterDto;
+    const { supplier, slug } = filterDto;
     const queryBuilder = this.repository.createQueryBuilder('review');
 
     if (supplier) {
@@ -45,6 +46,19 @@ export class ReviewService {
       queryBuilder.andWhere('review.supplier_id IN (:...supplierId)', {
         supplierId,
       });
+    }
+    if (slug) {
+      const supplier = await this.supplierRepositroy.findOne({
+        where: { slug },
+      });
+      if (!supplier) {
+        throw new NotFoundException();
+      } else {
+        const id = supplier?.id;
+        queryBuilder.andWhere('review.supplier_id = :id', {
+          id,
+        });
+      }
     }
     const itemCount = await queryBuilder.getCount();
     const review = await queryBuilder
@@ -85,6 +99,7 @@ export class ReviewService {
           comment: review.comment,
           company: review.company,
           rating: Number(review.rating)?.toFixed(1) ?? 0,
+          created_at: dayjs(review?.created_at).format('MM/DD/YYYY'),
           supplier,
         });
       }

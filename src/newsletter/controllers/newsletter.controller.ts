@@ -20,13 +20,13 @@ export class NewsletterController {
     const data = {
       ...request,
     };
-    await this.repository.save(data);
     // Save subscriber to Mailchimp
     const response = await this.service.addSubscriber(request?.email);
-    //Send Email
-    const subject = 'Newsletter Subscriped';
-    const content = `Hi, <br/> <p>You are Subscribed the Newsletter Successfully.</p><br/>Thanks,<br/>Supplier Database`;
     if (response === 200) {
+      await this.repository.save(data);
+      //Send Email
+      const subject = 'Newsletter Subscribed';
+      const content = `Hi, <br/> <p>You are Subscribed the Newsletter Successfully.</p><br/>Thanks,<br/>Supplier Database`;
       await this.service.sendEmail(
         this.config.get('smtp.fromEmail'),
         request?.email,
