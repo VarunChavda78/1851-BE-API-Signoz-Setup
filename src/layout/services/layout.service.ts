@@ -60,7 +60,7 @@ export class LayoutService {
       supplierMenus: [
         {
           name: 'Find Supplier',
-          url: '#',
+          url: `${this.configService.get('franchise.url')}/searchpopup`,
         },
         {
           name: 'Supplier Power Rankings',
