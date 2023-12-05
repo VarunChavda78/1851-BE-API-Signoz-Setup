@@ -110,6 +110,7 @@ export class ReviewService {
           created_at: dayjs(review?.created_at).format('MM/DD/YYYY'),
           supplier,
         });
+        data.push(supplier);
       }
     }
     return data;
