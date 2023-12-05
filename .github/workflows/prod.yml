@@ -50,7 +50,7 @@ jobs:
           echo "::set-output name=image::$ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG"
     
           echo $NGINX_REPOSITORY
-          docker build  -f Docker/Dockerfile-nginx -t $ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG .
+          docker build  -f Docker/Dockerfile-nginx-prod -t $ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG
           echo "::set-output name=image::$ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG"
 
