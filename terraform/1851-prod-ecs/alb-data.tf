@@ -2,9 +2,8 @@ data "aws_lb" "backend" {
    tags = {
      ManagedBy   = "terraform"
      Environment = var.environment
-     Project     = var.ProjectName
-     workspace   = terraform.workspace
-     Type        = "Backend"
+     workspace   = "1851-prod"
+     Type        = "Frontend"
    }
 }
 
