@@ -67,10 +67,6 @@ export class LayoutService {
           url: '#',
         },
         {
-          name: 'Reviews',
-          url: '#',
-        },
-        {
           name: 'Create A Profile',
           url: '#',
         },

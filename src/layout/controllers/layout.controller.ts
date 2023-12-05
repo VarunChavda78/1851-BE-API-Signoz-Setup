@@ -82,8 +82,9 @@ export class LayoutController {
         data.is_featured = row?.isFeatured === 'Yes' ? true : false;
         data.category_id = Number(category?.id) ?? null;
         data.logo = row?.Logo;
-        data.video_url = row?.Video;
-        data.rating = row?.Rating;
+        data.video_url = row?.Video ?? null;
+        data.rating = row?.Rating ?? 0;
+        data.score = row?.Rating ?? 0;
         const supplier = await this.supplierRepository.save(data);
         const highlightData1 = {
           supplier_id: supplier?.id,
