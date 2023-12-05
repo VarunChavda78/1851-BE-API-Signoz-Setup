@@ -55,7 +55,7 @@ export class Supplier {
   @Column({ nullable: true, default: 0 })
   review?: number;
 
-  @Column({ nullable: true, default: 0 })
+  @Column({ nullable: true, default: 0, type: 'decimal' })
   score?: number;
 
   @Column({ nullable: true })
