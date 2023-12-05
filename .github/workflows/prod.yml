@@ -39,7 +39,7 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           APP_REPOSITORY:  supplier-api
-          NGINX_REPOSITORY: supplier-nginx
+          NGINX_REPOSITORY: supplier-api-nginx
         run: |
           echo $IMAGE_TAG
           echo $APP_REPOSITORY

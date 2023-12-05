@@ -3,5 +3,5 @@ data "aws_ecr_repository" "app" {
 }
 
 data "aws_ecr_repository" "nginx" {
-  name = "supplier-nginx"
+  name = "supplier-api-nginx"
 }
