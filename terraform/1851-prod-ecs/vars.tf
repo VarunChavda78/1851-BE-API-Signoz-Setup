@@ -9,7 +9,7 @@ variable "tf_backend_bucket_name" {
 }
 variable "environment" {
   description = "Deployment Environment"
-  default = "Prod"
+  default = "prod"
 }
 variable "as_max_count" {
   type = number
