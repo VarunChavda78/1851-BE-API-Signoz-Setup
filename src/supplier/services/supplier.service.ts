@@ -23,9 +23,14 @@ export class SupplierService {
   ) {
     const { page, limit, order, sort } = pageOptionsDto;
     const skip = (page - 1) * limit;
-    const { featured, category, rating } = filterData;
+    const { featured, category, rating, slug } = filterData;
     const orderBy: any = order?.toUpperCase() ?? 'ASC';
     const queryBuilder = this.repository.createQueryBuilder('suppliers');
+    if (slug) {
+      queryBuilder.andWhere('suppliers.slug = :slug', {
+        slug,
+      });
+    }
     if (featured) {
       const isFeatured = Boolean(featured);
       queryBuilder.andWhere('suppliers.is_featured = :isFeatured', {

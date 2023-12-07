@@ -1,11 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsString,
-  IsOptional,
-  IsNumber,
-  IsBoolean,
-  IsInt,
-} from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class supplierDto {
@@ -52,16 +46,21 @@ export class supplierDto {
 export class FilterDto {
   @IsOptional()
   @Type(() => Boolean)
-  @IsInt()
+  @IsString()
   featured: boolean = false;
 
   @IsOptional()
   @Type(() => String)
-  @IsInt()
+  @IsString()
   category: string;
 
   @IsOptional()
   @Type(() => String)
-  @IsInt()
+  @IsString()
   rating: string;
+
+  @IsOptional()
+  @Type(() => String)
+  @IsString()
+  slug: string;
 }
