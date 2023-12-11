@@ -83,8 +83,8 @@ export class LayoutController {
         data.category_id = Number(category?.id) ?? null;
         data.logo = row?.Logo;
         data.video_url = row?.Video ?? null;
-        data.rating = row?.Rating ?? 0;
-        data.score = row?.Rating ?? 0;
+        data.rating = Number(row?.Rating) ?? 0;
+        data.score = Number(row?.Rating) ?? 0;
         const supplier = await this.supplierRepository.save(data);
         const highlightData1 = {
           supplier_id: supplier?.id,
