@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { LayoutService } from '../services/layout.service';
 import * as csvParser from 'csv-parser';
 import { Supplier } from 'src/supplier/entities/supplier.entity';
@@ -11,6 +11,7 @@ import { HighlightRepository } from 'src/highlight/repositories/highlight.reposi
 import { SupplierInfoRepository } from 'src/supplier-info/repositories/supplier-info.repository';
 import { MediaRepository } from 'src/media/repositories/media.repository';
 import { LatestNewsRepository } from 'src/latest-news/repositories/latest-news.repository';
+import { LayoutDto } from '../dtos/layoutDto';
 
 @Controller({
   version: '1',
@@ -34,8 +35,8 @@ export class LayoutController {
   }
 
   @Get('footer')
-  async footer() {
-    const data = await this.layoutService.getFooter();
+  async footer(@Query('slug') params: LayoutDto) {
+    const data = await this.layoutService.getFooter(params);
     return { data: data };
   }
 

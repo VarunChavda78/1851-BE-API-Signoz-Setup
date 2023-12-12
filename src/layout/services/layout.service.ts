@@ -53,28 +53,34 @@ export class LayoutService {
     };
   }
 
-  async getFooter() {
+  async getFooter(slug) {
+    const supplierMenus = [];
+    supplierMenus.push({
+      name: 'Find Supplier',
+      url: `${this.configService.get('franchise.url')}/searchpopup`,
+    });
+    if (!slug) {
+      supplierMenus.push({
+        name: 'Supplier Power Rankings',
+        url: `${this.configService.get(
+          'franchise.url',
+        )}/supplier/power-ranking`,
+      });
+    }
+    supplierMenus.push(
+      {
+        name: 'Create A Profile',
+        url: '#',
+      },
+      {
+        name: 'Pricing',
+        url: `${this.configService.get('franchise.url')}/about#tellus`,
+      },
+    );
     return {
       logo: '',
       socialLinks: await this.socialMediaLinks(),
-      supplierMenus: [
-        {
-          name: 'Find Supplier',
-          url: `${this.configService.get('franchise.url')}/searchpopup`,
-        },
-        {
-          name: 'Supplier Power Rankings',
-          url: '#',
-        },
-        {
-          name: 'Create A Profile',
-          url: '#',
-        },
-        {
-          name: 'Pricing',
-          url: '#',
-        },
-      ],
+      supplierMenus,
       menus: [
         {
           name: 'About 1851',
