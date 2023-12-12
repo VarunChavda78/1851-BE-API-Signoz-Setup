@@ -10,7 +10,12 @@ export class supplierDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  location: string;
+  city: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  state: string;
 
   @ApiProperty({ required: false })
   @IsOptional()

@@ -6,6 +6,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { ReviewStatus } from '../dtos/reviewDto';
 
 @Entity('review')
 export class Review {
@@ -36,6 +37,13 @@ export class Review {
 
   @Column({ nullable: true })
   role: string;
+
+  @Column({
+    type: 'enum',
+    enum: ReviewStatus,
+    default: ReviewStatus.REQUESTED,
+  })
+  status: ReviewStatus;
 
   @CreateDateColumn({ name: 'created_at' })
   created_at: Date;

@@ -39,3 +39,8 @@ export class ReviewFilterDto {
   @IsInt()
   slug: string;
 }
+
+export enum ReviewStatus {
+  REQUESTED = 'requested',
+  APPROVED = 'approved',
+}

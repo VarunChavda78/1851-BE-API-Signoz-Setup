@@ -35,8 +35,8 @@ export class LayoutController {
   }
 
   @Get('footer')
-  async footer(@Query('slug') params: LayoutDto) {
-    const data = await this.layoutService.getFooter(params);
+  async footer(@Query() params: LayoutDto) {
+    const data = await this.layoutService.getFooter(params?.slug);
     return { data: data };
   }
 
@@ -71,14 +71,8 @@ export class LayoutController {
         data.name = row.Name;
         data.slug = lodash.kebabCase(row.Name);
         data.description = row?.Description;
-        data.location =
-          row?.City && row?.State
-            ? `${row?.City}, ${row?.State}`
-            : row?.City && !row?.State
-              ? `${row.State}`
-              : !row?.City && row?.State
-                ? `${row.City}`
-                : '';
+        data.city = row?.City ?? null;
+        data.state = row?.State ?? null;
         data.founded = Number(row?.Founded);
         data.is_featured = row?.isFeatured === 'Yes' ? true : false;
         data.category_id = Number(category?.id) ?? null;

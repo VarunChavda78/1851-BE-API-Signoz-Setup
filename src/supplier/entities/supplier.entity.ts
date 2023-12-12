@@ -20,7 +20,10 @@ export class Supplier {
   slug: string;
 
   @Column({ nullable: true, unique: false })
-  location: string;
+  city: string;
+
+  @Column({ nullable: true, unique: false })
+  state: string;
 
   @Column()
   description: string;

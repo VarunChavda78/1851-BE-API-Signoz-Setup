@@ -102,7 +102,14 @@ export class SupplierService {
         : `${this.config.get(
             's3.imageUrl',
           )}/supplier-db/supplier/client-logo.png`,
-      location: data?.location ?? '',
+      location:
+        data?.city && data?.state
+          ? `${data?.city}, ${data?.state}`
+          : data?.city && !data?.state
+            ? `${data.state}`
+            : !data?.city && data?.state
+              ? `${data.city}`
+              : '',
       founded: data?.founded,
       rating: Number(data?.rating)?.toFixed(1) ?? 0,
       review: reviews?.length ?? 0,
