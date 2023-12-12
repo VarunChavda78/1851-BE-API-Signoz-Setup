@@ -60,6 +60,7 @@ export class SupplierInfoService {
           id: info?.id,
           name: supplier?.name,
           slug: supplier?.slug,
+          rating: supplier?.rating,
           logo: supplier?.logo
             ? `${this.config.get(
                 's3.imageUrl',
