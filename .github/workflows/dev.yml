@@ -1,4 +1,4 @@
-name: "supplier-dev-ecs"
+name: "1851_Development"
 on:
   push:
     branches:

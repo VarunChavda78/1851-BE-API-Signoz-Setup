@@ -1,4 +1,4 @@
-name: "supplier-prod-ecs"
+name: "1851_Production"
 on:
 
 # Allows you to run this workflow manually from the Actions tab
