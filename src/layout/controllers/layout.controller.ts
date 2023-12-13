@@ -57,7 +57,7 @@ export class LayoutController {
 
     const params = {
       Bucket: this.config.get('aws.bucketName'),
-      Key: 'supplier-db/Supplier-db-data.csv',
+      Key: 'supplier-db/sb-data.csv',
     };
 
     s3.getObject(params)
