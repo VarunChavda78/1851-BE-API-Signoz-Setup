@@ -73,13 +73,13 @@ export class LayoutController {
         data.description = row?.Description;
         data.city = row?.City ?? null;
         data.state = row?.State ?? null;
-        data.founded = Number(row?.Founded);
+        data.founded = row?.Founded ? Number(row?.Founded) : null;
         data.is_featured = row?.isFeatured === 'Yes' ? true : false;
-        data.category_id = Number(category?.id) ?? null;
+        data.category_id = category?.id ? Number(category?.id) : null;
         data.logo = row?.Logo;
         data.video_url = row?.Video ?? null;
-        data.rating = Number(row?.Rating) ?? 0;
-        data.score = Number(row?.Rating) ?? 0;
+        data.rating = row?.Rating ? Number(row?.Rating) : 0;
+        data.score = row?.Rating ? Number(row?.Rating) : 0;
         const supplier = await this.supplierRepository.save(data);
         const highlightData1 = {
           supplier_id: supplier?.id,
