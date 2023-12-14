@@ -13,6 +13,7 @@ import { NewsletterModule } from './newsletter/newsletter.module';
 import { HighlightModule } from './highlight/highlight.module';
 import { SupplierInfoModule } from './supplier-info/supplier-info.module';
 import { LatestNewsModule } from './latest-news/latest-news.module';
+import { ClaimProfileModule } from './claim-profile/claim-profile.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { LatestNewsModule } from './latest-news/latest-news.module';
     HighlightModule,
     SupplierInfoModule,
     LatestNewsModule,
+    ClaimProfileModule,
   ],
   controllers: [AppController],
   providers: [AppService],

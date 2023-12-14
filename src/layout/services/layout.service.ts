@@ -185,4 +185,8 @@ export class LayoutService {
 
     return thumbnailUrl;
   }
+
+  async getStates() {
+    return ['IL', 'MI', 'TX', 'NY', 'WI', 'CO', 'ND', 'UT', 'OH', 'NJ', 'ON'];
+  }
 }
