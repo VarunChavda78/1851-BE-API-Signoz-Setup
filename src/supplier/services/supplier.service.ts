@@ -21,9 +21,10 @@ export class SupplierService {
     filterData: FilterDto,
     pageOptionsDto: PageOptionsDto,
   ) {
-    const { page, limit, order, sort } = pageOptionsDto;
+    const { page, limit, order } = pageOptionsDto;
+    let { sort } = pageOptionsDto;
     const skip = (page - 1) * limit;
-    const { featured, category, rating, slug } = filterData;
+    const { featured, category, rating, slug, state } = filterData;
     const orderBy: any = order?.toUpperCase() ?? 'ASC';
     const queryBuilder = this.repository.createQueryBuilder('suppliers');
     if (slug) {
@@ -43,6 +44,11 @@ export class SupplierService {
         categoryId,
       });
     }
+    if (state) {
+      queryBuilder.andWhere('suppliers.state = :state', {
+        state,
+      });
+    }
     if (rating) {
       const ratings = await this.repository.transformStringToArray(rating);
       const minRating = Math.min(...ratings);
@@ -53,6 +59,15 @@ export class SupplierService {
           minRating,
           maxRating,
         });
+    }
+    if (sort === 'rank') {
+      const min = 4;
+      const max = 5;
+      queryBuilder.andWhere('suppliers.rating BETWEEN :min AND :max', {
+        min,
+        max,
+      });
+      sort = 'rating';
     }
     const itemCount = await queryBuilder.getCount();
     const suppliers = await queryBuilder

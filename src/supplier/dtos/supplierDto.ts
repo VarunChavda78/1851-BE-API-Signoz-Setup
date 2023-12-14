@@ -68,4 +68,9 @@ export class FilterDto {
   @Type(() => String)
   @IsString()
   slug: string;
+
+  @IsOptional()
+  @Type(() => String)
+  @IsString()
+  state: string;
 }
