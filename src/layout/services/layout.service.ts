@@ -187,6 +187,51 @@ export class LayoutService {
   }
 
   async getStates() {
-    return ['IL', 'MI', 'TX', 'NY', 'WI', 'CO', 'ND', 'UT', 'OH', 'NJ', 'ON'];
+    return [
+      {
+        value: 'IL',
+        label: 'IL',
+      },
+      {
+        value: 'MI',
+        label: 'MI',
+      },
+      {
+        value: 'TX',
+        label: 'TX',
+      },
+      {
+        value: 'NY',
+        label: 'NY',
+      },
+      {
+        value: 'WI',
+        label: 'WI',
+      },
+      {
+        value: 'CO',
+        label: 'CO',
+      },
+      {
+        value: 'ND',
+        label: 'ND',
+      },
+      {
+        value: 'UT',
+        label: 'UT',
+      },
+      {
+        value: 'OH',
+        label: 'OH',
+      },
+      {
+        value: 'NJ',
+        label: 'NJ',
+      },
+      {
+        value: 'ON',
+        label: 'ON',
+      },
+    ];
   }
 }
