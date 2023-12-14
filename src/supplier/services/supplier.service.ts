@@ -45,8 +45,9 @@ export class SupplierService {
       });
     }
     if (state) {
-      queryBuilder.andWhere('suppliers.state = :state', {
-        state,
+      const stateList = state.split(',');
+      queryBuilder.andWhere('suppliers.state IN (:...stateList)', {
+        stateList,
       });
     }
     if (rating) {
