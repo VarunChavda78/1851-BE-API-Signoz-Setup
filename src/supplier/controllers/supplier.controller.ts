@@ -11,7 +11,7 @@ import { SupplierService } from '../services/supplier.service';
 import { SupplierRepository } from '../repositories/supplier.repository';
 import { FilterDto, supplierDto } from '../dtos/supplierDto';
 import * as lodash from 'lodash';
-import { PageOptionsDto } from 'src/shared/dtos/pageOptionsDto';
+import { PageOptionsDto } from '../dtos/pageOptionsDto';
 
 @Controller({
   version: '1',

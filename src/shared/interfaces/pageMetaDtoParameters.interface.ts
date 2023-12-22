@@ -1,6 +1,6 @@
 import { PageOptionsDto } from '../dtos/pageOptionsDto';
 
 export interface PageMetaDtoParameters {
-  pageOptionsDto: PageOptionsDto;
+  pageOptionsDto: PageOptionsDto | any;
   itemCount: number;
 }

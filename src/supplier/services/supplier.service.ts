@@ -2,11 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { CategoryRepository } from 'src/category/repositories/category.repository';
 import { ReviewRepository } from 'src/review/repositories/review.repository';
 import { FilterDto } from '../dtos/supplierDto';
-import { PageOptionsDto } from 'src/shared/dtos/pageOptionsDto';
 import { PageMetaDto } from 'src/shared/dtos/pageMetaDto';
 import { PageDto } from 'src/shared/dtos/pageDto';
 import { SupplierRepository } from '../repositories/supplier.repository';
 import { ConfigService } from '@nestjs/config';
+import { PageOptionsDto } from '../dtos/pageOptionsDto';
 
 @Injectable()
 export class SupplierService {
@@ -17,15 +17,17 @@ export class SupplierService {
     private config: ConfigService,
   ) {}
 
-  async getSupplierLists(
-    filterData: FilterDto,
-    pageOptionsDto: PageOptionsDto,
-  ) {
-    const { page, limit, order } = pageOptionsDto;
-    let { sort } = pageOptionsDto;
+  async getSupplierLists(filterData: FilterDto, pageOptions: PageOptionsDto) {
+    const {
+      page = 1,
+      limit = 10,
+      order = 'DESC',
+      sort = 'rating',
+    }: any = pageOptions;
     const skip = (page - 1) * limit;
     const { featured, category, rating, slug, state } = filterData;
-    const orderBy: any = order?.toUpperCase() ?? 'ASC';
+    let fieldsArray = sort.split(',');
+    const ordersArray = order.split(',');
     const queryBuilder = this.repository.createQueryBuilder('suppliers');
     if (slug) {
       queryBuilder.andWhere('suppliers.slug = :slug', {
@@ -61,23 +63,31 @@ export class SupplierService {
           maxRating,
         });
     }
-    if (sort === 'rank') {
+    if (fieldsArray.includes('rank')) {
       const min = 4;
       const max = 5;
       queryBuilder.andWhere('suppliers.rating BETWEEN :min AND :max', {
         min,
         max,
       });
-      sort = 'rating';
+      fieldsArray = ['rating'];
     }
+    const orderBy: Record<string, 'ASC' | 'DESC'> = {};
+    fieldsArray.forEach((field, index) => {
+      orderBy[field] = ordersArray[index] || 'ASC';
+    });
     const itemCount = await queryBuilder.getCount();
     const suppliers = await queryBuilder
-      .orderBy(sort, orderBy)
+      .orderBy(orderBy)
       .skip(skip)
       .take(limit)
       .getMany();
 
     const data = await this.getData(suppliers);
+    const pageOptionsDto = {
+      page,
+      limit,
+    };
     const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
 
     return new PageDto(data, pageMetaDto);
