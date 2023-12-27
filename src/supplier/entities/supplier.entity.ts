@@ -1,4 +1,5 @@
 import { Category } from 'src/category/entities/category.entity';
+import { User } from 'src/user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
@@ -13,6 +14,10 @@ export class Supplier {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @OneToOne(() => User, (user) => user.id)
+  @Column({ unique: true })
+  user_id: number;
+
   @Column({ unique: true })
   name: string;
 
@@ -25,8 +30,8 @@ export class Supplier {
   @Column({ nullable: true, unique: false })
   state: string;
 
-  @Column()
-  description: string;
+  @Column({ nullable: true })
+  mts_video: string;
 
   @Column({ nullable: true })
   logo?: string | null;
@@ -42,9 +47,6 @@ export class Supplier {
 
   @Column({ nullable: true })
   founded?: number;
-
-  @Column({ nullable: true })
-  video_url?: string | null;
 
   @Column({
     nullable: true,

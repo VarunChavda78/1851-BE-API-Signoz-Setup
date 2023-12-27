@@ -12,6 +12,7 @@ import { SupplierInfoRepository } from 'src/supplier-info/repositories/supplier-
 import { MediaRepository } from 'src/media/repositories/media.repository';
 import { LatestNewsRepository } from 'src/latest-news/repositories/latest-news.repository';
 import { LayoutDto } from '../dtos/layoutDto';
+import { LatestNewsType } from 'src/supplier-info/dtos/supplierInfoDto';
 
 @Controller({
   version: '1',
@@ -76,14 +77,13 @@ export class LayoutController {
         });
         data.name = row.Name;
         data.slug = lodash.kebabCase(row.Name);
-        data.description = row?.Description;
         data.city = row?.City ?? null;
         data.state = row?.State ?? null;
         data.founded = row?.Founded ? Number(row?.Founded) : null;
         data.is_featured = row?.isFeatured === 'Yes' ? true : false;
         data.category_id = category?.id ? Number(category?.id) : null;
         data.logo = row?.Logo;
-        data.video_url = row?.Video ?? null;
+        data.mts_video = row?.Video ?? null;
         data.rating = row?.Rating ? Number(row?.Rating) : 0;
         data.score = row?.Rating ? Number(row?.Rating) : 0;
         const supplier = await this.supplierRepository.save(data);
@@ -154,11 +154,11 @@ export class LayoutController {
         const info = {
           supplier_id: supplier?.id,
           highlight_title: row?.['Highlight Title'],
-          mts_media_id: mtsMedia?.id,
-          mts_content: row?.['Meet The Supplier Text'],
-          difference_media_id: differenceMedia?.id,
-          difference_content: row?.['Supplier Difference'],
-          services: row?.['Services'],
+          ats_media_id: mtsMedia?.id,
+          service_media_id: differenceMedia?.id,
+          service_content: row?.['Supplier Difference'],
+          ats_content: row?.Description,
+          latest_news_type_id: LatestNewsType.SELECT_STORIES,
         };
         await this.supplierInfoRepository.save(info);
         const news = {

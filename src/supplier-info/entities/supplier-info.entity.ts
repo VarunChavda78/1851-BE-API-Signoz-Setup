@@ -1,5 +1,6 @@
 import { Media } from 'src/media/entities/media.entity';
 import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { LatestNewsType } from '../dtos/supplierInfoDto';
 
 @Entity('supplier_info')
 export class SupplierInfo {
@@ -10,22 +11,32 @@ export class SupplierInfo {
   supplier_id: number;
 
   @Column()
+  @OneToOne(() => Media, (media) => media.id)
+  banner_media_id: number;
+
+  @Column()
   highlight_title: string;
 
   @Column()
   @OneToOne(() => Media, (media) => media.id)
-  mts_media_id: number;
+  ats_media_id: number;
 
   @Column()
-  mts_content?: string;
+  ats_content?: string;
 
   @Column()
   @OneToOne(() => Media, (media) => media.id)
-  difference_media_id: number;
+  service_media_id: number;
 
   @Column()
-  difference_content: string;
+  service_content: string;
 
-  @Column()
-  services?: string;
+  @Column({
+    type: 'enum',
+    enum: LatestNewsType,
+  })
+  latest_news_type_id?: LatestNewsType;
+
+  @Column({ nullable: true })
+  website: string;
 }

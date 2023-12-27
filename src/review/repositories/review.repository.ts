@@ -30,7 +30,7 @@ export class ReviewRepository extends Repository<Review> {
       rating: reviewRequest?.rating ?? 0,
       title: reviewRequest?.title,
       company: reviewRequest?.company,
-      status: ReviewStatus.APPROVED,
+      status: ReviewStatus.REQUESTED,
     };
 
     const result = await this.save(review);

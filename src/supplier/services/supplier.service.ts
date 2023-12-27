@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { CategoryRepository } from 'src/category/repositories/category.repository';
-import { ReviewRepository } from 'src/review/repositories/review.repository';
 import { FilterDto } from '../dtos/supplierDto';
 import { PageMetaDto } from 'src/shared/dtos/pageMetaDto';
 import { PageDto } from 'src/shared/dtos/pageDto';
 import { SupplierRepository } from '../repositories/supplier.repository';
 import { ConfigService } from '@nestjs/config';
 import { PageOptionsDto } from '../dtos/pageOptionsDto';
+import { SupplierInfoRepository } from 'src/supplier-info/repositories/supplier-info.repository';
 
 @Injectable()
 export class SupplierService {
   constructor(
     private categoryRepository: CategoryRepository,
-    private reviewRepository: ReviewRepository,
+    private supplierInfoRepository: SupplierInfoRepository,
     private repository: SupplierRepository,
     private config: ConfigService,
   ) {}
@@ -116,7 +116,7 @@ export class SupplierService {
         };
       }
     }
-    const reviews = await this.reviewRepository.find({
+    const info = await this.supplierInfoRepository.findOne({
       where: { supplier_id: data?.id },
     });
     return {
@@ -138,10 +138,10 @@ export class SupplierService {
               : '',
       founded: data?.founded,
       rating: Number(data?.rating)?.toFixed(1) ?? 0,
-      review: reviews?.length ?? 0,
-      description: data?.description,
+      review: data?.review ?? 0,
+      description: info?.ats_content,
       isFeatured: data?.is_featured ? data?.is_featured : false,
-      video: data?.video_url ?? '',
+      video: data?.mts_video ?? '',
       category: category,
     };
   }

@@ -27,33 +27,33 @@ export class SupplierInfoService {
         where: { supplier_id: supplier?.id },
       });
       if (info) {
-        const mtsMedia = await this.mediaRepo.findOne({
-          where: { id: info?.mts_media_id },
+        const atsMedia = await this.mediaRepo.findOne({
+          where: { id: info?.ats_media_id },
         });
-        mtsMedia['image'] =
-          mtsMedia?.type === 'video'
-            ? mtsMedia?.image
+        atsMedia['image'] =
+          atsMedia?.type === 'video'
+            ? atsMedia?.image
             : `${this.config.get(
                 's3.imageUrl',
-              )}/supplier-db/supplier/${mtsMedia?.image}`;
-        const differenceMedia = await this.mediaRepo.findOne({
-          where: { id: info?.difference_media_id },
+              )}/supplier-db/supplier/${atsMedia?.image}`;
+        const serviceMedia = await this.mediaRepo.findOne({
+          where: { id: info?.service_media_id },
         });
-        differenceMedia['image'] =
-          differenceMedia?.type === 'video'
-            ? differenceMedia?.image
+        serviceMedia['image'] =
+          serviceMedia?.type === 'video'
+            ? serviceMedia?.image
             : `${this.config.get(
                 's3.imageUrl',
-              )}/supplier-db/supplier/${differenceMedia?.image}`;
+              )}/supplier-db/supplier/${serviceMedia?.image}`;
         let media = {};
-        if (supplier?.video_url) {
-          const thumbnailImage = supplier?.video_url
-            ? await this.layoutService.getThumbnailUrl(supplier?.video_url)
+        if (supplier?.mts_video) {
+          const thumbnailImage = supplier?.mts_video
+            ? await this.layoutService.getThumbnailUrl(supplier?.mts_video)
             : null;
           media = {
             type: 'video',
             image: thumbnailImage,
-            url: supplier?.video_url,
+            url: supplier?.mts_video,
           };
         }
         data = {
@@ -61,6 +61,7 @@ export class SupplierInfoService {
           name: supplier?.name,
           slug: supplier?.slug,
           rating: supplier?.rating,
+          website: info?.website,
           logo: supplier?.logo
             ? `${this.config.get(
                 's3.imageUrl',
@@ -69,15 +70,14 @@ export class SupplierInfoService {
                 's3.imageUrl',
               )}/supplier-db/supplier/client-logo.png`,
           media,
-          meet_the_supplier: {
-            content: info?.mts_content,
-            media: mtsMedia ?? null,
+          about_the_supplier: {
+            content: info?.ats_content,
+            media: atsMedia ?? null,
           },
-          difference: {
-            content: info?.difference_content,
-            media: differenceMedia ?? null,
+          services: {
+            content: info?.service_content,
+            media: serviceMedia ?? null,
           },
-          services: info?.services,
         };
       }
       return data;

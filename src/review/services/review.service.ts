@@ -41,7 +41,9 @@ export class ReviewService {
     const skip = (page - 1) * limit;
     const orderBy: any = order?.toUpperCase() ?? 'ASC';
     const { supplier, slug } = filterDto;
-    const queryBuilder = this.repository.createQueryBuilder('review');
+    const queryBuilder = this.repository
+      .createQueryBuilder('review')
+      .andWhere('review.status = 2');
 
     if (supplier) {
       const supplierId = await this.repository.transformStringToArray(supplier);
@@ -96,7 +98,6 @@ export class ReviewService {
                   )}/supplier-db/supplier/client-logo.png`,
               founded: supplierData?.founded,
               isFeatured: supplierData?.is_featured,
-              description: supplierData?.description,
             };
           }
         }
