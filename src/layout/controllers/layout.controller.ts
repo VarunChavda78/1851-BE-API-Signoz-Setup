@@ -70,7 +70,7 @@ export class LayoutController {
 
     const params = {
       Bucket: this.config.get('aws.bucketName'),
-      Key: 'supplier-db/sb-data.csv',
+      Key: 'supplier-db/sb-test-data.csv',
     };
 
     s3.getObject(params)
@@ -174,8 +174,9 @@ export class LayoutController {
           ats_media_id: mtsMedia?.id,
           service_media_id: differenceMedia?.id,
           service_content: row?.['Supplier Difference'],
-          ats_content: row?.Description,
+          ats_content: row?.['Meet The Supplier Text'],
           latest_news_type_id: LatestNewsType.SELECT_STORIES,
+          website: row?.['Website'],
         };
         await this.supplierInfoRepository.save(info);
         const news = {
