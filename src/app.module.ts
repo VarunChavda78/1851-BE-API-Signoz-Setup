@@ -14,6 +14,11 @@ import { HighlightModule } from './highlight/highlight.module';
 import { SupplierInfoModule } from './supplier-info/supplier-info.module';
 import { LatestNewsModule } from './latest-news/latest-news.module';
 import { ClaimProfileModule } from './claim-profile/claim-profile.module';
+import { UserModule } from './user/user.module';
+import { UserProfileModule } from './user-profile/user-profile.module';
+import { SocialPlatformModule } from './social-platform/social-platform.module';
+import { AnalyticDomainsModule } from './analytic-domains/analytic-domains.module';
+import { RoleModule } from './role/role.module';
 
 @Module({
   imports: [
@@ -30,6 +35,11 @@ import { ClaimProfileModule } from './claim-profile/claim-profile.module';
     SupplierInfoModule,
     LatestNewsModule,
     ClaimProfileModule,
+    UserModule,
+    UserProfileModule,
+    SocialPlatformModule,
+    AnalyticDomainsModule,
+    RoleModule,
   ],
   controllers: [AppController],
   providers: [AppService],

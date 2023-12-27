@@ -55,3 +55,10 @@ export class InfoFilter {
   @IsString()
   slug: string;
 }
+
+export enum LatestNewsType {
+  ALL_STORIES = 1,
+  MOST_POPULAR = 2,
+  LATEST_STORIES = 3,
+  SELECT_STORIES = 4,
+}

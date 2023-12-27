@@ -8,6 +8,8 @@ import { HighlightRepository } from 'src/highlight/repositories/highlight.reposi
 import { MediaRepository } from 'src/media/repositories/media.repository';
 import { SupplierInfoRepository } from 'src/supplier-info/repositories/supplier-info.repository';
 import { LatestNewsRepository } from 'src/latest-news/repositories/latest-news.repository';
+import { UserRepository } from 'src/user/repositories/user.repository';
+import { UserProfileRepository } from 'src/user-profile/repositories/user-profile.repository';
 
 @Module({
   imports: [],
@@ -20,6 +22,8 @@ import { LatestNewsRepository } from 'src/latest-news/repositories/latest-news.r
     MediaRepository,
     SupplierInfoRepository,
     LatestNewsRepository,
+    UserRepository,
+    UserProfileRepository,
   ],
   controllers: [LayoutController],
   exports: [LayoutService],

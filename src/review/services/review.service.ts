@@ -4,7 +4,7 @@ import { SupplierRepository } from 'src/supplier/repositories/supplier.repositor
 import { ReviewRepository } from '../repositories/review.repository';
 import { PageMetaDto } from 'src/shared/dtos/pageMetaDto';
 import { PageDto } from 'src/shared/dtos/pageDto';
-import { ReviewFilterDto } from '../dtos/reviewDto';
+import { ReviewFilterDto, ReviewStatus } from '../dtos/reviewDto';
 import * as dayjs from 'dayjs';
 import { ConfigService } from '@nestjs/config';
 
@@ -20,10 +20,13 @@ export class ReviewService {
     const { page, limit, order, sort }: any = pageOptionsDto;
     const skip = (page - 1) * limit;
     const orderBy: any = order?.toUpperCase() ?? 'ASC';
+    const status = ReviewStatus.APPROVED;
     const queryBuilder = this.repository.createQueryBuilder('review');
-    queryBuilder.andWhere('review.supplier_id = :id', {
-      id,
-    });
+    queryBuilder
+      .andWhere('review.supplier_id = :id', {
+        id,
+      })
+      .andWhere('review.status = :status', { status });
     const itemCount = await queryBuilder.getCount();
     const review = await queryBuilder
       .orderBy(sort, orderBy)
@@ -41,7 +44,10 @@ export class ReviewService {
     const skip = (page - 1) * limit;
     const orderBy: any = order?.toUpperCase() ?? 'ASC';
     const { supplier, slug } = filterDto;
-    const queryBuilder = this.repository.createQueryBuilder('review');
+    const status = ReviewStatus.APPROVED;
+    const queryBuilder = this.repository
+      .createQueryBuilder('review')
+      .andWhere('review.status = :status', { status });
 
     if (supplier) {
       const supplierId = await this.repository.transformStringToArray(supplier);
@@ -96,7 +102,6 @@ export class ReviewService {
                   )}/supplier-db/supplier/client-logo.png`,
               founded: supplierData?.founded,
               isFeatured: supplierData?.is_featured,
-              description: supplierData?.description,
             };
           }
         }
