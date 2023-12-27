@@ -78,7 +78,12 @@ export class LayoutService {
       },
     );
     return {
-      logo: '',
+      logo: {
+        image: `${this.configService.get(
+          's3.imageUrl',
+        )}/supplier-db/static/1851-footer-logo.svg`,
+        url: `${this.configService.get('franchise.url')}/supplier`,
+      },
       socialLinks: await this.socialMediaLinks(),
       supplierMenus,
       menus: [
