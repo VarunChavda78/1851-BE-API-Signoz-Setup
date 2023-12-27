@@ -10,9 +10,9 @@ export class SupplierInfo {
   @Column()
   supplier_id: number;
 
-  @Column()
+  @Column({ nullable: true })
   @OneToOne(() => Media, (media) => media.id)
-  banner_media_id: number;
+  banner_media_id?: number;
 
   @Column()
   highlight_title: string;

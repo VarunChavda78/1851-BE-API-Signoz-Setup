@@ -5,18 +5,14 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { RoleLists } from '../dtos/RoleDto';
 
 @Entity('role')
 export class Role {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({
-    type: 'enum',
-    enum: RoleLists,
-  })
-  name?: RoleLists;
+  @Column()
+  name?: string;
 
   @Column({ nullable: true })
   created_by: string;

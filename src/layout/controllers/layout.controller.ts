@@ -13,6 +13,10 @@ import { MediaRepository } from 'src/media/repositories/media.repository';
 import { LatestNewsRepository } from 'src/latest-news/repositories/latest-news.repository';
 import { LayoutDto } from '../dtos/layoutDto';
 import { LatestNewsType } from 'src/supplier-info/dtos/supplierInfoDto';
+import { RoleLists } from 'src/role/dtos/RoleDto';
+import { UserStatus } from 'src/user/dtos/UserDto';
+import { UserRepository } from 'src/user/repositories/user.repository';
+import { UserProfileRepository } from 'src/user-profile/repositories/user-profile.repository';
 
 @Controller({
   version: '1',
@@ -26,6 +30,8 @@ export class LayoutController {
     private supplierInfoRepository: SupplierInfoRepository,
     private latestNewsRepo: LatestNewsRepository,
     private mediaRepo: MediaRepository,
+    private userRepo: UserRepository,
+    private userProfileRepo: UserProfileRepository,
     private config: ConfigService,
   ) {}
 
@@ -71,11 +77,22 @@ export class LayoutController {
       .createReadStream()
       .pipe(csvParser())
       .on('data', async (row) => {
+        const userData = {
+          role_id: RoleLists.SUPPLIER,
+          user_name: lodash.toLower(row.Name),
+          email: '',
+          password: '',
+          phone: '',
+          status: UserStatus.APPROVED,
+        };
+        const user = await this.userRepo.save(userData);
+        await this.userProfileRepo.save({ user_id: user.id });
         const data = new Supplier();
         const category: any = await this.categoryRepository.findOne({
           where: { name: row?.Category },
         });
         data.name = row.Name;
+        data.user_id = user.id;
         data.slug = lodash.kebabCase(row.Name);
         data.city = row?.City ?? null;
         data.state = row?.State ?? null;
