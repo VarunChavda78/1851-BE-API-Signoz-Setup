@@ -42,7 +42,7 @@ export class ReviewRepository extends Repository<Review> {
     reviewResults.forEach(function (reviewResult) {
       count += reviewResult?.rating;
     });
-    const rating = count / total;
+    const rating = count / total || 0;
     const score = total + count;
     await this.supplierRepository.update(
       { id },
