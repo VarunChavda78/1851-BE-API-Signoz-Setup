@@ -141,7 +141,7 @@ export class SupplierService {
       review: data?.review ?? 0,
       description:
         info?.ats_content.length > 100
-          ? `${info?.ats_content.substring(0, 100)} ...`
+          ? `${info?.ats_content.substring(0, 110)}...`
           : info?.ats_content,
       isFeatured: data?.is_featured ? data?.is_featured : false,
       video: data?.mts_video ?? '',
