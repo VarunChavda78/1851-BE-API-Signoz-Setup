@@ -17,6 +17,7 @@ import { RoleLists } from 'src/role/dtos/RoleDto';
 import { UserStatus } from 'src/user/dtos/UserDto';
 import { UserRepository } from 'src/user/repositories/user.repository';
 import { UserProfileRepository } from 'src/user-profile/repositories/user-profile.repository';
+import { MediaTypes } from 'src/media/dtos/mediaDto';
 
 @Controller({
   version: '1',
@@ -143,8 +144,8 @@ export class LayoutController {
           type: (await this.layoutService.isUrl(
             row?.['Meet The Supplier Media'],
           ))
-            ? 'video'
-            : 'image',
+            ? MediaTypes.TYPE_VIDEO
+            : MediaTypes.TYPE_IMAGE,
         };
         const mtsMedia = await this.mediaRepo.save(mtsMediaData);
         const differenceImage = (await this.layoutService.isUrl(
@@ -164,8 +165,8 @@ export class LayoutController {
           type: (await this.layoutService.isUrl(
             row?.['Supplier Difference Media'],
           ))
-            ? 'video'
-            : 'image',
+            ? MediaTypes.TYPE_VIDEO
+            : MediaTypes.TYPE_IMAGE,
         };
         const differenceMedia = await this.mediaRepo.save(differenceMediaData);
         const info = {
