@@ -33,6 +33,7 @@ export class ReviewRepository extends Repository<Review> {
       status: ReviewStatus.REQUESTED,
       email: reviewRequest?.email,
       role: reviewRequest?.role,
+      other_text: reviewRequest?.other_text,
     };
 
     const result = await this.save(review);

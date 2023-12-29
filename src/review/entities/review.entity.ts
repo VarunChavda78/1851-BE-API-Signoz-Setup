@@ -36,7 +36,10 @@ export class Review {
   email: string;
 
   @Column({ nullable: true })
-  role: string;
+  role: number;
+
+  @Column({ nullable: true })
+  other_text: string;
 
   @Column({
     default: ReviewStatus.REQUESTED,
