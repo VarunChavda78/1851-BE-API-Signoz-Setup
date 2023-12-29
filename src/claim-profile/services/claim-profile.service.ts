@@ -1,34 +1,44 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as nodemailer from 'nodemailer';
+import * as sendgrid from '@sendgrid/mail';
+import axios from 'axios';
 
 @Injectable()
 export class ClaimProfileService {
-  constructor(private readonly config: ConfigService) {}
+  constructor(private readonly config: ConfigService) {
+    sendgrid.setApiKey(this.config.get('smtp.sendgridKey'));
+  }
 
-  async sendEmail(toEmail: string) {
+  async sendEmail(request: any) {
+    const emailUrl = this.config.get('franchise.emailUrl');
+
     const subject = 'Call Scheduled';
-    const message = `Hi, <br/> <p>Your call was scheduled Successfully!</p><br/>Thanks,<br/>Supplier Database`;
-    const transporter = nodemailer.createTransport({
-      host: this.config.get('smtp.host'),
-      port: this.config.get('smtp.port'),
-      auth: {
-        user: this.config.get('smtp.username'),
-        pass: this.config.get('smtp.password'),
+    const data = {
+      title: 'SCHEDULE A CALL',
+      site: {
+        logo: `${this.config.get('s3.imageUrl')}/static/email-header-logo.png`,
+        url: `${this.config.get('franchise.url')}`,
+        name: `${this.config.get('franchise.domain')}`,
+        address: 'Prudential Plaza, 130 E Randolph St #1950, Chicago, IL 60601',
+        footerText: '',
       },
-    });
-    let mailOptions = null;
-    mailOptions = {
-      from: this.config.get('smtp.fromEmail'),
-      to: toEmail,
-      subject: subject,
-      html: message,
+      details: {
+        name: request.name,
+        number: request.phone,
+        email: request.email,
+      },
+      images: {
+        topHead: `${this.config.get('s3.imageUrl')}/email/thumbsUpHeader.png`,
+      },
     };
-
-    await transporter.sendMail(mailOptions, function (error) {
-      if (error) {
-        console.error(error);
-      }
-    });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const response = await axios.post(`${emailUrl}/claim-profile`, data);
+    const email = {
+      to: request.email,
+      from: this.config.get('smtp.fromEmail'),
+      subject: subject,
+      html: response.data.html,
+    };
+    // const res = await sendgrid.send(email);
   }
 }

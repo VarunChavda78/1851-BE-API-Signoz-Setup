@@ -19,6 +19,8 @@ export default (): any => ({
   },
   franchise: {
     url: process.env.FRANCHISE_1851_URL,
+    emailUrl: process.env.EMAIL_TEMPLATE_BASE_URL,
+    domain: process.env.DOMAIN_NAME,
   },
   youtube: {
     baseUrl: process.env.YOUTUBE_PLACEHOLDER_BASE_URL,
@@ -41,5 +43,6 @@ export default (): any => ({
     username: process.env.SMTP_USERNAME,
     password: process.env.SMTP_PASSWORD,
     fromEmail: process.env.ADMIN_FROM_EMAIL || 'admin@example.com',
+    sendgridKey: process.env.SENDGRID_KEY,
   },
 });
