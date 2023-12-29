@@ -1,4 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { MediaTypes } from '../dtos/mediaDto';
 
 @Entity('media')
 export class Media {
@@ -11,6 +12,9 @@ export class Media {
   @Column({ nullable: true })
   url: string;
 
-  @Column()
-  type: string;
+  @Column({
+    type: 'enum',
+    enum: MediaTypes,
+  })
+  type: MediaTypes;
 }
