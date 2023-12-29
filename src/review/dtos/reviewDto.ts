@@ -43,4 +43,5 @@ export class ReviewFilterDto {
 export enum ReviewStatus {
   REQUESTED = 1,
   APPROVED = 2,
+  DISAPPROVED = 3,
 }

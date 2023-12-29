@@ -39,11 +39,9 @@ export class Review {
   role: string;
 
   @Column({
-    type: 'enum',
-    enum: ReviewStatus,
     default: ReviewStatus.REQUESTED,
   })
-  status: ReviewStatus;
+  status: number;
 
   @CreateDateColumn({ name: 'created_at' })
   created_at: Date;
