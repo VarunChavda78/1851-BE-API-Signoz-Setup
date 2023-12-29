@@ -26,6 +26,16 @@ export class reviewCreateDto {
   @IsOptional()
   @IsString()
   comment?: string;
+
+  @ApiProperty({ required: true })
+  @IsOptional()
+  @IsNumber()
+  role?: number;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  other_text?: string;
 }
 
 export class ReviewFilterDto {
