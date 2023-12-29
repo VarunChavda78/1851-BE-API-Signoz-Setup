@@ -14,26 +14,27 @@ export class SupplierInfo {
   @OneToOne(() => Media, (media) => media.id)
   banner_media_id?: number;
 
-  @Column()
+  @Column({ nullable: true })
   highlight_title: string;
 
-  @Column()
+  @Column({ nullable: true })
   @OneToOne(() => Media, (media) => media.id)
   ats_media_id: number;
 
-  @Column()
+  @Column({ nullable: true })
   ats_content?: string;
 
-  @Column()
+  @Column({ nullable: true })
   @OneToOne(() => Media, (media) => media.id)
   service_media_id: number;
 
-  @Column()
+  @Column({ nullable: true })
   service_content: string;
 
   @Column({
     type: 'enum',
     enum: LatestNewsType,
+    nullable: true,
   })
   latest_news_type_id?: LatestNewsType;
 
