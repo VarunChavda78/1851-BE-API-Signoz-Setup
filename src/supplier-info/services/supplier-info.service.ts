@@ -5,6 +5,7 @@ import { SupplierInfoRepository } from '../repositories/supplier-info.repository
 import { MediaRepository } from 'src/media/repositories/media.repository';
 import { ConfigService } from '@nestjs/config';
 import { LayoutService } from 'src/layout/services/layout.service';
+import { MediaTypes } from 'src/media/dtos/mediaDto';
 
 @Injectable()
 export class SupplierInfoService {
@@ -30,21 +31,32 @@ export class SupplierInfoService {
         const atsMedia = await this.mediaRepo.findOne({
           where: { id: info?.ats_media_id },
         });
-        atsMedia['image'] =
-          atsMedia?.type === 'video'
-            ? atsMedia?.image
-            : `${this.config.get(
-                's3.imageUrl',
-              )}/supplier-db/supplier/${atsMedia?.image}`;
+        const atsMediaContent = {
+          id: atsMedia?.id,
+          image:
+            atsMedia?.type === MediaTypes.TYPE_VIDEO
+              ? atsMedia?.image
+              : `${this.config.get(
+                  's3.imageUrl',
+                )}/supplier-db/supplier/${atsMedia?.image}`,
+          url: atsMedia?.url ?? '',
+          type: atsMedia?.type === MediaTypes.TYPE_VIDEO ? 'video' : 'image',
+        };
         const serviceMedia = await this.mediaRepo.findOne({
           where: { id: info?.service_media_id },
         });
-        serviceMedia['image'] =
-          serviceMedia?.type === 'video'
-            ? serviceMedia?.image
-            : `${this.config.get(
-                's3.imageUrl',
-              )}/supplier-db/supplier/${serviceMedia?.image}`;
+        const serviceMediaContent = {
+          id: serviceMedia?.id,
+          image:
+            serviceMedia?.type === MediaTypes.TYPE_VIDEO
+              ? serviceMedia?.image
+              : `${this.config.get(
+                  's3.imageUrl',
+                )}/supplier-db/supplier/${serviceMedia?.image}`,
+          url: serviceMedia?.url ?? '',
+          type:
+            serviceMedia?.type === MediaTypes.TYPE_VIDEO ? 'video' : 'image',
+        };
         let media = {};
         if (supplier?.mts_video) {
           const thumbnailImage = supplier?.mts_video
@@ -72,11 +84,11 @@ export class SupplierInfoService {
           media,
           about_the_supplier: {
             content: info?.ats_content,
-            media: atsMedia ?? null,
+            media: atsMediaContent ?? null,
           },
           services: {
             content: info?.service_content,
-            media: serviceMedia ?? null,
+            media: serviceMediaContent ?? null,
           },
         };
       }
