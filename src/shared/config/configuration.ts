@@ -21,6 +21,7 @@ export default (): any => ({
     url: process.env.FRANCHISE_1851_URL,
     emailUrl: process.env.EMAIL_TEMPLATE_BASE_URL,
     domain: process.env.DOMAIN_NAME,
+    feApi: process.env.FRANCHISE_1851_FE_API_URL,
   },
   youtube: {
     baseUrl: process.env.YOUTUBE_PLACEHOLDER_BASE_URL,

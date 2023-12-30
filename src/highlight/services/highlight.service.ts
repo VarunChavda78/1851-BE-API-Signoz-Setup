@@ -42,10 +42,7 @@ export class HighlightService {
           });
         }
       }
-      const info = await this.infoRepo.findOne({
-        where: { supplier_id: supplier?.id },
-      });
-      return { title: info?.highlight_title ?? 'Supplier Highlights', data };
+      return { title: 'Supplier Highlights', data };
     }
   }
 }
