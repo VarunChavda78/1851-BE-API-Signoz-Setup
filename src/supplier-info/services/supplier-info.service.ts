@@ -6,6 +6,7 @@ import { MediaRepository } from 'src/media/repositories/media.repository';
 import { ConfigService } from '@nestjs/config';
 import { LayoutService } from 'src/layout/services/layout.service';
 import { MediaTypes } from 'src/media/dtos/mediaDto';
+import { UserStatus } from 'src/user/dtos/UserDto';
 
 @Injectable()
 export class SupplierInfoService {
@@ -19,7 +20,12 @@ export class SupplierInfoService {
 
   async getInfo(infoFilter: InfoFilter) {
     const { slug } = infoFilter;
-    const supplier = await this.supplierRepo.findOne({ where: { slug } });
+    const supplier = await this.supplierRepo
+      .createQueryBuilder('suppliers')
+      .leftJoinAndSelect('suppliers.user_id', 'user_id')
+      .where('suppliers.slug = :slug', { slug })
+      .andWhere('user_id.status = :status', { status: UserStatus.APPROVED })
+      .getOne();
     if (!supplier) {
       throw new NotFoundException();
     } else {

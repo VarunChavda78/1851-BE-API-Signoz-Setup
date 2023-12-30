@@ -6,6 +6,7 @@ import { HttpService } from '@nestjs/axios';
 import { PageOptionsDto } from 'src/shared/dtos/pageOptionsDto';
 import { PageMetaDto } from 'src/shared/dtos/pageMetaDto';
 import { PageDto } from 'src/shared/dtos/pageDto';
+import { UserStatus } from 'src/user/dtos/UserDto';
 
 @Injectable()
 export class LatestNewsService {
@@ -18,7 +19,12 @@ export class LatestNewsService {
   async listLatestNews(filter: LatestNewsDto, pageOptionsDto: PageOptionsDto) {
     const { slug } = filter;
     const { page, limit } = pageOptionsDto;
-    const supplier = await this.supplierRepo.findOne({ where: { slug } });
+    const supplier = await this.supplierRepo
+      .createQueryBuilder('suppliers')
+      .leftJoinAndSelect('suppliers.user_id', 'user_id')
+      .where('suppliers.slug = :slug', { slug })
+      .andWhere('user_id.status = :status', { status: UserStatus.APPROVED })
+      .getOne();
     if (!supplier) {
       throw new NotFoundException();
     } else {

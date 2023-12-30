@@ -4,6 +4,7 @@ import { HighlightRepository } from '../repositories/highlight.repository';
 import { SupplierRepository } from 'src/supplier/repositories/supplier.repository';
 import { SupplierInfoRepository } from 'src/supplier-info/repositories/supplier-info.repository';
 import { ConfigService } from '@nestjs/config';
+import { UserStatus } from 'src/user/dtos/UserDto';
 
 @Injectable()
 export class HighlightService {
@@ -16,7 +17,12 @@ export class HighlightService {
 
   async getHighlightList(filter: HighlightDto) {
     const { slug } = filter;
-    const supplier = await this.supplierRepo.findOne({ where: { slug } });
+    const supplier = await this.supplierRepo
+      .createQueryBuilder('suppliers')
+      .leftJoinAndSelect('suppliers.user_id', 'user_id')
+      .where('suppliers.slug = :slug', { slug })
+      .andWhere('user_id.status = :status', { status: UserStatus.APPROVED })
+      .getOne();
     if (!supplier) {
       throw new NotFoundException();
     } else {
@@ -30,8 +36,8 @@ export class HighlightService {
             id: highlight?.id,
             logo: `${this.config.get(
               's3.imageUrl',
-            )}/supplier-db/supplier/${highlight?.logo}`,
-            title: highlight?.title,
+            )}/supplier-db/supplier/highlight.svg`,
+            title: `Verified Profiles`,
             content: highlight?.content,
           });
         }
@@ -39,7 +45,7 @@ export class HighlightService {
       const info = await this.infoRepo.findOne({
         where: { supplier_id: supplier?.id },
       });
-      return { title: info?.highlight_title, data };
+      return { title: info?.highlight_title ?? 'Supplier Highlights', data };
     }
   }
 }

@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   HttpStatus,
+  NotFoundException,
   Param,
   Post,
   Query,
@@ -12,6 +13,7 @@ import { SupplierRepository } from '../repositories/supplier.repository';
 import { FilterDto, supplierDto } from '../dtos/supplierDto';
 import * as lodash from 'lodash';
 import { PageOptionsDto } from '../dtos/pageOptionsDto';
+import { UserStatus } from 'src/user/dtos/UserDto';
 
 @Controller({
   version: '1',
@@ -36,9 +38,18 @@ export class SupplierController {
 
   @Get(':id')
   async show(@Param('id') id: number) {
-    const supplier = await this.supplierRepository.getById(id);
-    const data = await this.supplierService.getDetails(supplier);
-    return { data: data };
+    const supplier = await this.supplierRepository
+      .createQueryBuilder('suppliers')
+      .leftJoinAndSelect('suppliers.user_id', 'user_id')
+      .where('suppliers.id = :id', { id })
+      .andWhere('user_id.status = :status', { status: UserStatus.APPROVED })
+      .getOne();
+    if (!supplier) {
+      throw new NotFoundException();
+    } else {
+      const data = await this.supplierService.getDetails(supplier);
+      return { data: data };
+    }
   }
 
   @Post()
