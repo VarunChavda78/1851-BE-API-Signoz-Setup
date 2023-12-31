@@ -73,11 +73,13 @@ export class SupplierInfoService {
             image: thumbnailImage,
             url: supplier?.mts_video,
           };
-        } else if (info?.banner_media_id) {
+        }
+        let banner_media = {};
+        if (info?.banner_media_id) {
           const bannereMedia = await this.mediaRepo.findOne({
             where: { id: info?.banner_media_id },
           });
-          media = {
+          banner_media = {
             type: 'image',
             image:
               bannereMedia?.type === MediaTypes.TYPE_IMAGE
@@ -102,6 +104,7 @@ export class SupplierInfoService {
                 's3.imageUrl',
               )}/supplier-db/supplier/client-logo.png`,
           media,
+          banner_media,
           about_the_supplier: {
             content: info?.ats_content,
             media: atsMediaContent ?? null,
