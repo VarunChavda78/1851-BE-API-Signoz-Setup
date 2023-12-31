@@ -44,7 +44,7 @@ export class SupplierInfoService {
               ? atsMedia?.image
               : `${this.config.get(
                   's3.imageUrl',
-                )}/supplier-db/supplier/${atsMedia?.image}`,
+                )}/supplier-db/supplier/${supplier?.id}/${atsMedia?.image}`,
           url: atsMedia?.url ?? '',
           type: atsMedia?.type === MediaTypes.TYPE_VIDEO ? 'video' : 'image',
         };
@@ -58,7 +58,7 @@ export class SupplierInfoService {
               ? serviceMedia?.image
               : `${this.config.get(
                   's3.imageUrl',
-                )}/supplier-db/supplier/${serviceMedia?.image}`,
+                )}/supplier-db/supplier/${supplier?.id}/${serviceMedia?.image}`,
           url: serviceMedia?.url ?? '',
           type:
             serviceMedia?.type === MediaTypes.TYPE_VIDEO ? 'video' : 'image',
@@ -73,6 +73,20 @@ export class SupplierInfoService {
             image: thumbnailImage,
             url: supplier?.mts_video,
           };
+        } else if (info?.banner_media_id) {
+          const bannereMedia = await this.mediaRepo.findOne({
+            where: { id: info?.banner_media_id },
+          });
+          media = {
+            type: 'image',
+            image:
+              bannereMedia?.type === MediaTypes.TYPE_IMAGE
+                ? `${this.config.get(
+                    's3.imageUrl',
+                  )}/supplier-db/supplier/${supplier?.id}/${bannereMedia?.image}`
+                : '',
+            url: bannereMedia?.url ?? '',
+          };
         }
         data = {
           id: info?.id,
@@ -83,7 +97,7 @@ export class SupplierInfoService {
           logo: supplier?.logo
             ? `${this.config.get(
                 's3.imageUrl',
-              )}/supplier-db/supplier/${supplier?.logo}`
+              )}/supplier-db/supplier/${supplier?.id}/${supplier?.logo}`
             : `${this.config.get(
                 's3.imageUrl',
               )}/supplier-db/supplier/client-logo.png`,

@@ -128,7 +128,9 @@ export class SupplierService {
       name: data?.name,
       slug: data?.slug,
       logo: data?.logo
-        ? `${this.config.get('s3.imageUrl')}/supplier-db/supplier/${data?.logo}`
+        ? `${this.config.get(
+            's3.imageUrl',
+          )}/supplier-db/supplier/${data?.id}/${data?.logo}`
         : `${this.config.get(
             's3.imageUrl',
           )}/supplier-db/supplier/client-logo.png`,

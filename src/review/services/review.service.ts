@@ -96,7 +96,7 @@ export class ReviewService {
               logo: supplierData?.logo
                 ? `${this.config.get(
                     's3.imageUrl',
-                  )}/supplier-db/supplier/${supplierData?.logo}`
+                  )}/supplier-db/supplier/${supplierData?.id}/${supplierData?.logo}`
                 : `${this.config.get(
                     's3.imageUrl',
                   )}/supplier-db/supplier/client-logo.png`,
