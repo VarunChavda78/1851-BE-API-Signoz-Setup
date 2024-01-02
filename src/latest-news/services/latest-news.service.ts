@@ -122,7 +122,7 @@ export class LatestNewsService {
       .get(
         `${this.config.get(
           'franchise.feApi',
-        )}/articles/featured?limit=3&page=1`,
+        )}/articles/latest-stories?limit=3&page=1`,
       )
       .toPromise()
       .then((response) => {
