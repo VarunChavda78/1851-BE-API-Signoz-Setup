@@ -34,8 +34,8 @@ export class ClaimProfileService {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const response = await axios.post(`${emailUrl}/claim-profile`, data);
     const email = {
-      to: request.email,
-      from: this.config.get('smtp.fromEmail'),
+      to: this.config.get('smtp.fromEmail'),
+      from: this.config.get('smtp.noReplyEmail'),
       subject: subject,
       html: response.data.html,
     };

@@ -44,6 +44,7 @@ export default (): any => ({
     username: process.env.SMTP_USERNAME,
     password: process.env.SMTP_PASSWORD,
     fromEmail: process.env.ADMIN_FROM_EMAIL || 'admin@example.com',
+    noReplyEmail: process.env.NO_REPLY_EMAIL,
     sendgridKey: process.env.SENDGRID_KEY,
   },
 });
