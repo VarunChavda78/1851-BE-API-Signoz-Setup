@@ -4,7 +4,6 @@ import { SupplierRepository } from 'src/supplier/repositories/supplier.repositor
 import { SupplierInfoRepository } from '../repositories/supplier-info.repository';
 import { MediaRepository } from 'src/media/repositories/media.repository';
 import { ConfigService } from '@nestjs/config';
-import { LayoutService } from 'src/layout/services/layout.service';
 import { MediaTypes } from 'src/media/dtos/mediaDto';
 import { UserStatus } from 'src/user/dtos/UserDto';
 
@@ -15,7 +14,6 @@ export class SupplierInfoService {
     private repository: SupplierInfoRepository,
     private mediaRepo: MediaRepository,
     private readonly config: ConfigService,
-    private layoutService: LayoutService,
   ) {}
 
   async getInfo(infoFilter: InfoFilter) {
@@ -34,39 +32,50 @@ export class SupplierInfoService {
         where: { supplier_id: supplier?.id },
       });
       if (info) {
-        const atsMedia = await this.mediaRepo.findOne({
-          where: { id: info?.ats_media_id },
-        });
-        const atsMediaContent = {
-          id: atsMedia?.id,
-          image:
-            atsMedia?.type === MediaTypes.TYPE_VIDEO
-              ? atsMedia?.image
-              : `${this.config.get(
-                  's3.imageUrl',
-                )}/supplier-db/supplier/${supplier?.id}/${atsMedia?.image}`,
-          url: atsMedia?.url ?? '',
-          type: atsMedia?.type === MediaTypes.TYPE_VIDEO ? 'video' : 'image',
-        };
-        const serviceMedia = await this.mediaRepo.findOne({
-          where: { id: info?.service_media_id },
-        });
-        const serviceMediaContent = {
-          id: serviceMedia?.id,
-          image:
-            serviceMedia?.type === MediaTypes.TYPE_VIDEO
-              ? serviceMedia?.image
-              : `${this.config.get(
-                  's3.imageUrl',
-                )}/supplier-db/supplier/${supplier?.id}/${serviceMedia?.image}`,
-          url: serviceMedia?.url ?? '',
-          type:
-            serviceMedia?.type === MediaTypes.TYPE_VIDEO ? 'video' : 'image',
-        };
+        const atsMedia = info?.ats_media_id
+          ? await this.mediaRepo.findOne({
+              where: { id: info?.ats_media_id },
+            })
+          : null;
+        const atsMediaContent = atsMedia
+          ? {
+              id: atsMedia?.id,
+              image:
+                atsMedia?.type === MediaTypes.TYPE_VIDEO
+                  ? atsMedia?.image
+                  : `${this.config.get(
+                      's3.imageUrl',
+                    )}/supplier-db/supplier/${supplier?.id}/${atsMedia?.image}`,
+              url: atsMedia?.url ?? '',
+              type:
+                atsMedia?.type === MediaTypes.TYPE_VIDEO ? 'video' : 'image',
+            }
+          : {};
+        const serviceMedia = info?.service_media_id
+          ? await this.mediaRepo.findOne({
+              where: { id: info?.service_media_id },
+            })
+          : null;
+        const serviceMediaContent = serviceMedia
+          ? {
+              id: serviceMedia?.id,
+              image:
+                serviceMedia?.type === MediaTypes.TYPE_VIDEO
+                  ? serviceMedia?.image
+                  : `${this.config.get(
+                      's3.imageUrl',
+                    )}/supplier-db/supplier/${supplier?.id}/${serviceMedia?.image}`,
+              url: serviceMedia?.url ?? '',
+              type:
+                serviceMedia?.type === MediaTypes.TYPE_VIDEO
+                  ? 'video'
+                  : 'image',
+            }
+          : null;
         let media = {};
         if (supplier?.mts_video) {
           const thumbnailImage = supplier?.mts_video
-            ? await this.layoutService.getThumbnailUrl(supplier?.mts_video)
+            ? await this.getThumbnailUrl(supplier?.mts_video)
             : null;
           media = {
             type: 'video',
@@ -117,5 +126,42 @@ export class SupplierInfoService {
       }
       return data;
     }
+  }
+
+  async getThumbnailUrl(url) {
+    const vimeo = /(?:http?s?:\/\/)?(?:www\.)?(?:vimeo\.com)\/?(.+)/g;
+    const youtube =
+      /(?:http?s?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=)?(.+)/g;
+    let thumbnail = null;
+    if (youtube.test(url)) {
+      thumbnail = await this.getYoutubeThumbnail(url);
+    } else if (vimeo.test(url)) {
+      thumbnail = await this.getVimeoThumbnail(url);
+    }
+    return thumbnail;
+  }
+
+  async getYoutubeThumbnail(videoUrl: string): Promise<string> {
+    // Extract video ID from the YouTube URL
+    const videoId = videoUrl.split('v=')[1];
+
+    // Construct the YouTube thumbnail URL
+    const thumbnailUrl = `${this.config.get(
+      'youtube.baseUrl',
+    )}/${videoId}/maxresdefault.jpg`;
+
+    return thumbnailUrl;
+  }
+
+  async getVimeoThumbnail(videoUrl: string): Promise<string> {
+    // Extract video ID from the Vimeo URL
+    const videoId = videoUrl.split('/').pop();
+
+    // Construct the Vimeo thumbnail URL (publicly accessible)
+    const thumbnailUrl = `${this.config.get(
+      'vimeo.baseUrl',
+    )}/${videoId}_1280.jpg`;
+
+    return thumbnailUrl;
   }
 }

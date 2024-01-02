@@ -37,8 +37,8 @@ export class LayoutController {
   ) {}
 
   @Get('top-header')
-  async getTopHeader() {
-    const data = await this.layoutService.getheader();
+  async getTopHeader(@Query() params: LayoutDto) {
+    const data = await this.layoutService.getheader(params?.slug);
     return { data: data };
   }
 

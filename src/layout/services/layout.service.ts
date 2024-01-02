@@ -1,11 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import {
+  SocialPlatformText,
+  SocialPlatforms,
+} from 'src/social-platform/dtos/SocialPlatformDto';
+import { SocialPlatformRepository } from 'src/social-platform/repositories/social-platform.repository';
+import { SupplierRepository } from 'src/supplier/repositories/supplier.repository';
 
 @Injectable()
 export class LayoutService {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    private supplierRepo: SupplierRepository,
+    private socialRepo: SocialPlatformRepository,
+  ) {}
 
-  async getheader() {
+  async getheader(slug) {
     return {
       publication: {
         id: '1851',
@@ -49,7 +59,7 @@ export class LayoutService {
           )}/supplier-db/static/sc-header-logo.svg`,
         },
       ],
-      socialMedia: await this.socialMediaLinks(),
+      socialMedia: await this.socialMediaLinks(slug),
     };
   }
 
@@ -84,7 +94,7 @@ export class LayoutService {
         )}/supplier-db/static/1851-footer-logo.svg`,
         url: `${this.configService.get('franchise.url')}/supplier`,
       },
-      socialLinks: await this.socialMediaLinks(),
+      socialLinks: await this.socialMediaLinks(slug),
       supplierMenus,
       menus: [
         {
@@ -109,14 +119,82 @@ export class LayoutService {
     };
   }
 
-  async socialMediaLinks() {
-    return [
-      'https://www.facebook.com/1851magazine',
-      'https://www.instagram.com/1851franchise/',
-      'https://twitter.com/1851Franchise',
-      'https://www.linkedin.com/company/1851-project',
-      'https://www.youtube.com/c/1851Franchise',
-    ];
+  async socialMediaLinks(slug) {
+    const platforms = [];
+    if (slug) {
+      const supplier = await this.supplierRepo
+        .createQueryBuilder('suppliers')
+        .where('suppliers.slug = :slug', { slug })
+        .getOne();
+      if (supplier) {
+        const socialPlatforms = await this.socialRepo
+          .createQueryBuilder('social_platform')
+          .addSelect(
+            'CASE WHEN social_platform.type = :facebook THEN social_platform.url END',
+            'facebook',
+          )
+          .addSelect(
+            'CASE WHEN social_platform.type = :linkedin THEN social_platform.url END',
+            'linkedin',
+          )
+          .addSelect(
+            'CASE WHEN social_platform.type = :youtube THEN social_platform.url END',
+            'youtube',
+          )
+          .addSelect(
+            'CASE WHEN social_platform.type = :instagram THEN social_platform.url END',
+            'instagram',
+          )
+          .setParameter('facebook', SocialPlatforms.FACEBOOK)
+          .setParameter('linkedin', SocialPlatforms.LINKEDIN)
+          .setParameter('youtube', SocialPlatforms.YOUTUBE)
+          .setParameter('instagram', SocialPlatforms.INSTAGRAM)
+          .where('user_id = :user_id', { user_id: 48 })
+          .getRawMany();
+        if (socialPlatforms.length) {
+          const types = [
+            SocialPlatformText.FACEBOOK,
+            SocialPlatformText.LINKEDIN,
+            SocialPlatformText.YOUTUBE,
+            SocialPlatformText.INSTAGRAM,
+          ];
+          for (const socialPlatform of socialPlatforms) {
+            for (const type of types) {
+              if (socialPlatform[type]) {
+                platforms.push({
+                  title: type,
+                  url: socialPlatform[type],
+                });
+              }
+            }
+          }
+        }
+      }
+    } else {
+      platforms.push([
+        {
+          title: 'facebook',
+          url: 'https://www.facebook.com/1851magazine',
+        },
+        {
+          title: 'linkedin',
+          url: 'https://www.linkedin.com/company/1851-project',
+        },
+        {
+          title: 'youtube',
+          url: 'https://www.youtube.com/c/1851Franchise',
+        },
+        {
+          title: 'instagram',
+          url: 'https://www.instagram.com/1851franchise/',
+        },
+        {
+          title: 'twitter',
+          url: 'https://twitter.com/1851Franchise',
+        },
+      ]);
+    }
+    return platforms;
   }
 
   async brandBenefits() {

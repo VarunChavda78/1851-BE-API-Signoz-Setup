@@ -10,6 +10,7 @@ import { SupplierInfoRepository } from 'src/supplier-info/repositories/supplier-
 import { LatestNewsRepository } from 'src/latest-news/repositories/latest-news.repository';
 import { UserRepository } from 'src/user/repositories/user.repository';
 import { UserProfileRepository } from 'src/user-profile/repositories/user-profile.repository';
+import { SocialPlatformRepository } from 'src/social-platform/repositories/social-platform.repository';
 
 @Module({
   imports: [],
@@ -24,6 +25,7 @@ import { UserProfileRepository } from 'src/user-profile/repositories/user-profil
     LatestNewsRepository,
     UserRepository,
     UserProfileRepository,
+    SocialPlatformRepository,
   ],
   controllers: [LayoutController],
   exports: [LayoutService],

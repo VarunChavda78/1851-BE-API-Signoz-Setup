@@ -13,3 +13,9 @@ export enum SocialPlatforms {
   YOUTUBE = 3,
   INSTAGRAM = 4,
 }
+export enum SocialPlatformText {
+  FACEBOOK = 'facebook',
+  LINKEDIN = 'linkedin',
+  YOUTUBE = 'youtube',
+  INSTAGRAM = 'instagram',
+}
