@@ -39,6 +39,6 @@ export class ClaimProfileService {
       subject: subject,
       html: response.data.html,
     };
-    // const res = await sendgrid.send(email);
+    await sendgrid.send(email);
   }
 }
