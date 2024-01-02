@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as nodemailer from 'nodemailer';
 import { HttpService } from '@nestjs/axios';
 
 @Injectable()
@@ -35,33 +34,5 @@ export class NewsletterService {
     } catch (e) {
       return e?.response?.data?.title;
     }
-  }
-  async sendEmail(
-    fromEmail: string,
-    toEmail: string,
-    subject: string,
-    message: string,
-  ) {
-    const transporter = nodemailer.createTransport({
-      host: this.config.get('smtp.host'),
-      port: this.config.get('smtp.port'),
-      auth: {
-        user: this.config.get('smtp.username'),
-        pass: this.config.get('smtp.password'),
-      },
-    });
-    let mailOptions = null;
-    mailOptions = {
-      from: fromEmail,
-      to: toEmail,
-      subject: subject,
-      html: message,
-    };
-
-    await transporter.sendMail(mailOptions, function (error) {
-      if (error) {
-        console.error(error);
-      }
-    });
   }
 }
