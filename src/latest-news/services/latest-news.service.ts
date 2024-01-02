@@ -43,7 +43,7 @@ export class LatestNewsService {
             where: { supplier_id: supplier?.id },
           });
           if (latestNews?.article_id) {
-            const articles = latestNews?.article_id.split(', ');
+            const articles = latestNews?.article_id.split(',');
             for (const article of articles) {
               const result = await this.getArticleDetail(article);
               data.push(result);
