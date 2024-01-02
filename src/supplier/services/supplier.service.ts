@@ -7,6 +7,7 @@ import { SupplierRepository } from '../repositories/supplier.repository';
 import { ConfigService } from '@nestjs/config';
 import { PageOptionsDto } from '../dtos/pageOptionsDto';
 import { SupplierInfoRepository } from 'src/supplier-info/repositories/supplier-info.repository';
+import { UserStatus } from 'src/user/dtos/UserDto';
 
 @Injectable()
 export class SupplierService {
@@ -28,7 +29,10 @@ export class SupplierService {
     const { featured, category, rating, slug, state } = filterData;
     let fieldsArray = sort.split(',');
     const ordersArray = order.split(',');
-    const queryBuilder = this.repository.createQueryBuilder('suppliers');
+    const queryBuilder = this.repository
+      .createQueryBuilder('suppliers')
+      .leftJoinAndSelect('suppliers.user_id', 'user_id')
+      .andWhere('user_id.status = :status', { status: UserStatus.APPROVED });
     if (slug) {
       queryBuilder.andWhere('suppliers.slug = :slug', {
         slug,
@@ -74,7 +78,7 @@ export class SupplierService {
     }
     const orderBy: Record<string, 'ASC' | 'DESC'> = {};
     fieldsArray.forEach((field, index) => {
-      orderBy[field] = ordersArray[index] || 'ASC';
+      orderBy[`suppliers.${field}`] = ordersArray[index] || 'ASC';
     });
     const itemCount = await queryBuilder.getCount();
     const suppliers = await queryBuilder
@@ -124,7 +128,9 @@ export class SupplierService {
       name: data?.name,
       slug: data?.slug,
       logo: data?.logo
-        ? `${this.config.get('s3.imageUrl')}/supplier-db/supplier/${data?.logo}`
+        ? `${this.config.get(
+            's3.imageUrl',
+          )}/supplier-db/supplier/${data?.id}/${data?.logo}`
         : `${this.config.get(
             's3.imageUrl',
           )}/supplier-db/supplier/client-logo.png`,

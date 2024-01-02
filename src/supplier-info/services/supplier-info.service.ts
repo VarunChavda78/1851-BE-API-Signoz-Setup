@@ -6,6 +6,7 @@ import { MediaRepository } from 'src/media/repositories/media.repository';
 import { ConfigService } from '@nestjs/config';
 import { LayoutService } from 'src/layout/services/layout.service';
 import { MediaTypes } from 'src/media/dtos/mediaDto';
+import { UserStatus } from 'src/user/dtos/UserDto';
 
 @Injectable()
 export class SupplierInfoService {
@@ -19,7 +20,12 @@ export class SupplierInfoService {
 
   async getInfo(infoFilter: InfoFilter) {
     const { slug } = infoFilter;
-    const supplier = await this.supplierRepo.findOne({ where: { slug } });
+    const supplier = await this.supplierRepo
+      .createQueryBuilder('suppliers')
+      .leftJoinAndSelect('suppliers.user_id', 'user_id')
+      .where('suppliers.slug = :slug', { slug })
+      .andWhere('user_id.status = :status', { status: UserStatus.APPROVED })
+      .getOne();
     if (!supplier) {
       throw new NotFoundException();
     } else {
@@ -38,7 +44,7 @@ export class SupplierInfoService {
               ? atsMedia?.image
               : `${this.config.get(
                   's3.imageUrl',
-                )}/supplier-db/supplier/${atsMedia?.image}`,
+                )}/supplier-db/supplier/${supplier?.id}/${atsMedia?.image}`,
           url: atsMedia?.url ?? '',
           type: atsMedia?.type === MediaTypes.TYPE_VIDEO ? 'video' : 'image',
         };
@@ -52,7 +58,7 @@ export class SupplierInfoService {
               ? serviceMedia?.image
               : `${this.config.get(
                   's3.imageUrl',
-                )}/supplier-db/supplier/${serviceMedia?.image}`,
+                )}/supplier-db/supplier/${supplier?.id}/${serviceMedia?.image}`,
           url: serviceMedia?.url ?? '',
           type:
             serviceMedia?.type === MediaTypes.TYPE_VIDEO ? 'video' : 'image',
@@ -68,6 +74,22 @@ export class SupplierInfoService {
             url: supplier?.mts_video,
           };
         }
+        let banner_media = {};
+        if (info?.banner_media_id) {
+          const bannereMedia = await this.mediaRepo.findOne({
+            where: { id: info?.banner_media_id },
+          });
+          banner_media = {
+            type: 'image',
+            image:
+              bannereMedia?.type === MediaTypes.TYPE_IMAGE
+                ? `${this.config.get(
+                    's3.imageUrl',
+                  )}/supplier-db/supplier/${supplier?.id}/${bannereMedia?.image}`
+                : '',
+            url: bannereMedia?.url ?? '',
+          };
+        }
         data = {
           id: info?.id,
           name: supplier?.name,
@@ -77,11 +99,12 @@ export class SupplierInfoService {
           logo: supplier?.logo
             ? `${this.config.get(
                 's3.imageUrl',
-              )}/supplier-db/supplier/${supplier?.logo}`
+              )}/supplier-db/supplier/${supplier?.id}/${supplier?.logo}`
             : `${this.config.get(
                 's3.imageUrl',
               )}/supplier-db/supplier/client-logo.png`,
           media,
+          banner_media,
           about_the_supplier: {
             content: info?.ats_content,
             media: atsMediaContent ?? null,

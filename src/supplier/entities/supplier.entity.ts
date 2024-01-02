@@ -4,6 +4,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -15,6 +16,7 @@ export class Supplier {
   id: number;
 
   @OneToOne(() => User, (user) => user.id)
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
   @Column({ unique: true })
   user_id: number;
 
