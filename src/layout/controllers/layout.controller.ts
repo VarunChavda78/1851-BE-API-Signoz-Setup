@@ -88,46 +88,56 @@ export class LayoutController {
         data.city = row?.City ?? null;
         data.state = row?.State ?? null;
         data.founded = row?.Founded ? row?.Founded : null;
-        data.is_featured = row?.IsFeatured ? true : false;
+        data.is_featured = row?.IsFeatured == 1 ? true : false;
         data.category_id = row?.['Category ID']
           ? Number(row?.['Category ID'])
           : null;
         data.logo = row?.Logo;
         data.mts_video = row?.['Meet The Supplier'] ?? null;
         const supplier = await this.supplierRepository.save(data);
-        await this.supplierRepository.moveS3Images(row?.Logo, supplier?.id);
-        const info = {
-          supplier_id: supplier?.id,
-          ats_content: row?.['Company Overview'],
-          website: row?.['Company website'],
-        };
-        await this.supplierInfoRepository.save(info);
-        const socialLinks = [
-          'Facebook URL',
-          'Instagram',
-          'Twitter',
-          'LinkedIn',
-          'YouTube',
-        ];
-        for (const socialLink of socialLinks) {
-          if (row?.[socialLink]) {
-            await this.socialRepo.save({
-              user_id: user.id,
-              type:
-                socialLink === 'Facebook URL'
-                  ? SocialPlatforms.FACEBOOK
-                  : socialLink === 'Instagram'
-                    ? SocialPlatforms.INSTAGRAM
-                    : socialLink === 'Twitter'
-                      ? SocialPlatforms.TWITTER
-                      : socialLink === 'LinkedIn'
-                        ? SocialPlatforms.LINKEDIN
-                        : socialLink === 'YouTube'
-                          ? SocialPlatforms.YOUTUBE
-                          : null,
-              url: row?.[socialLink],
-            });
+        if (supplier) {
+          const info = {
+            supplier_id: supplier?.id,
+            highlight_title: null,
+            ats_media_id: null,
+            service_media_id: null,
+            service_content: null,
+            ats_content: row?.['Company Overview'] ?? null,
+            latest_news_type_id: null,
+            website: row?.['Company website'] ?? null,
+          };
+          await this.supplierInfoRepository.save(info);
+          const socialLinks = [
+            'Facebook URL',
+            'Instagram',
+            'Twitter',
+            'LinkedIn',
+            'YouTube',
+          ];
+          for (const socialLink of socialLinks) {
+            if (row?.[socialLink]) {
+              await this.socialRepo.save({
+                user_id: user.id,
+                type:
+                  socialLink === 'Facebook URL'
+                    ? SocialPlatforms.FACEBOOK
+                    : socialLink === 'Instagram'
+                      ? SocialPlatforms.INSTAGRAM
+                      : socialLink === 'Twitter'
+                        ? SocialPlatforms.TWITTER
+                        : socialLink === 'LinkedIn'
+                          ? SocialPlatforms.LINKEDIN
+                          : socialLink === 'YouTube'
+                            ? SocialPlatforms.YOUTUBE
+                            : null,
+                url: row?.[socialLink],
+              });
+            }
           }
+          await this.supplierRepository.moveS3Images(
+            row?.Logo.trim(),
+            supplier?.id,
+          );
         }
       });
     return true;

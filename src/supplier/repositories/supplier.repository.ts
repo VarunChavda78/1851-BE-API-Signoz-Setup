@@ -40,20 +40,24 @@ export class SupplierRepository extends Repository<Supplier> {
     const sourcePath = `${bucketName}/supplier-db/images/${image}`;
     const destinationPath = `supplier-db/supplier/${id}/${image}`;
     if (image && id) {
-      await s3
-        .copyObject({
-          Bucket: bucketName,
-          CopySource: sourcePath,
-          Key: destinationPath,
-        })
-        .promise();
+      try {
+        await s3
+          .copyObject({
+            Bucket: bucketName,
+            CopySource: sourcePath,
+            Key: destinationPath,
+          })
+          .promise();
 
-      await s3
-        .deleteObject({
-          Bucket: bucketName,
-          Key: `supplier-db/images/${image}`,
-        })
-        .promise();
+        await s3
+          .deleteObject({
+            Bucket: bucketName,
+            Key: `supplier-db/images/${image}`,
+          })
+          .promise();
+      } catch (e) {
+        console.log(e, 'S3 Error');
+      }
     }
   }
 }
