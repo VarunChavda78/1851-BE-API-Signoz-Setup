@@ -1,11 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
-
+import { S3 } from 'aws-sdk';
 import { Supplier } from '../entities/supplier.entity';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class SupplierRepository extends Repository<Supplier> {
-  constructor(private dataSource: DataSource) {
+  constructor(
+    private dataSource: DataSource,
+    private config: ConfigService,
+  ) {
     super(Supplier, dataSource.createEntityManager());
   }
 
@@ -23,5 +27,33 @@ export class SupplierRepository extends Repository<Supplier> {
     const numberArray = stringArray.map(Number); // Convert each element to a number
 
     return numberArray;
+  }
+
+  async moveS3Images(image: string, id: number): Promise<void> {
+    const s3 = new S3({
+      accessKeyId: this.config.get('aws.accessKey'),
+      secretAccessKey: this.config.get('aws.secretKey'),
+      region: this.config.get('aws.region'),
+    });
+    // Move images in S3
+    const bucketName = this.config.get('aws.bucketName');
+    const sourcePath = `${bucketName}/supplier-db/images/${image}`;
+    const destinationPath = `supplier-db/supplier/${id}/${image}`;
+    if (image && id) {
+      await s3
+        .copyObject({
+          Bucket: bucketName,
+          CopySource: sourcePath,
+          Key: destinationPath,
+        })
+        .promise();
+
+      await s3
+        .deleteObject({
+          Bucket: bucketName,
+          Key: `supplier-db/images/${image}`,
+        })
+        .promise();
+    }
   }
 }

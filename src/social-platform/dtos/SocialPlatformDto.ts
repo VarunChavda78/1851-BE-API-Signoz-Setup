@@ -12,10 +12,12 @@ export enum SocialPlatforms {
   LINKEDIN = 2,
   YOUTUBE = 3,
   INSTAGRAM = 4,
+  TWITTER = 5,
 }
 export enum SocialPlatformText {
   FACEBOOK = 'facebook',
   LINKEDIN = 'linkedin',
   YOUTUBE = 'youtube',
   INSTAGRAM = 'instagram',
+  TWITTER = 'twitter',
 }
