@@ -35,7 +35,7 @@ export class supplierDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsNumber()
-  founded: number;
+  founded: string;
 
   @ApiProperty({ required: false })
   @IsOptional()

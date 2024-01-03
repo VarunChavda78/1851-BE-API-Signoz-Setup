@@ -59,7 +59,7 @@ export class SupplierController {
       slug: lodash.kebabCase(request?.name),
       category_id: Number(request?.category_id),
       is_featured: Boolean(request?.is_featured),
-      founded: Number(request?.founded),
+      founded: request?.founded,
       created_by: request?.created_by ?? null,
     };
     await this.supplierRepository.save(data);

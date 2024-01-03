@@ -97,7 +97,7 @@ export class LayoutController {
         data.slug = lodash.kebabCase(row.Name);
         data.city = row?.City ?? null;
         data.state = row?.State ?? null;
-        data.founded = row?.Founded ? Number(row?.Founded) : null;
+        data.founded = row?.Founded ? row?.Founded : null;
         data.is_featured = row?.isFeatured === 'Yes' ? true : false;
         data.category_id = category?.id ? Number(category?.id) : null;
         data.logo = row?.Logo;

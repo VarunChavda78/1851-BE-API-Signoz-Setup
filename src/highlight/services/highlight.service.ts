@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { HighlightDto } from '../dtos/highlightDto';
 import { HighlightRepository } from '../repositories/highlight.repository';
 import { SupplierRepository } from 'src/supplier/repositories/supplier.repository';
-import { SupplierInfoRepository } from 'src/supplier-info/repositories/supplier-info.repository';
 import { ConfigService } from '@nestjs/config';
 import { UserStatus } from 'src/user/dtos/UserDto';
 
@@ -11,7 +10,6 @@ export class HighlightService {
   constructor(
     private repository: HighlightRepository,
     private supplierRepo: SupplierRepository,
-    private infoRepo: SupplierInfoRepository,
     private config: ConfigService,
   ) {}
 
@@ -37,7 +35,7 @@ export class HighlightService {
             logo: `${this.config.get(
               's3.imageUrl',
             )}/supplier-db/supplier/highlight.svg`,
-            title: `Verified Profiles`,
+            title: highlight?.title ?? 'Verified Profiles',
             content: highlight?.content,
           });
         }

@@ -149,7 +149,7 @@ export class LayoutService {
           .setParameter('linkedin', SocialPlatforms.LINKEDIN)
           .setParameter('youtube', SocialPlatforms.YOUTUBE)
           .setParameter('instagram', SocialPlatforms.INSTAGRAM)
-          .where('user_id = :user_id', { user_id: 48 })
+          .where('user_id = :user_id', { user_id: supplier.user_id })
           .getRawMany();
         if (socialPlatforms.length) {
           const types = [

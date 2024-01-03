@@ -50,7 +50,7 @@ export class LatestNewsService {
             }
           }
         } else if (info?.latest_news_type_id === LatestNewsType.ALL_STORIES) {
-          const result = await this.getAllStories();
+          const result = await this.getLatestStories();
           data.push(result);
         } else if (info?.latest_news_type_id === LatestNewsType.MOST_POPULAR) {
           const result = await this.getMostPopularStories();
@@ -101,23 +101,6 @@ export class LatestNewsService {
   }
 
   async getLatestStories() {
-    const result = await this.http
-      .get(
-        `${this.config.get(
-          'franchise.feApi',
-        )}/articles/latest-stories?limit=3&page=1`,
-      )
-      .toPromise()
-      .then((response) => {
-        return response.data?.data;
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-    return result;
-  }
-
-  async getAllStories() {
     const result = await this.http
       .get(
         `${this.config.get(
