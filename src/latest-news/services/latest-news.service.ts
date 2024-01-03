@@ -33,7 +33,7 @@ export class LatestNewsService {
     if (!supplier) {
       throw new NotFoundException();
     } else {
-      const data = [];
+      let data = [];
       const info = await this.infoRepo.findOne({
         where: { supplier_id: supplier?.id },
       });
@@ -51,15 +51,15 @@ export class LatestNewsService {
           }
         } else if (info?.latest_news_type_id === LatestNewsType.ALL_STORIES) {
           const result = await this.getLatestStories();
-          data.push(result);
+          data = result;
         } else if (info?.latest_news_type_id === LatestNewsType.MOST_POPULAR) {
           const result = await this.getMostPopularStories();
-          data.push(result);
+          data = result;
         } else if (
           info?.latest_news_type_id === LatestNewsType.LATEST_STORIES
         ) {
           const result = await this.getLatestStories();
-          data.push(result);
+          data = result;
         }
       }
 
