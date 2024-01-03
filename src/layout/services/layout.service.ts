@@ -171,7 +171,7 @@ export class LayoutService {
         }
       }
     } else {
-      platforms.push([
+      platforms.push(
         {
           title: 'facebook',
           url: 'https://www.facebook.com/1851magazine',
@@ -192,7 +192,7 @@ export class LayoutService {
           title: 'twitter',
           url: 'https://twitter.com/1851Franchise',
         },
-      ]);
+      );
     }
     return platforms;
   }
