@@ -66,11 +66,13 @@ export class LayoutService {
   async getFooter(slug) {
     const supplierMenus = [];
     supplierMenus.push({
+      slug: 'find-supplier',
       name: 'Find Supplier',
       url: `${this.configService.get('franchise.url')}/searchpopup`,
     });
     if (!slug) {
       supplierMenus.push({
+        slug: 'power-ranking',
         name: 'Supplier Power Rankings',
         url: `${this.configService.get(
           'franchise.url',
@@ -79,10 +81,12 @@ export class LayoutService {
     }
     supplierMenus.push(
       {
+        slug: 'create-a-profile',
         name: 'Create A Profile',
         url: '#',
       },
-      {
+      { 
+        slug: 'pricing',
         name: 'Pricing',
         url: `${this.configService.get('franchise.url')}/about#tellus`,
       },
