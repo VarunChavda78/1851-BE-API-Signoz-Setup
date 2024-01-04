@@ -132,11 +132,10 @@ export class SupplierInfoService {
             review: supplier?.review ?? 0,
             description: info?.ats_content,
             isFeatured: supplier?.is_featured ? supplier?.is_featured : false,
-            video: supplier?.mts_video ?? '',
+            media,
             category: await this.getCategory(supplier?.category_id),
             website: info?.website,
           },
-          media,
           banner_media,
           highlight: await this.getHighlight(supplier?.id),
           about_the_supplier: {
