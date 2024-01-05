@@ -70,15 +70,15 @@ export class LayoutService {
       name: 'Find Supplier',
       url: `${this.configService.get('franchise.url')}/searchpopup`,
     });
-    if (!slug) {
-      supplierMenus.push({
-        slug: 'power-ranking',
-        name: 'Supplier Power Rankings',
-        url: `${this.configService.get(
-          'franchise.url',
-        )}/supplier/power-ranking`,
-      });
-    }
+    // if (!slug) {
+    //   supplierMenus.push({
+    //     slug: 'power-ranking',
+    //     name: 'Supplier Power Rankings',
+    //     url: `${this.configService.get(
+    //       'franchise.url',
+    //     )}/supplier/power-ranking`,
+    //   });
+    // }
     supplierMenus.push(
       {
         slug: 'create-a-profile',
