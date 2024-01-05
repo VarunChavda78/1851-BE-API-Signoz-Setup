@@ -12,11 +12,12 @@ export class SupplierLibraryService {
   async getPlaylists(pageOptionsDto: PageOptionsDto) {
     const { page, limit, order, sort } = pageOptionsDto;
     const skip = page ? (page - 1) * limit : 0;
-    const orderBy: any = order?.toUpperCase() ?? 'ASC';
+    const sorting = sort ? sort : 'is_featured';
+    const orderBy: any = order?.toUpperCase() ?? 'DESC';
     const queryBuilder = this.repository.createQueryBuilder('supplier_library');
     const itemCount = await queryBuilder.getCount();
     const playlists = await queryBuilder
-      .orderBy(sort, orderBy)
+      .orderBy(sorting, orderBy)
       .skip(skip)
       .take(limit)
       .getMany();
