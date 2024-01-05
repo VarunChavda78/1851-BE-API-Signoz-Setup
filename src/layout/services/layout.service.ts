@@ -53,20 +53,9 @@ export class LayoutService {
     };
   }
 
-  async getFooter(slug) {
+  async getFooter(slug:any) {
     const supplierMenus = [];
-    supplierMenus.push({
-      name: 'Find Supplier',
-      url: `${this.configService.get('franchise.url')}/searchpopup`,
-    });
-    if (!slug) {
-      supplierMenus.push({
-        name: 'Supplier Power Rankings',
-        url: `${this.configService.get(
-          'franchise.url',
-        )}/supplier/power-ranking`,
-      });
-    }
+
     supplierMenus.push(
       {
         name: 'Create A Profile',
