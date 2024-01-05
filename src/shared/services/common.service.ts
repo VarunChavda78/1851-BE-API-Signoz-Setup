@@ -23,13 +23,17 @@ export class CommonService {
   }
 
   async getYoutubeThumbnail(videoUrl: string): Promise<string> {
-    // Extract video ID from the YouTube URL
-    const videoId = videoUrl.split('v=')[1];
-
-    // Construct the YouTube thumbnail URL
-    const thumbnailUrl = `${this.config.get(
+    const urlParts = new URL(videoUrl);
+    let thumbnailUrl = `${this.config.get(
       'youtube.baseUrl',
-    )}/${videoId}/maxresdefault.jpg`;
+    )}/maxresdefault.jpg`;
+
+    if (urlParts.searchParams.has('v')) {
+      const videoId = urlParts.searchParams.get('v');
+      thumbnailUrl = `${this.config.get(
+        'youtube.baseUrl',
+      )}/${videoId}/maxresdefault.jpg`;
+    }
 
     return thumbnailUrl;
   }
