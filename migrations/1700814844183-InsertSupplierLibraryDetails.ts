@@ -30,12 +30,17 @@ export class InsertSupplierLibraryDetails1700814844183
       const videoId = item?.snippet?.resourceId?.videoId;
       const isLive = await this.isVideoLive(videoId);
       if (videoId && isLive) {
-        const featured = videoId === '77fpCEQGpKU' ? true : false;
+        const position =
+          videoId === '77fpCEQGpKU'
+            ? 0
+            : item?.snippet?.position == 0
+              ? 30
+              : item?.snippet?.position;
         const date: any = dayjs(item?.snippet?.publishedAt);
         await _queryRunner.query(
           `
-          INSERT INTO supplier_library (video_id, description, title, image, url, position, is_featured, publish_date)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
+          INSERT INTO supplier_library (video_id, description, title, image, url, position, publish_date)
+          VALUES ($1, $2, $3, $4, $5, $6, $7);
           `,
           [
             item?.snippet?.resourceId?.videoId,
@@ -43,8 +48,7 @@ export class InsertSupplierLibraryDetails1700814844183
             item?.snippet?.title ?? null,
             item?.snippet?.thumbnails?.maxres?.url,
             `https://www.youtube.com/watch?v=${item?.snippet?.resourceId?.videoId}`,
-            item?.snippet?.position,
-            featured,
+            position,
             date,
           ],
         );

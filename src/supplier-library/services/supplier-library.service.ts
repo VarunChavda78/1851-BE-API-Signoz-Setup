@@ -12,8 +12,8 @@ export class SupplierLibraryService {
   async getPlaylists(pageOptionsDto: PageOptionsDto) {
     const { page, limit, order, sort } = pageOptionsDto;
     const skip = page ? (page - 1) * limit : 0;
-    const sorting = sort ? sort : 'is_featured';
-    const orderBy: any = order?.toUpperCase() ?? 'DESC';
+    const sorting = sort ? sort : 'position';
+    const orderBy: any = order?.toUpperCase() ?? 'ASC';
     const queryBuilder = this.repository.createQueryBuilder('supplier_library');
     const itemCount = await queryBuilder.getCount();
     const playlists = await queryBuilder

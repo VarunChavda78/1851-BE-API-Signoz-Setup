@@ -29,9 +29,6 @@ export class SupplierLibrary {
   @Column()
   position: number;
 
-  @Column()
-  is_featured: boolean;
-
   @Column({ nullable: true })
   publish_date: Date;
 
