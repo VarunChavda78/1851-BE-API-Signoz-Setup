@@ -27,22 +27,54 @@ export class InsertSupplierLibraryDetails1700814844183
       nextPageToken = response.data.nextPageToken;
     } while (nextPageToken);
     for (const item of videos) {
-      const date: any = dayjs(item?.snippet?.publishedAt);
-      await _queryRunner.query(
-        `
-        INSERT INTO supplier_library (video_id, description, title, image, url, position, publish_date)
-        VALUES ($1, $2, $3, $4, $5, $6, $7);
-        `,
-        [
-          item?.snippet?.resourceId?.videoId,
-          item?.snippet?.description ?? null,
-          item?.snippet?.title ?? null,
-          item?.snippet?.thumbnails?.maxres?.url,
-          `https://www.youtube.com/watch?v=${item?.snippet?.resourceId?.videoId}`,
-          item?.snippet?.position,
-          date,
-        ],
+      const videoId = item?.snippet?.resourceId?.videoId;
+      const isLive = await this.isVideoLive(videoId);
+      if (videoId && isLive) {
+        const position =
+          videoId === '77fpCEQGpKU'
+            ? 0
+            : item?.snippet?.position == 0
+              ? 30
+              : item?.snippet?.position;
+        const date: any = dayjs(item?.snippet?.publishedAt);
+        await _queryRunner.query(
+          `
+          INSERT INTO supplier_library (video_id, description, title, image, url, position, publish_date)
+          VALUES ($1, $2, $3, $4, $5, $6, $7);
+          `,
+          [
+            item?.snippet?.resourceId?.videoId,
+            item?.snippet?.description ?? null,
+            item?.snippet?.title ?? null,
+            item?.snippet?.thumbnails?.maxres?.url,
+            `https://www.youtube.com/watch?v=${item?.snippet?.resourceId?.videoId}`,
+            position,
+            date,
+          ],
+        );
+      }
+    }
+  }
+
+  public async isVideoLive(videoId: string): Promise<boolean> {
+    try {
+      const response = await axios.get(
+        `${process.env.YOUTUBE_LIVESTREAM_API_URL}`,
+        {
+          params: {
+            part: 'liveStreamingDetails',
+            id: videoId,
+            key: process.env.YOUTUBE_API_KEY,
+          },
+        },
       );
+      const liveStreamingDetails = response.data.items[0]?.liveStreamingDetails;
+      const isLiveVideo = liveStreamingDetails?.actualStartTime ? true : false;
+
+      return isLiveVideo;
+    } catch (error) {
+      console.error('Error checking video status:', error);
+      return false;
     }
   }
 

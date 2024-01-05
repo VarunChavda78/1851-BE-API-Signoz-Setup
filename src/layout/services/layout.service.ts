@@ -63,7 +63,7 @@ export class LayoutService {
     };
   }
 
-  async getFooter(slug) {
+  async getFooter(slug: any) {
     const supplierMenus = [];
     supplierMenus.push({
       slug: 'find-supplier',
@@ -85,7 +85,7 @@ export class LayoutService {
         name: 'Create A Profile',
         url: '#',
       },
-      { 
+      {
         slug: 'pricing',
         name: 'Pricing',
         url: `${this.configService.get('franchise.url')}/about#tellus`,
