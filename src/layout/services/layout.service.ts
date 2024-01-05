@@ -63,29 +63,16 @@ export class LayoutService {
     };
   }
 
-  async getFooter(slug) {
+  async getFooter(slug: any) {
     const supplierMenus = [];
-    supplierMenus.push({
-      slug: 'find-supplier',
-      name: 'Find Supplier',
-      url: `${this.configService.get('franchise.url')}/searchpopup`,
-    });
-    if (!slug) {
-      supplierMenus.push({
-        slug: 'power-ranking',
-        name: 'Supplier Power Rankings',
-        url: `${this.configService.get(
-          'franchise.url',
-        )}/supplier/power-ranking`,
-      });
-    }
+
     supplierMenus.push(
       {
         slug: 'create-a-profile',
         name: 'Create A Profile',
         url: '#',
       },
-      { 
+      {
         slug: 'pricing',
         name: 'Pricing',
         url: `${this.configService.get('franchise.url')}/about#tellus`,
