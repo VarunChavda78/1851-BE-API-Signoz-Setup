@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { configModuleOptions } from './config/module-options';
+import { CommonService } from './services/common.service';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
@@ -25,8 +27,9 @@ import { configModuleOptions } from './config/module-options';
         debug: configService.get<string>('env') === 'development',
       }),
     }),
+    HttpModule,
   ],
-  exports: [ConfigModule],
-  providers: [],
+  exports: [ConfigModule, CommonService],
+  providers: [CommonService, ConfigService],
 })
 export class SharedModule {}

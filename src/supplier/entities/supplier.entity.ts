@@ -48,7 +48,7 @@ export class Supplier {
   is_featured: boolean;
 
   @Column({ nullable: true })
-  founded?: number;
+  founded?: string;
 
   @Column({
     nullable: true,

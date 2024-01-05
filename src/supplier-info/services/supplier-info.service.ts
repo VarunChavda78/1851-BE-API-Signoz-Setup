@@ -1,12 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InfoFilter } from '../dtos/supplierInfoDto';
+import { InfoFilter, LatestNewsType } from '../dtos/supplierInfoDto';
 import { SupplierRepository } from 'src/supplier/repositories/supplier.repository';
 import { SupplierInfoRepository } from '../repositories/supplier-info.repository';
 import { MediaRepository } from 'src/media/repositories/media.repository';
 import { ConfigService } from '@nestjs/config';
-import { LayoutService } from 'src/layout/services/layout.service';
 import { MediaTypes } from 'src/media/dtos/mediaDto';
 import { UserStatus } from 'src/user/dtos/UserDto';
+import { CategoryRepository } from 'src/category/repositories/category.repository';
+import { HighlightRepository } from 'src/highlight/repositories/highlight.repository';
+import { LatestNewsRepository } from 'src/latest-news/repositories/latest-news.repository';
+import { CommonService } from 'src/shared/services/common.service';
 
 @Injectable()
 export class SupplierInfoService {
@@ -14,8 +17,11 @@ export class SupplierInfoService {
     private supplierRepo: SupplierRepository,
     private repository: SupplierInfoRepository,
     private mediaRepo: MediaRepository,
+    private categoryRepository: CategoryRepository,
+    private highlightRepo: HighlightRepository,
+    private latestNewsRepo: LatestNewsRepository,
     private readonly config: ConfigService,
-    private layoutService: LayoutService,
+    private commonService: CommonService,
   ) {}
 
   async getInfo(infoFilter: InfoFilter) {
@@ -34,39 +40,50 @@ export class SupplierInfoService {
         where: { supplier_id: supplier?.id },
       });
       if (info) {
-        const atsMedia = await this.mediaRepo.findOne({
-          where: { id: info?.ats_media_id },
-        });
-        const atsMediaContent = {
-          id: atsMedia?.id,
-          image:
-            atsMedia?.type === MediaTypes.TYPE_VIDEO
-              ? atsMedia?.image
-              : `${this.config.get(
-                  's3.imageUrl',
-                )}/supplier-db/supplier/${supplier?.id}/${atsMedia?.image}`,
-          url: atsMedia?.url ?? '',
-          type: atsMedia?.type === MediaTypes.TYPE_VIDEO ? 'video' : 'image',
-        };
-        const serviceMedia = await this.mediaRepo.findOne({
-          where: { id: info?.service_media_id },
-        });
-        const serviceMediaContent = {
-          id: serviceMedia?.id,
-          image:
-            serviceMedia?.type === MediaTypes.TYPE_VIDEO
-              ? serviceMedia?.image
-              : `${this.config.get(
-                  's3.imageUrl',
-                )}/supplier-db/supplier/${supplier?.id}/${serviceMedia?.image}`,
-          url: serviceMedia?.url ?? '',
-          type:
-            serviceMedia?.type === MediaTypes.TYPE_VIDEO ? 'video' : 'image',
-        };
+        const atsMedia = info?.ats_media_id
+          ? await this.mediaRepo.findOne({
+              where: { id: info?.ats_media_id },
+            })
+          : null;
+        const atsMediaContent = atsMedia
+          ? {
+              id: atsMedia?.id,
+              image:
+                atsMedia?.type === MediaTypes.TYPE_VIDEO
+                  ? atsMedia?.image
+                  : `${this.config.get(
+                      's3.imageUrl',
+                    )}/supplier-db/supplier/${supplier?.id}/${atsMedia?.image}`,
+              url: atsMedia?.url ?? '',
+              type:
+                atsMedia?.type === MediaTypes.TYPE_VIDEO ? 'video' : 'image',
+            }
+          : {};
+        const serviceMedia = info?.service_media_id
+          ? await this.mediaRepo.findOne({
+              where: { id: info?.service_media_id },
+            })
+          : null;
+        const serviceMediaContent = serviceMedia
+          ? {
+              id: serviceMedia?.id,
+              image:
+                serviceMedia?.type === MediaTypes.TYPE_VIDEO
+                  ? serviceMedia?.image
+                  : `${this.config.get(
+                      's3.imageUrl',
+                    )}/supplier-db/supplier/${supplier?.id}/${serviceMedia?.image}`,
+              url: serviceMedia?.url ?? '',
+              type:
+                serviceMedia?.type === MediaTypes.TYPE_VIDEO
+                  ? 'video'
+                  : 'image',
+            }
+          : null;
         let media = {};
         if (supplier?.mts_video) {
           const thumbnailImage = supplier?.mts_video
-            ? await this.layoutService.getThumbnailUrl(supplier?.mts_video)
+            ? await this.commonService.getThumbnailUrl(supplier?.mts_video)
             : null;
           media = {
             type: 'video',
@@ -91,20 +108,36 @@ export class SupplierInfoService {
           };
         }
         data = {
-          id: info?.id,
-          name: supplier?.name,
-          slug: supplier?.slug,
-          rating: supplier?.rating,
-          website: info?.website,
-          logo: supplier?.logo
-            ? `${this.config.get(
-                's3.imageUrl',
-              )}/supplier-db/supplier/${supplier?.id}/${supplier?.logo}`
-            : `${this.config.get(
-                's3.imageUrl',
-              )}/supplier-db/supplier/client-logo.png`,
-          media,
+          id: supplier?.id,
+          info: {
+            name: supplier?.name,
+            slug: supplier?.slug,
+            logo: supplier?.logo
+              ? `${this.config.get(
+                  's3.imageUrl',
+                )}/supplier-db/supplier/${supplier?.id}/${supplier?.logo}`
+              : `${this.config.get(
+                  's3.imageUrl',
+                )}/supplier-db/supplier/client-logo.png`,
+            location:
+              supplier?.city && supplier?.state
+                ? `${supplier?.city}, ${supplier?.state}`
+                : supplier?.city && !supplier?.state
+                  ? `${supplier.state}`
+                  : !supplier?.city && supplier?.state
+                    ? `${supplier.city}`
+                    : '',
+            founded: supplier?.founded,
+            rating: Number(supplier?.rating)?.toFixed(1) ?? 0,
+            review: supplier?.review ?? 0,
+            description: info?.ats_content,
+            isFeatured: supplier?.is_featured ? supplier?.is_featured : false,
+            media,
+            category: await this.getCategory(supplier?.category_id),
+            website: info?.website,
+          },
           banner_media,
+          highlight: await this.getHighlight(supplier?.id),
           about_the_supplier: {
             content: info?.ats_content,
             media: atsMediaContent ?? null,
@@ -113,9 +146,82 @@ export class SupplierInfoService {
             content: info?.service_content,
             media: serviceMediaContent ?? null,
           },
+          latest_news: await this.getLatestNews(info),
         };
       }
       return data;
     }
+  }
+
+  async getCategory(categoryId) {
+    let category = {};
+    if (categoryId) {
+      const categoryData = await this.categoryRepository.findOne({
+        where: { id: categoryId },
+      });
+      if (categoryData) {
+        category = {
+          id: categoryData?.id,
+          name: categoryData?.name,
+        };
+      }
+    }
+    return category;
+  }
+
+  async getHighlight(supplierId) {
+    let highlightData = {};
+    if (supplierId) {
+      const highlights = await this.highlightRepo.find({
+        where: { supplier_id: supplierId },
+      });
+      const data = [];
+      if (highlights?.length) {
+        for (const highlight of highlights) {
+          data.push({
+            id: highlight?.id,
+            logo: `${this.config.get(
+              's3.imageUrl',
+            )}/supplier-db/supplier/highlight.svg`,
+            title: highlight?.title ?? 'Verified Profiles',
+            content: highlight?.content,
+          });
+        }
+        highlightData = { title: 'Supplier Highlights', data };
+      }
+    }
+    return highlightData;
+  }
+
+  async getLatestNews(info) {
+    let data = [];
+    if (info) {
+      if (info && info?.latest_news_type_id) {
+        if (info?.latest_news_type_id === LatestNewsType.SELECT_STORIES) {
+          const latestNews = await this.latestNewsRepo.findOne({
+            where: { supplier_id: info?.supplier_id },
+          });
+          if (latestNews?.article_id) {
+            const articles = latestNews?.article_id.split(',');
+            for (const article of articles) {
+              const result = await this.commonService.getArticleDetail(article);
+              data.push(result);
+            }
+          }
+        } else if (info?.latest_news_type_id === LatestNewsType.ALL_STORIES) {
+          const result = await this.commonService.getLatestStories();
+          data = result;
+        } else if (info?.latest_news_type_id === LatestNewsType.MOST_POPULAR) {
+          const result = await this.commonService.getMostPopularStories();
+          data = result;
+        } else if (
+          info?.latest_news_type_id === LatestNewsType.LATEST_STORIES
+        ) {
+          const result = await this.commonService.getLatestStories();
+          data = result;
+        }
+      }
+    }
+    return data;
   }
 }
