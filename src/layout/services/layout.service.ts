@@ -65,11 +65,11 @@ export class LayoutService {
 
   async getFooter(slug: any) {
     const supplierMenus = [];
-    supplierMenus.push({
-      slug: 'find-supplier',
-      name: 'Find Supplier',
-      url: `${this.configService.get('franchise.url')}/searchpopup`,
-    });
+    // supplierMenus.push({
+    //   slug: 'find-supplier',
+    //   name: 'Find Supplier',
+    //   url: `${this.configService.get('franchise.url')}/searchpopup`,
+    // });
     // if (!slug) {
     //   supplierMenus.push({
     //     slug: 'power-ranking',
