@@ -6,8 +6,10 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  OneToOne,
 } from 'typeorm';
 import { UserStatus } from '../dtos/UserDto';
+import { Supplier } from '../../supplier/entities/supplier.entity';
 
 @Entity('user')
 export class User {
@@ -42,4 +44,7 @@ export class User {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updated_at: Date;
+
+  @OneToOne(() => Supplier, (supplier) => supplier.user)
+  supplier: Supplier;
 }

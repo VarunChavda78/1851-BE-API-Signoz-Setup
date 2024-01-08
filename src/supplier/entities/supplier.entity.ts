@@ -4,10 +4,10 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  JoinColumn,
 } from 'typeorm';
 
 @Entity('suppliers')
@@ -15,10 +15,10 @@ export class Supplier {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToOne(() => User, (user) => user.id)
-  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
-  @Column({ unique: true })
-  user_id: number;
+  // @OneToOne(() => User, (user) => user.id)
+  // @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
+  // @Column({ unique: true })
+  // user_id: number;
 
   @Column({ unique: true })
   name: string;
@@ -79,4 +79,8 @@ export class Supplier {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updated_at: Date;
+
+  @OneToOne(() => User, (user) => user.supplier)
+  @JoinColumn()
+  user: User;
 }
