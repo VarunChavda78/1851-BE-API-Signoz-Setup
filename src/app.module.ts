@@ -19,6 +19,7 @@ import { UserProfileModule } from './user-profile/user-profile.module';
 import { SocialPlatformModule } from './social-platform/social-platform.module';
 import { AnalyticDomainsModule } from './analytic-domains/analytic-domains.module';
 import { RoleModule } from './role/role.module';
+import { MainPageModule } from './main-page/main-page.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { RoleModule } from './role/role.module';
     SocialPlatformModule,
     AnalyticDomainsModule,
     RoleModule,
+    MainPageModule,
   ],
   controllers: [AppController],
   providers: [AppService],

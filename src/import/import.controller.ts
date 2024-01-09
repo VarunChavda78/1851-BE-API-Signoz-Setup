@@ -1,5 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
-import { LayoutService } from './layout.service';
+import { Controller, Get } from '@nestjs/common';
 import * as csvParser from 'csv-parser';
 import { Supplier } from 'src/supplier/supplier.entity';
 import * as AWS from 'aws-sdk';
@@ -7,7 +6,6 @@ import { SupplierRepository } from 'src/supplier/repositories/supplier.repositor
 import { ConfigService } from '@nestjs/config';
 import * as lodash from 'lodash';
 import { SupplierInfoRepository } from 'src/supplier-info/repositories/supplier-info.repository';
-import { LayoutDto } from './dtos/layoutDto';
 import { RoleLists } from 'src/role/dtos/RoleDto';
 import { UserStatus } from 'src/user/dtos/UserDto';
 import { UserRepository } from 'src/user/repositories/user.repository';
@@ -18,9 +16,8 @@ import { SocialPlatforms } from 'src/social-platform/dtos/SocialPlatformDto';
 @Controller({
   version: '1',
 })
-export class LayoutController {
+export class ImportController {
   constructor(
-    private layoutService: LayoutService,
     private supplierRepository: SupplierRepository,
     private supplierInfoRepository: SupplierInfoRepository,
     private socialRepo: SocialPlatformRepository,
@@ -28,24 +25,6 @@ export class LayoutController {
     private userProfileRepo: UserProfileRepository,
     private config: ConfigService,
   ) {}
-
-  @Get('top-header')
-  async getTopHeader(@Query() params: LayoutDto) {
-    const data = await this.layoutService.getheader(params?.slug);
-    return { data: data };
-  }
-
-  @Get('footer')
-  async footer(@Query() params: LayoutDto) {
-    const data = await this.layoutService.getFooter(params?.slug);
-    return { data: data };
-  }
-
-  @Get('state')
-  async state() {
-    const data = await this.layoutService.getStates();
-    return { data: data };
-  }
 
   @Get('save-supplier')
   async saveSupplier() {

@@ -58,7 +58,7 @@ export class LayoutService {
     };
   }
 
-  async getFooter(slug: any) {
+  async getFooter(slug: string) {
     const supplierMenus = [];
     supplierMenus.push(
       {
@@ -158,35 +158,6 @@ export class LayoutService {
     return platforms;
   }
 
-  async brandBenefits() {
-    return {
-      title: 'Navigate the franchise industry with',
-      data: [
-        {
-          title: 'Verified Profiles',
-          description: `1851’s research team has verified all information to ensure the most up-to-date information on each supplier`,
-          logo: `${this.configService.get(
-            's3.imageUrl',
-          )}/supplier-db/static/profile.svg`,
-        },
-        {
-          title: 'Research & Content Hub',
-          description: `A full-circle approach to performing due diligence to ensure your match is the right fit for your franchise.`,
-          logo: `${this.configService.get(
-            's3.imageUrl',
-          )}/supplier-db/static/research-content.svg`,
-        },
-        {
-          title: 'Customer Testimonials ',
-          description: `Fellow franchisors, franchisees and business owners can submit reviews on behalf of the franchisor`,
-          logo: `${this.configService.get(
-            's3.imageUrl',
-          )}/supplier-db/static/customer-testimonial.svg`,
-        },
-      ],
-    };
-  }
-
   async isUrl(s) {
     const regexp =
       /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
@@ -228,5 +199,54 @@ export class LayoutService {
     )}/${videoId}_1280.jpg`;
 
     return thumbnailUrl;
+  }
+
+  async getStates() {
+    return [
+      {
+        value: 'IL',
+        label: 'IL',
+      },
+      {
+        value: 'MI',
+        label: 'MI',
+      },
+      {
+        value: 'TX',
+        label: 'TX',
+      },
+      {
+        value: 'NY',
+        label: 'NY',
+      },
+      {
+        value: 'WI',
+        label: 'WI',
+      },
+      {
+        value: 'CO',
+        label: 'CO',
+      },
+      {
+        value: 'ND',
+        label: 'ND',
+      },
+      {
+        value: 'UT',
+        label: 'UT',
+      },
+      {
+        value: 'OH',
+        label: 'OH',
+      },
+      {
+        value: 'NJ',
+        label: 'NJ',
+      },
+      {
+        value: 'ON',
+        label: 'ON',
+      },
+    ];
   }
 }

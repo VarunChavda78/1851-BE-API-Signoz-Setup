@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { LayoutService } from './layout.service';
-import { LayoutController } from './layout.controller';
+import { ImportService } from './import.service';
+import { ImportController } from './import.controller';
 import { ConfigService } from '@nestjs/config';
 import { SupplierRepository } from 'src/supplier/repositories/supplier.repository';
 import { CategoryRepository } from 'src/category/repositories/category.repository';
@@ -15,7 +15,7 @@ import { SocialPlatformRepository } from 'src/social-platform/repositories/socia
 @Module({
   imports: [],
   providers: [
-    LayoutService,
+    ImportService,
     ConfigService,
     SupplierRepository,
     CategoryRepository,
@@ -27,7 +27,7 @@ import { SocialPlatformRepository } from 'src/social-platform/repositories/socia
     UserProfileRepository,
     SocialPlatformRepository,
   ],
-  controllers: [LayoutController],
-  exports: [LayoutService],
+  controllers: [ImportController],
+  exports: [ImportService],
 })
-export class LayoutModule {}
+export class ImportModule {}
