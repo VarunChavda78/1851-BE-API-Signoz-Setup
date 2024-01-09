@@ -14,6 +14,7 @@ import { UserRepository } from 'src/user/repositories/user.repository';
 import { UserProfileRepository } from 'src/user-profile/repositories/user-profile.repository';
 import { SocialPlatformRepository } from 'src/social-platform/repositories/social-platform.repository';
 import { SocialPlatforms } from 'src/social-platform/dtos/SocialPlatformDto';
+import { CommonService } from 'src/shared/services/common.service';
 
 @Controller({
   version: '1',
@@ -21,6 +22,7 @@ import { SocialPlatforms } from 'src/social-platform/dtos/SocialPlatformDto';
 export class LayoutController {
   constructor(
     private layoutService: LayoutService,
+    private commonService: CommonService,
     private supplierRepository: SupplierRepository,
     private supplierInfoRepository: SupplierInfoRepository,
     private socialRepo: SocialPlatformRepository,
@@ -49,7 +51,7 @@ export class LayoutController {
 
   @Get('state')
   async state() {
-    const data = await this.layoutService.getStates();
+    const data = await this.commonService.getStates();
     return { data: data };
   }
 

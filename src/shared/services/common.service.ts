@@ -80,6 +80,54 @@ export class CommonService {
     return result;
   }
 
+  async getStates() {
+    return [
+      {
+        value: 'IL',
+        label: 'IL',
+      },
+      {
+        value: 'MI',
+        label: 'MI',
+      },
+      {
+        value: 'TX',
+        label: 'TX',
+      },
+      {
+        value: 'NY',
+        label: 'NY',
+      },
+      {
+        value: 'WI',
+        label: 'WI',
+      },
+      {
+        value: 'CO',
+        label: 'CO',
+      },
+      {
+        value: 'ND',
+        label: 'ND',
+      },
+      {
+        value: 'UT',
+        label: 'UT',
+      },
+      {
+        value: 'OH',
+        label: 'OH',
+      },
+      {
+        value: 'NJ',
+        label: 'NJ',
+      },
+      {
+        value: 'ON',
+        label: 'ON',
+      },
+    ];
+  }
   async getLatestStories() {
     const result = await this.http
       .get(
