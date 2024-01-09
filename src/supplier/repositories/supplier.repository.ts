@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 import { S3 } from 'aws-sdk';
-import { Supplier } from '../entities/supplier.entity';
+import { Supplier } from '../supplier.entity';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()

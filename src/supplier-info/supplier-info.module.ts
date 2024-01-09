@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { SupplierInfoService } from './services/supplier-info.service';
-import { SupplierInfoController } from './controllers/supplier-info.controller';
+import { SupplierInfoController } from './supplier-info.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { SupplierInfo } from './entities/supplier-info.entity';
+import { SupplierInfo } from './supplier-info.entity';
 import { SupplierInfoRepository } from './repositories/supplier-info.repository';
 import { SupplierRepository } from 'src/supplier/repositories/supplier.repository';
 import { MediaRepository } from 'src/media/repositories/media.repository';

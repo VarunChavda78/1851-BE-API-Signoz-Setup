@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
-import { SocialPlatform } from '../entities/social-platform.entity';
+import { SocialPlatform } from '../social-platform.entity';
 
 @Injectable()
 export class SocialPlatformRepository extends Repository<SocialPlatform> {

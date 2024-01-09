@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
-import { AnalyticDomains } from '../entities/analytic-domains.entity';
+import { AnalyticDomains } from '../analytic-domains.entity';
 
 @Injectable()
 export class AnalyticDomainsRepository extends Repository<AnalyticDomains> {

@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 
-import { Category } from '../entities/category.entity';
+import { Category } from '../category.entity';
 
 @Injectable()
 export class CategoryRepository extends Repository<Category> {
