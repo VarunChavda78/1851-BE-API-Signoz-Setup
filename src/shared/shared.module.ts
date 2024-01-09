@@ -18,9 +18,7 @@ import { HttpModule } from '@nestjs/axios';
         database: configService.get<string>('database.name'),
         username: configService.get<string>('database.user'),
         password: configService.get<string>('database.pass'),
-        entities: [__dirname + '/../**/entities/*.entity{.ts,.js}'],
-        // Timezone configured on the Postgres server.
-        // This is used to typecast server date/time values to JavaScript Date object and vice versa.
+        entities: [__dirname + '/../**/*.entity{.ts,.js}'],
         timezone: 'Z',
         synchronize: true,
         autoLoadEntities: true,

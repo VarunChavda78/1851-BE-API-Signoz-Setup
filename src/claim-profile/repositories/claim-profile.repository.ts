@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
-import { ClaimProfile } from '../entities/claim-profile.entity';
+import { ClaimProfile } from '../claim-profile.entity';
 
 @Injectable()
 export class ClaimProfileRepository extends Repository<ClaimProfile> {

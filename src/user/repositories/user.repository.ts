@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
-import { User } from '../entities/user.entity';
+import { User } from '../user.entity';
 
 @Injectable()
 export class UserRepository extends Repository<User> {

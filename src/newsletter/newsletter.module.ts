@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Newsletter } from './entities/newsletter.entity';
+import { Newsletter } from './newsletter.entity';
 import { NewsletterRepository } from './repositories/newsletter.repository';
 import { NewsletterService } from './services/newsletter.service';
-import { NewsletterController } from './controllers/newsletter.controller';
+import { NewsletterController } from './newsletter.controller';
 import { HttpModule } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 

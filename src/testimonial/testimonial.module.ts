@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Testimonial } from './entities/testimonial.entity';
+import { Testimonial } from './testimonial.entity';
 import { TestimonialRepository } from './repositories/testimonial.repository';
 import { TestimonialService } from './services/testimonial.service';
-import { TestimonialController } from './controllers/testimonial.controller';
+import { TestimonialController } from './testimonial.controller';
 import { ConfigService } from '@nestjs/config';
 
 @Module({

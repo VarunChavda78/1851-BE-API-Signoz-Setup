@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Highlight } from './entities/highlight.entity';
+import { Highlight } from './highlight.entity';
 import { HighlightService } from './services/highlight.service';
 import { HighlightRepository } from './repositories/highlight.repository';
-import { HighlightController } from './controllers/highlight.controller';
+import { HighlightController } from './highlight.controller';
 import { SupplierRepository } from 'src/supplier/repositories/supplier.repository';
 import { SupplierInfoRepository } from 'src/supplier-info/repositories/supplier-info.repository';
 import { ConfigService } from '@nestjs/config';

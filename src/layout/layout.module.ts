@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { LayoutService } from './services/layout.service';
-import { LayoutController } from './controllers/layout.controller';
+import { LayoutController } from './layout.controller';
 import { ConfigService } from '@nestjs/config';
 import { SupplierRepository } from 'src/supplier/repositories/supplier.repository';
 import { CategoryRepository } from 'src/category/repositories/category.repository';

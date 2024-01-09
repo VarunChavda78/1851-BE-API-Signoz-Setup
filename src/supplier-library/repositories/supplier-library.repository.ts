@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
-import { SupplierLibrary } from '../entities/supplier-library.entity';
+import { SupplierLibrary } from '../supplier-library.entity';
 
 @Injectable()
 export class SupplierLibraryRepository extends Repository<SupplierLibrary> {
