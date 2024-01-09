@@ -1,10 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  SocialPlatformText,
-  SocialPlatforms,
-} from 'src/social-platform/dtos/SocialPlatformDto';
-import { SocialPlatformRepository } from 'src/social-platform/repositories/social-platform.repository';
+import { SocialPlatformText } from 'src/social-platform/dtos/SocialPlatformDto';
 import { SupplierRepository } from 'src/supplier/repositories/supplier.repository';
 
 @Injectable()
@@ -12,15 +8,14 @@ export class LayoutService {
   constructor(
     private readonly configService: ConfigService,
     private supplierRepo: SupplierRepository,
-    private socialRepo: SocialPlatformRepository,
   ) {}
 
-  async getheader(slug) {
+  async getheader(slug: string) {
     return {
       publication: {
         id: '1851',
         name: '1851 Franchise',
-        url: 'https://1851franchise.com',
+        url: `${this.configService.get('franchise.url')}`,
         logo: `${this.configService.get(
           's3.imageUrl',
         )}/supplier-db/static/1851-header-logo.svg`,
@@ -29,7 +24,7 @@ export class LayoutService {
         {
           id: 'growth-club',
           name: '1851 Growth Club',
-          url: 'https://1851growthclub.com',
+          url: `${this.configService.get('franchise.growthUrl')}`,
           logo: `${this.configService.get(
             's3.imageUrl',
           )}/supplier-db/static/rino-header-logo.svg`,
@@ -37,7 +32,7 @@ export class LayoutService {
         {
           id: 'EE',
           name: 'Estatenvy',
-          url: 'https://estatenvy.com',
+          url: `${this.configService.get('franchise.eeUrl')}`,
           logo: `${this.configService.get(
             's3.imageUrl',
           )}/supplier-db/static/ee-header-logo.svg`,
@@ -45,7 +40,7 @@ export class LayoutService {
         {
           id: 'ROOM-1903',
           name: 'Room 1903',
-          url: 'https://room1903.com',
+          url: `${this.configService.get('franchise.room1903Url')}`,
           logo: `${this.configService.get(
             's3.imageUrl',
           )}/supplier-db/static/1903-header-logo.svg`,
@@ -53,7 +48,7 @@ export class LayoutService {
         {
           id: 'Stachecow',
           name: 'Stachecow',
-          url: 'https://stachecow.com',
+          url: `${this.configService.get('franchise.scUrl')}`,
           logo: `${this.configService.get(
             's3.imageUrl',
           )}/supplier-db/static/sc-header-logo.svg`,
@@ -65,20 +60,6 @@ export class LayoutService {
 
   async getFooter(slug: any) {
     const supplierMenus = [];
-    // supplierMenus.push({
-    //   slug: 'find-supplier',
-    //   name: 'Find Supplier',
-    //   url: `${this.configService.get('franchise.url')}/searchpopup`,
-    // });
-    // if (!slug) {
-    //   supplierMenus.push({
-    //     slug: 'power-ranking',
-    //     name: 'Supplier Power Rankings',
-    //     url: `${this.configService.get(
-    //       'franchise.url',
-    //     )}/supplier/power-ranking`,
-    //   });
-    // }
     supplierMenus.push(
       {
         slug: 'create-a-profile',
@@ -123,78 +104,54 @@ export class LayoutService {
     };
   }
 
-  async socialMediaLinks(slug) {
+  async socialMediaLinks(slug: string) {
     const platforms = [];
+    let socialLinks: any = [];
     if (slug) {
       const supplier = await this.supplierRepo
         .createQueryBuilder('suppliers')
+        .leftJoinAndSelect('suppliers.user', 'user')
+        .leftJoinAndSelect('user.socialPlatforms', 'social_platform')
         .where('suppliers.slug = :slug', { slug })
         .getOne();
       if (supplier) {
-        const socialPlatforms = await this.socialRepo
-          .createQueryBuilder('social_platform')
-          .addSelect(
-            'CASE WHEN social_platform.type = :facebook THEN social_platform.url END',
-            'facebook',
-          )
-          .addSelect(
-            'CASE WHEN social_platform.type = :linkedin THEN social_platform.url END',
-            'linkedin',
-          )
-          .addSelect(
-            'CASE WHEN social_platform.type = :youtube THEN social_platform.url END',
-            'youtube',
-          )
-          .addSelect(
-            'CASE WHEN social_platform.type = :instagram THEN social_platform.url END',
-            'instagram',
-          )
-          .setParameter('facebook', SocialPlatforms.FACEBOOK)
-          .setParameter('linkedin', SocialPlatforms.LINKEDIN)
-          .setParameter('youtube', SocialPlatforms.YOUTUBE)
-          .setParameter('instagram', SocialPlatforms.INSTAGRAM)
-          .where('user_id = :user_id', { user_id: supplier.user_id })
-          .getRawMany();
-        if (socialPlatforms.length) {
+        socialLinks = supplier?.user?.socialPlatforms;
+        if (socialLinks && socialLinks.length > 0) {
           const types = [
             SocialPlatformText.FACEBOOK,
             SocialPlatformText.LINKEDIN,
             SocialPlatformText.YOUTUBE,
             SocialPlatformText.INSTAGRAM,
           ];
-          for (const socialPlatform of socialPlatforms) {
-            for (const type of types) {
-              if (socialPlatform[type]) {
-                platforms.push({
-                  title: type,
-                  url: socialPlatform[type],
-                });
-              }
-            }
-          }
+          socialLinks.forEach((socialLink, i) => {
+            platforms.push({
+              title: types[i],
+              url: socialLink.url,
+            });
+          });
         }
       }
     } else {
       platforms.push(
         {
           title: 'facebook',
-          url: 'https://www.facebook.com/1851magazine',
+          url: `${this.configService.get('socialMedia.facebook')}`,
         },
         {
           title: 'linkedin',
-          url: 'https://www.linkedin.com/company/1851-project',
+          url: `${this.configService.get('socialMedia.linkedin')}`,
         },
         {
           title: 'youtube',
-          url: 'https://www.youtube.com/c/1851Franchise',
+          url: `${this.configService.get('socialMedia.youtube')}`,
         },
         {
           title: 'instagram',
-          url: 'https://www.instagram.com/1851franchise/',
+          url: `${this.configService.get('socialMedia.instagram')}`,
         },
         {
           title: 'twitter',
-          url: 'https://twitter.com/1851Franchise',
+          url: `${this.configService.get('socialMedia.twitter')}`,
         },
       );
     }

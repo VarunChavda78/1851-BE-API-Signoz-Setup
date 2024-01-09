@@ -15,10 +15,8 @@ export class Supplier {
   @PrimaryGeneratedColumn()
   id: number;
 
-  // @OneToOne(() => User, (user) => user.id)
-  // @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
-  // @Column({ unique: true })
-  // user_id: number;
+  @Column({ unique: true })
+  user_id: number;
 
   @Column({ unique: true })
   name: string;

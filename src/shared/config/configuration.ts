@@ -19,9 +19,20 @@ export default (): any => ({
   },
   franchise: {
     url: process.env.FRANCHISE_1851_URL,
+    eeUrl: process.env.FRANCHISE_EE_URL,
+    scUrl: process.env.FRANCHISE_SC_URL,
+    room1903Url: process.env.FRANCHISE_1903_URL,
+    growthUrl: process.env.FRANCHISE_GROWTH_CLUB_URL,
     emailUrl: process.env.EMAIL_TEMPLATE_BASE_URL,
     domain: process.env.DOMAIN_NAME,
     feApi: process.env.FRANCHISE_1851_FE_API_URL,
+  },
+  socialMedia: {
+    facebook: process.env.FACEBOOK_URL,
+    twitter: process.env.TWITTER_URL,
+    linkedin: process.env.LINKEDIN_URL,
+    youtube: process.env.YOUTUBE_URL,
+    instagram: process.env.INSTAGRAM_URL,
   },
   youtube: {
     baseUrl: process.env.YOUTUBE_PLACEHOLDER_BASE_URL,
