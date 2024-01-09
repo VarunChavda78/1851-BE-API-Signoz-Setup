@@ -18,7 +18,7 @@ export class SupplierService {
     private config: ConfigService,
   ) {}
 
-  async getSupplierLists(filterData: FilterDto, pageOptions: PageOptionsDto) {
+  async getLists(filterData: FilterDto, pageOptions: PageOptionsDto) {
     const {
       page = 1,
       limit = 10,
@@ -29,15 +29,16 @@ export class SupplierService {
     const { featured, category, rating, slug, state } = filterData;
     let fieldsArray = sort.split(',');
     const ordersArray = order.split(',');
-    const queryBuilder = this.repository
+    const queryBuilder = await this.repository
       .createQueryBuilder('suppliers')
-      .leftJoinAndSelect('suppliers.user_id', 'user_id')
-      .andWhere('user_id.status = :status', { status: UserStatus.APPROVED });
+      .leftJoinAndSelect('suppliers.user', 'user')
+      .where('user.status = :status', { status: UserStatus.APPROVED });
     if (slug) {
       queryBuilder.andWhere('suppliers.slug = :slug', {
         slug,
       });
     }
+
     if (featured) {
       const isFeatured = Boolean(featured);
       queryBuilder.andWhere('suppliers.is_featured = :isFeatured', {
@@ -50,12 +51,14 @@ export class SupplierService {
         categoryId,
       });
     }
+
     if (state) {
       const stateList = state.split(',');
       queryBuilder.andWhere('suppliers.state IN (:...stateList)', {
         stateList,
       });
     }
+
     if (rating) {
       const ratings = await this.repository.transformStringToArray(rating);
       const minRating = Math.min(...ratings);
@@ -67,6 +70,7 @@ export class SupplierService {
           maxRating,
         });
     }
+
     if (fieldsArray.includes('rank')) {
       const min = 4;
       const max = 5;
@@ -76,6 +80,7 @@ export class SupplierService {
       });
       fieldsArray = ['rating'];
     }
+
     const orderBy: Record<string, 'ASC' | 'DESC'> = {};
     fieldsArray.forEach((field, index) => {
       orderBy[`suppliers.${field}`] = ordersArray[index] || 'ASC';
@@ -86,25 +91,20 @@ export class SupplierService {
       .skip(skip)
       .take(limit)
       .getMany();
-
-    const data = await this.getData(suppliers);
+      console.log(suppliers);
+    const details = [];
+    if (suppliers.length) {
+      for (const data of suppliers) {
+        details.push(await this.getDetails(data));
+      }
+    }
     const pageOptionsDto = {
       page,
       limit,
     };
     const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
 
-    return new PageDto(data, pageMetaDto);
-  }
-
-  async getData(datas) {
-    const details = [];
-    if (datas.length) {
-      for (const data of datas) {
-        details.push(await this.getDetails(data));
-      }
-    }
-    return details;
+    return new PageDto(details, pageMetaDto);
   }
 
   async getDetails(data) {

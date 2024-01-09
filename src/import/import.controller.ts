@@ -56,7 +56,6 @@ export class ImportController {
         await this.userProfileRepo.save({ user_id: user.id });
         const data = new Supplier();
         data.name = row.Name;
-        data.user_id = user.id;
         data.slug = lodash.kebabCase(row.Name);
         data.city = row?.City ?? null;
         data.state = row?.State ?? null;
@@ -68,6 +67,8 @@ export class ImportController {
         data.logo = row?.Logo;
         data.mts_video = row?.['Meet The Supplier'] ?? null;
         const supplier = await this.supplierRepository.save(data);
+        supplier.user = user;
+        await this.supplierRepository.save(supplier);
         if (supplier) {
           const info = {
             supplier_id: supplier?.id,

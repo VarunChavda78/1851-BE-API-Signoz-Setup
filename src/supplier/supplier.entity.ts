@@ -16,9 +16,6 @@ export class Supplier {
   id: number;
 
   @Column({ unique: true })
-  user_id: number;
-
-  @Column({ unique: true })
   name: string;
 
   @Column({ unique: true })
