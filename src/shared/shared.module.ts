@@ -2,8 +2,9 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { configModuleOptions } from './config/module-options';
-import { CommonService } from './services/common.service';
+import { CommonService } from './common.service';
 import { HttpModule } from '@nestjs/axios';
+import { CommonController } from './common.controller';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { HttpModule } from '@nestjs/axios';
     }),
     HttpModule,
   ],
+  controllers: [CommonController],
   exports: [ConfigModule, CommonService],
   providers: [CommonService, ConfigService],
 })

@@ -7,7 +7,7 @@ import { LatestNewsController } from './latest-news.controller';
 import { SupplierRepository } from 'src/supplier/repositories/supplier.repository';
 import { SupplierInfoRepository } from 'src/supplier-info/repositories/supplier-info.repository';
 import { ConfigService } from '@nestjs/config';
-import { CommonService } from 'src/shared/services/common.service';
+import { CommonService } from 'src/shared/common.service';
 import { HttpModule } from '@nestjs/axios';
 
 @Module({

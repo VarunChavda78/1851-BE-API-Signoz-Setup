@@ -9,7 +9,7 @@ import { UserStatus } from 'src/user/dtos/UserDto';
 import { CategoryRepository } from 'src/category/repositories/category.repository';
 import { HighlightRepository } from 'src/highlight/repositories/highlight.repository';
 import { LatestNewsRepository } from 'src/latest-news/repositories/latest-news.repository';
-import { CommonService } from 'src/shared/services/common.service';
+import { CommonService } from 'src/shared/common.service';
 
 @Injectable()
 export class SupplierInfoService {

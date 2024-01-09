@@ -10,7 +10,7 @@ import { ConfigService } from '@nestjs/config';
 import { LatestNewsRepository } from 'src/latest-news/repositories/latest-news.repository';
 import { HighlightRepository } from 'src/highlight/repositories/highlight.repository';
 import { CategoryRepository } from 'src/category/repositories/category.repository';
-import { CommonService } from 'src/shared/services/common.service';
+import { CommonService } from 'src/shared/common.service';
 import { HttpModule } from '@nestjs/axios';
 
 @Module({

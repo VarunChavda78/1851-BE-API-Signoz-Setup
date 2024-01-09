@@ -8,7 +8,7 @@ import { PageDto } from 'src/shared/dtos/pageDto';
 import { UserStatus } from 'src/user/dtos/UserDto';
 import { SupplierInfoRepository } from 'src/supplier-info/repositories/supplier-info.repository';
 import { LatestNewsType } from 'src/supplier-info/dtos/supplierInfoDto';
-import { CommonService } from 'src/shared/services/common.service';
+import { CommonService } from 'src/shared/common.service';
 
 @Injectable()
 export class LatestNewsService {

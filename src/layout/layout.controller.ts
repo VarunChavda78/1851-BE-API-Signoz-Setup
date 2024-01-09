@@ -41,12 +41,6 @@ export class LayoutController {
     return { data: data };
   }
 
-  @Get('state')
-  async state() {
-    const data = await this.layoutService.getStates();
-    return { data: data };
-  }
-
   @Get('save-supplier')
   async saveSupplier() {
     AWS.config.update({
