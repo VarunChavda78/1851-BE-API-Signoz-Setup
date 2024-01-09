@@ -1,5 +1,6 @@
 import { Category } from 'src/category/category.entity';
 import { User } from 'src/user/user.entity';
+import { SupplierInfo } from 'src/supplier-info/supplier-info.entity';
 import {
   Column,
   CreateDateColumn,
@@ -14,6 +15,9 @@ import {
 export class Supplier {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({ nullable: true })
+  user_id: number;
 
   @Column({ unique: true })
   name: string;
@@ -34,8 +38,6 @@ export class Supplier {
   logo?: string | null;
 
   @OneToOne(() => Category, (category) => category.id)
-  // @JoinColumn({ name: 'categoryId', referencedColumnName: 'id' })
-  // category: Category;
   @Column({ nullable: true, unique: false })
   category_id: number;
 
@@ -78,4 +80,7 @@ export class Supplier {
   @OneToOne(() => User, (user) => user.supplier)
   @JoinColumn()
   user: User;
+
+  @OneToOne(() => SupplierInfo, (supplierInfo) => supplierInfo.supplier)
+  supplierInfo: SupplierInfo;
 }

@@ -28,17 +28,16 @@ export class SupplierInfoService {
     const { slug } = infoFilter;
     const supplier = await this.supplierRepo
       .createQueryBuilder('suppliers')
-      .leftJoinAndSelect('suppliers.user_id', 'user_id')
+      .leftJoinAndSelect('suppliers.user', 'user')
+      .leftJoinAndSelect('suppliers.supplierInfo', 'supplierInfo')
       .where('suppliers.slug = :slug', { slug })
-      .andWhere('user_id.status = :status', { status: UserStatus.APPROVED })
+      .andWhere('user.status = :status', { status: UserStatus.APPROVED })
       .getOne();
     if (!supplier) {
       throw new NotFoundException();
     } else {
       let data = {};
-      const info = await this.repository.findOne({
-        where: { supplier_id: supplier?.id },
-      });
+      const info = supplier?.supplierInfo;
       if (info) {
         const atsMedia = info?.ats_media_id
           ? await this.mediaRepo.findOne({

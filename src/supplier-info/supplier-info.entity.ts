@@ -1,6 +1,13 @@
 import { Media } from 'src/media/media.entity';
-import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  OneToOne,
+  PrimaryGeneratedColumn,
+  JoinColumn,
+} from 'typeorm';
 import { LatestNewsType } from './dtos/supplierInfoDto';
+import { Supplier } from 'src/supplier/supplier.entity';
 
 @Entity('supplier_info')
 export class SupplierInfo {
@@ -40,4 +47,8 @@ export class SupplierInfo {
 
   @Column({ nullable: true })
   website: string;
+
+  @OneToOne(() => Supplier, (supplier) => supplier.supplierInfo)
+  @JoinColumn()
+  supplier: Supplier;
 }

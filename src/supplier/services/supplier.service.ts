@@ -6,14 +6,12 @@ import { PageDto } from 'src/shared/dtos/pageDto';
 import { SupplierRepository } from '../repositories/supplier.repository';
 import { ConfigService } from '@nestjs/config';
 import { PageOptionsDto } from '../dtos/pageOptionsDto';
-import { SupplierInfoRepository } from 'src/supplier-info/repositories/supplier-info.repository';
 import { UserStatus } from 'src/user/dtos/UserDto';
 
 @Injectable()
 export class SupplierService {
   constructor(
     private categoryRepository: CategoryRepository,
-    private supplierInfoRepository: SupplierInfoRepository,
     private repository: SupplierRepository,
     private config: ConfigService,
   ) {}
@@ -32,6 +30,7 @@ export class SupplierService {
     const queryBuilder = await this.repository
       .createQueryBuilder('suppliers')
       .leftJoinAndSelect('suppliers.user', 'user')
+      .leftJoinAndSelect('suppliers.supplierInfo', 'supplierInfo')
       .where('user.status = :status', { status: UserStatus.APPROVED });
     if (slug) {
       queryBuilder.andWhere('suppliers.slug = :slug', {
@@ -91,7 +90,6 @@ export class SupplierService {
       .skip(skip)
       .take(limit)
       .getMany();
-      console.log(suppliers);
     const details = [];
     if (suppliers.length) {
       for (const data of suppliers) {
@@ -120,9 +118,6 @@ export class SupplierService {
         };
       }
     }
-    const info = await this.supplierInfoRepository.findOne({
-      where: { supplier_id: data?.id },
-    });
     return {
       id: data?.id,
       name: data?.name,
@@ -145,7 +140,7 @@ export class SupplierService {
       founded: data?.founded,
       rating: Number(data?.rating)?.toFixed(1) ?? 0,
       review: data?.review ?? 0,
-      description: info?.ats_content,
+      description: data?.supplierInfo?.ats_content,
       isFeatured: data?.is_featured ? data?.is_featured : false,
       video: data?.mts_video ?? '',
       category: category,

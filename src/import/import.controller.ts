@@ -71,7 +71,7 @@ export class ImportController {
         await this.supplierRepository.save(supplier);
         if (supplier) {
           const info = {
-            supplier_id: supplier?.id,
+            supplierId: supplier?.id,
             highlight_title: null,
             ats_media_id: null,
             service_media_id: null,

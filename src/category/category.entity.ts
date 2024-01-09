@@ -4,7 +4,9 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
+import { Supplier } from 'src/supplier/supplier.entity';
 
 @Entity('category')
 export class Category {
@@ -28,4 +30,7 @@ export class Category {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updated_at: Date;
+
+  @OneToMany(() => Supplier, (supplier) => supplier.category_id)
+  suppliers: Supplier;
 }
