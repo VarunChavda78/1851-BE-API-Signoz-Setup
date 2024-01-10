@@ -14,7 +14,7 @@ export class SupplierInfo {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ nullable: true })
   supplier_id: number;
 
   @Column({ nullable: true })
