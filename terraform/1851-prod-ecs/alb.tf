@@ -18,6 +18,9 @@ resource "aws_lb_target_group" "ecs" {
 }
 
 resource "aws_lb_listener_rule" "static" {
+lifecycle {
+    create_before_destroy = true
+  }
   listener_arn = data.aws_lb_listener.selected443.arn
 
   action {
@@ -27,7 +30,7 @@ resource "aws_lb_listener_rule" "static" {
 
   condition {
     host_header {
-      values = ["apisupplier.${var.domain_name}"]
+      values = ["apisupplier-internal.${var.domain_name}"]
     }
   }
 }
