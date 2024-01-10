@@ -4,10 +4,14 @@ import { SupplierLibraryRepository } from '../repositories/supplier-library.repo
 import { PageMetaDto } from 'src/shared/dtos/pageMetaDto';
 import { PageDto } from 'src/shared/dtos/pageDto';
 import * as dayjs from 'dayjs';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class SupplierLibraryService {
-  constructor(private repository: SupplierLibraryRepository) {}
+  constructor(
+    private repository: SupplierLibraryRepository,
+    private readonly config: ConfigService,
+  ) {}
 
   async getPlaylists(pageOptionsDto: PageOptionsDto) {
     const { page, limit, order, sort } = pageOptionsDto;
@@ -45,7 +49,9 @@ export class SupplierLibraryService {
         video_id: playlist?.video_id,
         description: playlist?.description,
         title: playlist?.title,
-        image: playlist?.image,
+        image: `${this.config.get(
+          's3.imageUrl',
+        )}/supplier-db/videos/${playlist?.image}`,
         url: playlist?.url,
         position: playlist?.position,
         publish_date: dayjs(playlist?.publish_date).format(
