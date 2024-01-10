@@ -13,9 +13,6 @@ export class SocialPlatform {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: false, nullable: true })
-  user_id: number;
-
   @Column({
     type: 'enum',
     enum: SocialPlatforms,
