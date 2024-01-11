@@ -47,12 +47,11 @@ export class SupplierInfoService {
         const atsMediaContent = atsMedia
           ? {
               id: atsMedia?.id,
-              image:
-                atsMedia?.type === MediaTypes.TYPE_VIDEO
-                  ? atsMedia?.image
-                  : `${this.config.get(
-                      's3.imageUrl',
-                    )}/supplier-db/supplier/${supplier?.id}/${atsMedia?.image}`,
+              image: atsMedia?.image
+                ? `${this.config.get(
+                    's3.imageUrl',
+                  )}/supplier-db/supplier/${supplier?.id}/${atsMedia?.image}`
+                : '',
               url: atsMedia?.url ?? '',
               type:
                 atsMedia?.type === MediaTypes.TYPE_VIDEO ? 'video' : 'image',
@@ -66,12 +65,11 @@ export class SupplierInfoService {
         const serviceMediaContent = serviceMedia
           ? {
               id: serviceMedia?.id,
-              image:
-                serviceMedia?.type === MediaTypes.TYPE_VIDEO
-                  ? serviceMedia?.image
-                  : `${this.config.get(
-                      's3.imageUrl',
-                    )}/supplier-db/supplier/${supplier?.id}/${serviceMedia?.image}`,
+              image: serviceMedia?.image
+                ? `${this.config.get(
+                    's3.imageUrl',
+                  )}/supplier-db/supplier/${supplier?.id}/${serviceMedia?.image}`
+                : '',
               url: serviceMedia?.url ?? '',
               type:
                 serviceMedia?.type === MediaTypes.TYPE_VIDEO
