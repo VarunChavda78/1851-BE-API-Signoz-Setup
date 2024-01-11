@@ -16,9 +16,6 @@ export class Supplier {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ nullable: true })
-  user_id: number;
-
   @Column({ unique: true })
   name: string;
 

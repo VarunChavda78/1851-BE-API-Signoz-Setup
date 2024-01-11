@@ -15,9 +15,6 @@ export class SupplierInfo {
   id: number;
 
   @Column({ nullable: true })
-  supplier_id: number;
-
-  @Column({ nullable: true })
   @OneToOne(() => Media, (media) => media.id)
   banner_media_id?: number;
 
