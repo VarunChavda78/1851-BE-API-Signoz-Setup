@@ -21,6 +21,7 @@ import { AnalyticDomainsModule } from './analytic-domains/analytic-domains.modul
 import { RoleModule } from './role/role.module';
 import { MainPageModule } from './main-page/main-page.module';
 import { ImportModule } from './import/import.module';
+import { SeoModule } from './seo/seo.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { ImportModule } from './import/import.module';
     RoleModule,
     MainPageModule,
     ImportModule,
+    SeoModule,
   ],
   controllers: [AppController],
   providers: [AppService],

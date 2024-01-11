@@ -24,17 +24,16 @@ export class LatestNewsService {
     const { page, limit } = pageOptionsDto;
     const supplier = await this.supplierRepo
       .createQueryBuilder('suppliers')
-      .leftJoinAndSelect('suppliers.user_id', 'user_id')
+      .leftJoinAndSelect('suppliers.user', 'user')
+      .leftJoinAndSelect('suppliers.supplierInfo', 'supplierInfo')
       .where('suppliers.slug = :slug', { slug })
-      .andWhere('user_id.status = :status', { status: UserStatus.APPROVED })
+      .andWhere('user.status = :status', { status: UserStatus.APPROVED })
       .getOne();
     if (!supplier) {
       throw new NotFoundException();
     } else {
       let data = [];
-      const info = await this.infoRepo.findOne({
-        where: { supplier_id: supplier?.id },
-      });
+      const info = supplier?.supplierInfo;
       if (info && info?.latest_news_type_id) {
         if (info?.latest_news_type_id === LatestNewsType.SELECT_STORIES) {
           const latestNews = await this.repository.findOne({
