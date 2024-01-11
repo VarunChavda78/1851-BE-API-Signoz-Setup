@@ -25,6 +25,7 @@ export class Seo {
   id: number;
 
   // @ManyToOne(() => SeoType, (seoType) => seoType.seo)
+  @ManyToOne(() => SeoType)
   @JoinColumn()
   seoType: SeoType;
 
@@ -53,6 +54,7 @@ export class SeoKeyword {
   id: number;
 
   // @ManyToOne(() => Seo, (seo) => seo.seoKeyword)
+  @ManyToOne(() => Seo)
   @JoinColumn()
   seo: Seo;
 
