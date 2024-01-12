@@ -10,10 +10,6 @@ export default (): any => ({
   },
   s3: {
     imageUrl: process.env.AWS_IMAGE_PROXY_URL,
-    imageSize: {
-      medium: process.env.MEDIUM_SIZE_IMAGE,
-      small: process.env.SMALL_SIZE_IMAGE,
-    },
   },
   aws: {
     bucketName: process.env.AWS_BUCKET_NAME,

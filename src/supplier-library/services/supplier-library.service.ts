@@ -39,8 +39,8 @@ export class SupplierLibraryService {
         const name = playlist?.image?.split('.')[0];
         const imageName =
           index === 0
-            ? `${name}_${this.config.get('s3.imageSize.medium')}.${extension}`
-            : `${name}_${this.config.get('s3.imageSize.small')}.${extension}`;
+            ? `${name}_854x480.${extension}`
+            : `${name}_544x306.${extension}`;
         data.push(await this.getDetails(playlist, imageName));
       }
     }

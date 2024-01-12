@@ -52,9 +52,7 @@ export class SupplierInfoService {
               image: atsMedia?.image
                 ? `${this.config.get(
                     's3.imageUrl',
-                  )}/supplier-db/supplier/${supplier?.id}/${atsname}_${this.config.get(
-                    's3.imageSize.medium',
-                  )}.${atsextension}`
+                  )}/supplier-db/supplier/${supplier?.id}/${atsname}_854x480.${atsextension}`
                 : '',
               url: atsMedia?.url ?? '',
               type:
@@ -74,9 +72,7 @@ export class SupplierInfoService {
               image: serviceMedia?.image
                 ? `${this.config.get(
                     's3.imageUrl',
-                  )}/supplier-db/supplier/${supplier?.id}/${servicename}_${this.config.get(
-                    's3.imageSize.medium',
-                  )}.${serviceextension}`
+                  )}/supplier-db/supplier/${supplier?.id}/${servicename}_854x480.${serviceextension}`
                 : '',
               url: serviceMedia?.url ?? '',
               type:
