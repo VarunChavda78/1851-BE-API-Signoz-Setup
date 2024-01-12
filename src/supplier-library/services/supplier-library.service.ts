@@ -34,14 +34,20 @@ export class SupplierLibraryService {
   async getData(playlists) {
     const data = [];
     if (playlists.length) {
-      for (const playlist of playlists) {
-        data.push(await this.getDetails(playlist));
+      for (const [index, playlist] of playlists.entries()) {
+        const extension = playlist?.image?.split('.')[1];
+        const name = playlist?.image?.split('.')[0];
+        const imageName =
+          index === 0
+            ? `${name}_854x480.${extension}`
+            : `${name}_544x306.${extension}`;
+        data.push(await this.getDetails(playlist, imageName));
       }
     }
     return data;
   }
 
-  async getDetails(playlist) {
+  async getDetails(playlist, imageName) {
     let details = {};
     if (playlist) {
       details = {
@@ -51,7 +57,7 @@ export class SupplierLibraryService {
         title: playlist?.title,
         image: `${this.config.get(
           's3.imageUrl',
-        )}/supplier-db/videos/${playlist?.image}`,
+        )}/supplier-db/videos/${imageName}`,
         url: playlist?.url,
         position: playlist?.position,
         publish_date: dayjs(playlist?.publish_date).format(
