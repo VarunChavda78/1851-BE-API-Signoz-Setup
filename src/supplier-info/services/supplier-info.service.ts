@@ -44,13 +44,17 @@ export class SupplierInfoService {
               where: { id: info?.ats_media_id },
             })
           : null;
+        const atsextension = atsMedia?.image?.split('.')[1];
+        const atsname = atsMedia?.image?.split('.')[0];
         const atsMediaContent = atsMedia
           ? {
               id: atsMedia?.id,
               image: atsMedia?.image
                 ? `${this.config.get(
                     's3.imageUrl',
-                  )}/supplier-db/supplier/${supplier?.id}/${atsMedia?.image}`
+                  )}/supplier-db/supplier/${supplier?.id}/${atsname}_${this.config.get(
+                    's3.imageSize.medium',
+                  )}.${atsextension}`
                 : '',
               url: atsMedia?.url ?? '',
               type:
@@ -62,13 +66,17 @@ export class SupplierInfoService {
               where: { id: info?.service_media_id },
             })
           : null;
+        const serviceextension = serviceMedia?.image?.split('.')[1];
+        const servicename = serviceMedia?.image?.split('.')[0];
         const serviceMediaContent = serviceMedia
           ? {
               id: serviceMedia?.id,
               image: serviceMedia?.image
                 ? `${this.config.get(
                     's3.imageUrl',
-                  )}/supplier-db/supplier/${supplier?.id}/${serviceMedia?.image}`
+                  )}/supplier-db/supplier/${supplier?.id}/${servicename}_${this.config.get(
+                    's3.imageSize.medium',
+                  )}.${serviceextension}`
                 : '',
               url: serviceMedia?.url ?? '',
               type:
