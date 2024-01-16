@@ -59,6 +59,7 @@ export class SupplierLibraryService {
           's3.imageUrl',
         )}/supplier-db/videos/${imageName}`,
         url: playlist?.url,
+        isFeatured: playlist?.is_featured,
         position: playlist?.position,
         publish_date: dayjs(playlist?.publish_date).format(
           'MMMM D, YYYY h:mm a',
