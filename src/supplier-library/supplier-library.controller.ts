@@ -21,7 +21,10 @@ export class SupplierLibraryController {
   @Get(':id')
   async show(@Param('id') id: number) {
     const video = await this.repository.getById(id);
-    const data = await this.service.getDetails(video);
+    const extension = video?.image?.split('.')[1];
+    const name = video?.image?.split('.')[0];
+    const imageName = `${name}_854x480.${extension}`;
+    const data = await this.service.getDetails(video, imageName);
     return { data: data };
   }
 }
