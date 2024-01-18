@@ -4,27 +4,17 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
-
-@Entity('seo_type')
-export class SeoType {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column()
-  name: string;
-
-  // @OneToMany(() => Seo, (seo) => seo.seoType)
-  // seo: Seo;
-}
+import { SeoKeyword } from './seoKeyword.entity';
+import { SeoType } from './seoType.entity';
 
 @Entity('seo')
 export class Seo {
   @PrimaryGeneratedColumn()
   id: number;
 
-  // @ManyToOne(() => SeoType, (seoType) => seoType.seo)
-  @ManyToOne(() => SeoType)
+  @ManyToOne(() => SeoType, (seoType) => seoType.seo)
   @JoinColumn()
   seoType: SeoType;
 
@@ -43,20 +33,6 @@ export class Seo {
   @Column()
   meta_description: string;
 
-  // @OneToMany(() => SeoKeyword, (seoKeyword) => seoKeyword.seo)
-  // seoKeyword: SeoKeyword;
-}
-
-@Entity('seo_keyword')
-export class SeoKeyword {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  // @ManyToOne(() => Seo, (seo) => seo.seoKeyword)
-  @ManyToOne(() => Seo)
-  @JoinColumn()
-  seo: Seo;
-
-  @Column()
-  name: string;
+  @OneToMany(() => SeoKeyword, (seoKeyword) => seoKeyword.seo)
+  seoKeyword: SeoKeyword;
 }
