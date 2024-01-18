@@ -30,6 +30,9 @@ export class SupplierLibrary {
   position: number;
 
   @Column({ nullable: true })
+  is_featured: boolean;
+
+  @Column({ nullable: true })
   publish_date: Date;
 
   @CreateDateColumn({ name: 'created_at' })
