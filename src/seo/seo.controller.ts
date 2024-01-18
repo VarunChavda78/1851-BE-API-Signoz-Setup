@@ -21,6 +21,7 @@ export class SeoController {
     const data = { seo: {}, og: {}, twitter: {} };
     if (seo) {
       (data.seo = {
+        pageTitle: seo.page_title,
         title: seo.meta_title,
         description: seo.meta_description,
         keywords: seo.seoKeyword,
