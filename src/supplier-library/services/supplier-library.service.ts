@@ -37,10 +37,11 @@ export class SupplierLibraryService {
       for (const [index, playlist] of playlists.entries()) {
         const extension = playlist?.image?.split('.')[1];
         const name = playlist?.image?.split('.')[0];
-        const imageName =
-          index === 0
-            ? `${name}_854x480.${extension}`
-            : `${name}_544x306.${extension}`;
+        // const imageName =
+        //   index === 0
+        //     ? `${name}_854x480.${extension}`
+        //     : `${name}_544x306.${extension}`;
+        const imageName = `${name}.${extension}`;
         data.push(await this.getDetails(playlist, imageName));
       }
     }
