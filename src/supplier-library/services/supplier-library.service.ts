@@ -16,8 +16,8 @@ export class SupplierLibraryService {
   async getPlaylists(pageOptionsDto: PageOptionsDto) {
     const { page, limit, order, sort } = pageOptionsDto;
     const skip = page ? (page - 1) * limit : 0;
-    const sorting = sort ? sort : 'position';
-    const orderBy: any = order?.toUpperCase() ?? 'ASC';
+    const sorting = sort ? sort : 'is_featured';
+    const orderBy: any = order?.toUpperCase() ?? 'DESC';
     const queryBuilder = this.repository.createQueryBuilder('supplier_library');
     const itemCount = await queryBuilder.getCount();
     const playlists = await queryBuilder
@@ -37,11 +37,10 @@ export class SupplierLibraryService {
       for (const [index, playlist] of playlists.entries()) {
         const extension = playlist?.image?.split('.')[1];
         const name = playlist?.image?.split('.')[0];
-        // const imageName =
-        //   index === 0
-        //     ? `${name}_854x480.${extension}`
-        //     : `${name}_544x306.${extension}`;
-        const imageName = `${name}.${extension}`;
+        const imageName =
+          index === 0
+            ? `${name}_854x480.${extension}`
+            : `${name}_544x306.${extension}`;
         data.push(await this.getDetails(playlist, imageName));
       }
     }
@@ -58,7 +57,7 @@ export class SupplierLibraryService {
         title: playlist?.title,
         image: `${this.config.get(
           's3.imageUrl',
-        )}/supplier-db/videos/${imageName}`,
+        )}/supplier-db/videos/${playlist?.video_id}/${imageName}`,
         url: playlist?.url,
         isFeatured: playlist?.is_featured,
         position: playlist?.position,
