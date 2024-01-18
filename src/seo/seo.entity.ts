@@ -4,7 +4,6 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   JoinColumn,
-  OneToMany,
 } from 'typeorm';
 
 @Entity('seo_type')
@@ -29,7 +28,7 @@ export class Seo {
   @JoinColumn()
   seoType: SeoType;
 
-  @Column()
+  @Column({ nullable: true })
   object_id: number;
 
   @Column()
