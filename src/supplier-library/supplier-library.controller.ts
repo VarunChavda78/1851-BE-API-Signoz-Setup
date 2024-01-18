@@ -23,7 +23,7 @@ export class SupplierLibraryController {
     const video = await this.repository.getById(id);
     const extension = video?.image?.split('.')[1];
     const name = video?.image?.split('.')[0];
-    const imageName = `${name}.${extension}`;
+    const imageName = `${name}_854x480.${extension}`;
     const data = await this.service.getDetails(video, imageName);
     return { data: data };
   }
