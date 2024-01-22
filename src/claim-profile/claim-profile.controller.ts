@@ -17,7 +17,7 @@ export class ClaimProfileController {
   async create(@Body() request: ClaimProfileDto) {
     const schedule = await this.repository.save(request);
     if (schedule) {
-      await this.service.sendEmail(request);
+      // await this.service.sendEmail(request);
       return {
         statusCode: HttpStatus.CREATED,
         status: 'Call Scheduled successfully!',
