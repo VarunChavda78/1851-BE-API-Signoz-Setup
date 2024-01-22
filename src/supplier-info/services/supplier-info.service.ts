@@ -111,6 +111,7 @@ export class SupplierInfoService {
         data = {
           id: supplier?.id,
           info: {
+            id: supplier?.id,
             name: supplier?.name,
             slug: supplier?.slug,
             logo: supplier?.logo
