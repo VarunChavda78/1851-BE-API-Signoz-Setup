@@ -36,7 +36,7 @@ export class ClaimProfileService {
     const email = {
       to: this.config.get('smtp.fromEmail'),
       from: this.config.get('smtp.noReplyEmail'),
-      cc: '1851-email@pearlthoughts.com',
+      bcc: '1851-email@pearlthoughts.com',
       subject: subject,
       html: response.data.html,
     };
