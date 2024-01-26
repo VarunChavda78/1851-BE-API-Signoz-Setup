@@ -47,9 +47,9 @@ export class SeoController {
         's3.imageUrl',
       )}/supplier-db/supplier/${supplier?.id}/${supplier?.logo}`;
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      ogSiteName = seo.page_title;
     }
     if (seo) {
+      ogSiteName = seo.page_title;
       data = {
         seo: {
           pageTitle: seo.page_title,
@@ -78,6 +78,8 @@ export class SeoController {
         og: {
           title: '1851 Franchise | Supplier',
           description: 'A fairly ranked franchise supplier resource',
+          image: ogImage,
+          siteName: ogSiteName,
         },
         twitter: {
           title: '1851 Franchise | Supplier',
