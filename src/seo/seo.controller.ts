@@ -1,12 +1,18 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { SeoRepository } from './seo.repository';
+import { ConfigService } from '@nestjs/config';
+import { SupplierRepository } from 'src/supplier/repositories/supplier.repository';
 
 @Controller({
   version: '1',
   path: 'seo',
 })
 export class SeoController {
-  constructor(private repository: SeoRepository) {}
+  constructor(
+    private repository: SeoRepository,
+    private config: ConfigService,
+    private supplierRepository: SupplierRepository,
+  ) {}
 
   @Get()
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -24,7 +30,25 @@ export class SeoController {
       });
     }
     const seo = await queryBuilder.getOne();
+    let ogImage: string = `${this.config.get(
+      's3.imageUrl',
+    )}/static/1851-og.jpg`;
+    let ogSiteName: string =
+      '1851 Franchise Magazine, Franchise News, Information, franchise opportunities';
     let data;
+
+    if (Number(query.object_id)) {
+      const supplier = await this.supplierRepository
+        .createQueryBuilder('suppliers')
+        .where('suppliers.id = :id', { id: query.object_id })
+        .getOne();
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      ogImage = `${this.config.get(
+        's3.imageUrl',
+      )}/supplier-db/supplier/${supplier?.id}/${supplier?.logo}`;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      ogSiteName = seo.page_title;
+    }
     if (seo) {
       data = {
         seo: {
@@ -36,6 +60,8 @@ export class SeoController {
         og: {
           title: seo.meta_title,
           description: seo.meta_description,
+          image: ogImage,
+          siteName: ogSiteName,
         },
         twitter: {
           title: seo.meta_title,
