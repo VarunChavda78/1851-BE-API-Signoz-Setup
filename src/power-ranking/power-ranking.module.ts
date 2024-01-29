@@ -12,4 +12,4 @@ import { PowerRankingController } from './power-ranking.controller';
   controllers: [PowerRankingController],
   exports: [PowerRankingService],
 })
-export class ClaimProfileModule {}
+export class PowerRankingModule {}

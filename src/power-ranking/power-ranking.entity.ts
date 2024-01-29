@@ -19,6 +19,9 @@ export class PowerRanking {
   @Column()
   views: number;
 
+  @Column()
+  rank: number;
+
   @CreateDateColumn({ name: 'created_at' })
   created_at: Date;
 }
