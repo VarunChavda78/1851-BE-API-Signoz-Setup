@@ -7,6 +7,7 @@ import { SupplierRepository } from '../repositories/supplier.repository';
 import { ConfigService } from '@nestjs/config';
 import { PageOptionsDto } from '../dtos/pageOptionsDto';
 import { UserStatus } from 'src/user/dtos/UserDto';
+import * as dayjs from 'dayjs';
 
 @Injectable()
 export class SupplierService {
@@ -25,13 +26,22 @@ export class SupplierService {
     }: any = pageOptions;
     const skip = (page - 1) * limit;
     const { featured, category, rating, slug, state } = filterData;
-    let fieldsArray = sort.split(',');
+    const fieldsArray = sort.split(',');
     const ordersArray = order.split(',');
+    const today = dayjs().format('YYYY-MM-DD');
     const queryBuilder = await this.repository
       .createQueryBuilder('suppliers')
       .leftJoinAndSelect('suppliers.user', 'user')
       .leftJoinAndSelect('suppliers.supplierInfo', 'supplierInfo')
-      .where('user.status = :status', { status: UserStatus.APPROVED });
+      .where('user.status = :status', {
+        status: UserStatus.APPROVED,
+      });
+
+    if (fieldsArray.includes('rank')) {
+      queryBuilder
+        .leftJoinAndSelect('suppliers.powerRanking', 'powerRanking')
+        .where('DATE(powerRanking.created_at) = :today', { today });
+    }
     if (slug) {
       queryBuilder.andWhere('suppliers.slug = :slug', {
         slug,
@@ -70,19 +80,10 @@ export class SupplierService {
         });
     }
 
-    if (fieldsArray.includes('rank')) {
-      const min = 4;
-      const max = 5;
-      queryBuilder.andWhere('suppliers.rating BETWEEN :min AND :max', {
-        min,
-        max,
-      });
-      fieldsArray = ['rating'];
-    }
-
     const orderBy: Record<string, 'ASC' | 'DESC'> = {};
     fieldsArray.forEach((field, index) => {
-      orderBy[`suppliers.${field}`] = ordersArray[index] || 'ASC';
+      const table = fieldsArray.includes('rank') ? 'powerRanking' : 'suppliers';
+      orderBy[`${table}.${field}`] = ordersArray[index] || 'ASC';
     });
     const itemCount = await queryBuilder.getCount();
     const suppliers = await queryBuilder
@@ -144,6 +145,7 @@ export class SupplierService {
       isFeatured: data?.is_featured ? data?.is_featured : false,
       video: data?.mts_video ?? '',
       category: category,
+      rank: data?.powerRanking?.rank ?? null,
     };
   }
 }

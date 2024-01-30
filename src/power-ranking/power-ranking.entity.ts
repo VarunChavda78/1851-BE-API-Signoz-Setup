@@ -1,7 +1,10 @@
+import { Supplier } from 'src/supplier/supplier.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -24,4 +27,8 @@ export class PowerRanking {
 
   @CreateDateColumn({ name: 'created_at' })
   created_at: Date;
+
+  @OneToOne(() => Supplier, (supplier) => supplier.powerRanking)
+  @JoinColumn()
+  supplier: Supplier;
 }

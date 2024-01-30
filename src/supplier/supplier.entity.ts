@@ -10,6 +10,7 @@ import {
   UpdateDateColumn,
   JoinColumn,
 } from 'typeorm';
+import { PowerRanking } from 'src/power-ranking/power-ranking.entity';
 
 @Entity('suppliers')
 export class Supplier {
@@ -80,4 +81,7 @@ export class Supplier {
 
   @OneToOne(() => SupplierInfo, (supplierInfo) => supplierInfo.supplier)
   supplierInfo: SupplierInfo;
+
+  @OneToOne(() => PowerRanking, (powerRanking) => powerRanking.supplier)
+  powerRanking: PowerRanking;
 }
