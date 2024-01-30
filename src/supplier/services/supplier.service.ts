@@ -149,7 +149,7 @@ export class SupplierService {
       isFeatured: data?.is_featured ? data?.is_featured : false,
       video: data?.mts_video ?? '',
       category: category,
-      rank: data?.powerRanking[0]?.rank ?? null,
+      rank: data?.powerRanking ? data?.powerRanking[0]?.rank : null,
     };
   }
 }
