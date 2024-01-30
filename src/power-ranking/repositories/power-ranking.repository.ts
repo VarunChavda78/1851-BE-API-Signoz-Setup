@@ -9,10 +9,10 @@ export class PowerRankingRepository extends Repository<PowerRanking> {
   }
 
   async getById(id: number): Promise<PowerRanking> {
-    const callschedule = await this.findOne({ where: { id } });
-    if (!callschedule) {
+    const powerRanking = await this.findOne({ where: { id } });
+    if (!powerRanking) {
       throw new NotFoundException();
     }
-    return callschedule;
+    return powerRanking;
   }
 }
