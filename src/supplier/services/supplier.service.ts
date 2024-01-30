@@ -30,6 +30,7 @@ export class SupplierService {
     const fieldsArray = sort.split(',');
     const ordersArray = order.split(',');
     const today = dayjs().format('YYYY-MM-DD');
+    const yesterday = dayjs().subtract(1, 'day').format('YYYY-MM-DD');
     const queryBuilder = await this.repository
       .createQueryBuilder('suppliers')
       .leftJoinAndSelect('suppliers.user', 'user')
@@ -41,7 +42,13 @@ export class SupplierService {
     if (fieldsArray.includes('rank')) {
       queryBuilder
         .leftJoinAndSelect('suppliers.powerRanking', 'powerRanking')
-        .where('DATE(powerRanking.created_at) = :today', { today })
+        .where(
+          'DATE(powerRanking.created_at) = COALESCE(:today::date, :yesterday::date)',
+          {
+            today,
+            yesterday,
+          },
+        )
         .andWhere('powerRanking.object_type = :type', {
           type: PowerRankingObjectTypes.TYPE_SUPPLIER,
         });
