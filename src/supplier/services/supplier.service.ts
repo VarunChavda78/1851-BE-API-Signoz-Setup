@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { PageOptionsDto } from '../dtos/pageOptionsDto';
 import { UserStatus } from 'src/user/dtos/UserDto';
 import * as dayjs from 'dayjs';
+import { PowerRankingObjectTypes } from 'src/power-ranking/dtos/PowerRankingDto';
 
 @Injectable()
 export class SupplierService {
@@ -40,7 +41,10 @@ export class SupplierService {
     if (fieldsArray.includes('rank')) {
       queryBuilder
         .leftJoinAndSelect('suppliers.powerRanking', 'powerRanking')
-        .where('DATE(powerRanking.created_at) = :today', { today });
+        .where('DATE(powerRanking.created_at) = :today', { today })
+        .andWhere('powerRanking.object_type = :type', {
+          type: PowerRankingObjectTypes.TYPE_SUPPLIER,
+        });
     }
     if (slug) {
       queryBuilder.andWhere('suppliers.slug = :slug', {
@@ -145,7 +149,7 @@ export class SupplierService {
       isFeatured: data?.is_featured ? data?.is_featured : false,
       video: data?.mts_video ?? '',
       category: category,
-      rank: data?.powerRanking?.rank ?? null,
+      rank: data?.powerRanking[0]?.rank ?? null,
     };
   }
 }

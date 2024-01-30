@@ -9,6 +9,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 import { PowerRanking } from 'src/power-ranking/power-ranking.entity';
 
@@ -82,6 +83,6 @@ export class Supplier {
   @OneToOne(() => SupplierInfo, (supplierInfo) => supplierInfo.supplier)
   supplierInfo: SupplierInfo;
 
-  @OneToOne(() => PowerRanking, (powerRanking) => powerRanking.supplier)
+  @OneToMany(() => PowerRanking, (powerRanking) => powerRanking.object)
   powerRanking: PowerRanking;
 }

@@ -4,7 +4,7 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
-  OneToOne,
+  ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -12,9 +12,6 @@ import {
 export class PowerRanking {
   @PrimaryGeneratedColumn()
   id: number;
-
-  @Column()
-  object_id: number;
 
   @Column()
   object_type: number;
@@ -28,7 +25,7 @@ export class PowerRanking {
   @CreateDateColumn({ name: 'created_at' })
   created_at: Date;
 
-  @OneToOne(() => Supplier, (supplier) => supplier.powerRanking)
+  @ManyToOne(() => Supplier, (supplier) => supplier.powerRanking)
   @JoinColumn()
-  supplier: Supplier;
+  object: Supplier;
 }
