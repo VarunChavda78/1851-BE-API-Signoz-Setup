@@ -36,7 +36,7 @@ export class SeoController {
     let ogSiteName: string =
       '1851 Franchise Magazine, Franchise News, Information, franchise opportunities';
     let data;
-
+    let url = `${this.config.get('franchise.url')}/supplier`;
     if (Number(query.object_id)) {
       const supplier = await this.supplierRepository
         .createQueryBuilder('suppliers')
@@ -46,7 +46,7 @@ export class SeoController {
       ogImage = `${this.config.get(
         's3.imageUrl',
       )}/supplier-db/supplier/${supplier?.id}/${supplier?.logo}`;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      url = `${this.config.get('franchise.url')}/supplier/${supplier?.slug}`;
     }
     if (seo) {
       ogSiteName = seo.page_title;
@@ -62,6 +62,7 @@ export class SeoController {
           description: seo.meta_description,
           image: ogImage,
           siteName: ogSiteName,
+          url: url,
         },
         twitter: {
           title: seo.meta_title,
@@ -80,6 +81,7 @@ export class SeoController {
           description: 'A fairly ranked franchise supplier resource',
           image: ogImage,
           siteName: ogSiteName,
+          url: '',
         },
         twitter: {
           title: '1851 Franchise | Supplier',
