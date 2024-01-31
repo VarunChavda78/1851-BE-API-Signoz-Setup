@@ -67,15 +67,15 @@ export class LayoutService {
         'franchise.url',
       )}/searchpopup?search_input=&brand_id=1851&by_author=false&by_title=false&by_desc=false&by_keywords=false&by_suppliers=true&published_duration=&published_from_date=&published_to_date=`,
     });
-    // if (!slug) {
-    //   supplierMenus.push({
-    //     slug: 'power-ranking',
-    //     name: 'Supplier Power Rankings',
-    //     url: `${this.configService.get(
-    //       'franchise.url',
-    //     )}/supplier/power-ranking`,
-    //   });
-    // }
+    if (!slug) {
+      supplierMenus.push({
+        slug: 'power-ranking',
+        name: 'Supplier Power Rankings',
+        url: `${this.configService.get(
+          'franchise.url',
+        )}/supplier/power-ranking`,
+      });
+    }
     supplierMenus.push(
       {
         slug: 'create-a-profile',
