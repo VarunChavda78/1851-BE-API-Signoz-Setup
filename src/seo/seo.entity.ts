@@ -25,9 +25,6 @@ export class Seo {
   object_type: number;
 
   @Column()
-  page_title: string;
-
-  @Column()
   meta_title: string;
 
   @Column()
