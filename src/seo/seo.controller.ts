@@ -49,10 +49,9 @@ export class SeoController {
       url = `${this.config.get('franchise.url')}/supplier/${supplier?.slug}`;
     }
     if (seo) {
-      ogSiteName = seo.page_title;
+      ogSiteName = seo.meta_title;
       data = {
         seo: {
-          pageTitle: seo.page_title,
           title: seo.meta_title,
           description: seo.meta_description,
           keywords: seo.seoKeyword,
@@ -72,7 +71,6 @@ export class SeoController {
     } else {
       data = {
         seo: {
-          pageTitle: '1851 Franchise | Supplier',
           title: '1851 Franchise | Supplier',
           description: 'A fairly ranked franchise supplier resource',
         },
