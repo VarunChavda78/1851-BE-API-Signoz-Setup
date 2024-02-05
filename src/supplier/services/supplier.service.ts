@@ -43,11 +43,11 @@ export class SupplierService {
       queryBuilder
         .leftJoinAndSelect('suppliers.powerRanking', 'powerRanking')
         .where(
-          'DATE(powerRanking.created_at) = COALESCE(:today::date, :yesterday::date)',
-          {
-            today,
-            yesterday,
-          },
+          '(DATE(powerRanking.created_at) = :today OR DATE(powerRanking.created_at) = :yesterday)',
+        {
+          today,
+          yesterday,
+        },
         )
         .andWhere('powerRanking.object_type = :type', {
           type: PowerRankingObjectTypes.TYPE_SUPPLIER,
