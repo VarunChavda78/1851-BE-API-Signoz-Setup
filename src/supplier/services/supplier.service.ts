@@ -39,20 +39,21 @@ export class SupplierService {
         status: UserStatus.APPROVED,
       });
 
-    if (fieldsArray.includes('rank')) {
-      queryBuilder
-        .leftJoinAndSelect('suppliers.powerRanking', 'powerRanking')
-        .where(
-          'DATE(powerRanking.created_at) = COALESCE(:today::date, :yesterday::date)',
-          {
-            today,
-            yesterday,
-          },
-        )
-        .andWhere('powerRanking.object_type = :type', {
-          type: PowerRankingObjectTypes.TYPE_SUPPLIER,
-        });
-    }
+      if (fieldsArray.includes('rank')) {
+        queryBuilder
+          .leftJoinAndSelect('suppliers.powerRanking', 'powerRanking')
+          .where(
+            'DATE(powerRanking.created_at) = :today::date OR (DATE(powerRanking.created_at) = :yesterday::date AND NOT EXISTS (SELECT rank FROM power_ranking WHERE created_at = :today::date))',
+            {
+              today,
+              yesterday,
+            },
+          )
+          .andWhere('powerRanking.object_type = :type', {
+            type: PowerRankingObjectTypes.TYPE_SUPPLIER,
+          });
+      }
+       
     if (slug) {
       queryBuilder.andWhere('suppliers.slug = :slug', {
         slug,
