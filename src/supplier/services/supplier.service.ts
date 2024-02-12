@@ -26,7 +26,7 @@ export class SupplierService {
       sort = 'rating',
     }: any = pageOptions;
     const skip = (page - 1) * limit;
-    const { featured, category, rating, slug, state } = filterData;
+    const { featured, category, rating, slug, state, name, description } = filterData;
     const fieldsArray = sort.split(',');
     const ordersArray = order.split(',');
     const today = dayjs().format('YYYY-MM-DD');
@@ -57,6 +57,18 @@ export class SupplierService {
     if (slug) {
       queryBuilder.andWhere('suppliers.slug = :slug', {
         slug,
+      });
+    }
+
+    if(name){
+      queryBuilder.andWhere('upper(suppliers.name) LIKE :name',{
+        name: `%${name?.toLocaleUpperCase()}%`,
+      });
+    }
+
+    if(description){
+      queryBuilder.andWhere('upper(supplierInfo.ats_content) LIKE :description',{
+        description : `%${description?.toLocaleUpperCase()}%`,
       });
     }
 

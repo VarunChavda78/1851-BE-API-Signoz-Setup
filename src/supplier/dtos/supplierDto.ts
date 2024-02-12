@@ -73,4 +73,15 @@ export class FilterDto {
   @Type(() => String)
   @IsString()
   state: string;
+
+  @IsOptional()
+  @Type(() => String)
+  @IsString()
+  name: string;
+
+  @IsOptional()
+  @Type(() => String)
+  @IsString()
+  description: string;
+
 }
