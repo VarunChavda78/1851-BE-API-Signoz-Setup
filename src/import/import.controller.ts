@@ -38,7 +38,7 @@ export class ImportController {
     const suppliers = await this.supplierRepository
       .createQueryBuilder('suppliers')
       .getMany();
-    suppliers.forEach(async function (supplier: any) {
+    for (const supplier of suppliers) {
       const bucketName = this.config.get('aws.bucketName');
       const sourcePath = `${bucketName}/supplier-db/images/${supplier.logo}`;
       const destinationPath = `supplier-db/supplier/${supplier.id}/${supplier.logo}`;
@@ -60,7 +60,7 @@ export class ImportController {
       } catch (e) {
         console.log(e, 'S3 Error');
       }
-    });
+    }
   }
   @Get('save-supplier')
   async saveSupplier() {
