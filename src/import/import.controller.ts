@@ -26,6 +26,42 @@ export class ImportController {
     private config: ConfigService,
   ) {}
 
+  @Get('update-logo')
+  async updateLogo() {
+    AWS.config.update({
+      accessKeyId: this.config.get('aws.accessKey'),
+      secretAccessKey: this.config.get('aws.secretKey'),
+      region: this.config.get('aws.region'),
+    });
+    const s3 = new AWS.S3();
+
+    const suppliers = await this.supplierRepository
+      .createQueryBuilder('suppliers')
+      .getMany();
+    suppliers.forEach(async function (supplier: any) {
+      const bucketName = this.config.get('aws.bucketName');
+      const sourcePath = `${bucketName}/supplier-db/images/${supplier.logo}`;
+      const destinationPath = `supplier-db/supplier/${supplier.id}/${supplier.logo}`;
+      try {
+        await s3
+          .copyObject({
+            Bucket: bucketName,
+            CopySource: sourcePath,
+            Key: destinationPath,
+          })
+          .promise();
+
+        await s3
+          .deleteObject({
+            Bucket: bucketName,
+            Key: `supplier-db/images/${supplier.logo}`,
+          })
+          .promise();
+      } catch (e) {
+        console.log(e, 'S3 Error');
+      }
+    });
+  }
   @Get('save-supplier')
   async saveSupplier() {
     AWS.config.update({
