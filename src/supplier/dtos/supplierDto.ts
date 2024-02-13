@@ -77,11 +77,6 @@ export class FilterDto {
   @IsOptional()
   @Type(() => String)
   @IsString()
-  name: string;
-
-  @IsOptional()
-  @Type(() => String)
-  @IsString()
-  description: string;
+  search_input: string;
 
 }
