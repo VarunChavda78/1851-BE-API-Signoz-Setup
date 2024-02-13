@@ -26,7 +26,7 @@ export class SupplierService {
       sort = 'rating',
     }: any = pageOptions;
     const skip = (page - 1) * limit;
-    const { featured, category, rating, slug, state, name, description } = filterData;
+    const { featured, category, rating, slug, state,search_input} = filterData;
     const fieldsArray = sort.split(',');
     const ordersArray = order.split(',');
     const today = dayjs().format('YYYY-MM-DD');
@@ -60,15 +60,13 @@ export class SupplierService {
       });
     }
 
-    if(name){
-      queryBuilder.andWhere('upper(suppliers.name) LIKE :name',{
-        name: `%${name?.toLocaleUpperCase()}%`,
-      });
-    }
-
-    if(description){
-      queryBuilder.andWhere('upper(supplierInfo.ats_content) LIKE :description',{
-        description : `%${description?.toLocaleUpperCase()}%`,
+    if(search_input){
+      queryBuilder
+      .andWhere('UPPER(suppliers.name) LIKE :name', {
+        name: `%${search_input.toUpperCase()}%`,
+      })
+      .orWhere('UPPER(supplierInfo.ats_content) LIKE :description', {
+        description: `%${search_input.toUpperCase()}%`,
       });
     }
 
