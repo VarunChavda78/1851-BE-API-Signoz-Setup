@@ -2,6 +2,7 @@ import { Controller, Get, Query } from '@nestjs/common';
 import { SeoRepository } from './seo.repository';
 import { ConfigService } from '@nestjs/config';
 import { SupplierRepository } from 'src/supplier/repositories/supplier.repository';
+import { SeoType } from 'src/shared/constants/constants';
 
 @Controller({
   version: '1',
@@ -37,6 +38,7 @@ export class SeoController {
       '1851 Franchise Magazine, Franchise News, Information, franchise opportunities';
     let data;
     let url = `${this.config.get('franchise.url')}/supplier`;
+    let canonical = url;
     if (Number(query.object_id)) {
       const supplier = await this.supplierRepository
         .createQueryBuilder('suppliers')
@@ -47,6 +49,18 @@ export class SeoController {
         's3.imageUrl',
       )}/supplier-db/supplier/${supplier?.id}/${supplier?.logo}`;
       url = `${this.config.get('franchise.url')}/supplier/${supplier?.slug}`;
+      canonical = url;
+    }
+    switch (Number(query.type)) {
+      case SeoType.POWER_RANKING:
+        canonical = `${this.config.get(
+          'franchise.url',
+        )}/supplier/power-ranking`;
+        break;
+      case SeoType.SEARCH:
+        canonical = `${this.config.get(
+          'franchise.url',
+        )}/supplier/search?limit=12&page=1&sort=name&order=ASC`;
     }
     if (seo) {
       ogSiteName = seo.meta_title;
@@ -55,6 +69,7 @@ export class SeoController {
           title: seo.meta_title,
           description: seo.meta_description,
           keywords: seo.seoKeyword,
+          canonical: canonical,
         },
         og: {
           title: seo.meta_title,
@@ -73,6 +88,8 @@ export class SeoController {
         seo: {
           title: '1851 Franchise | Supplier',
           description: 'A fairly ranked franchise supplier resource',
+          keywords: ['supplier'],
+          canonical: canonical,
         },
         og: {
           title: '1851 Franchise | Supplier',
