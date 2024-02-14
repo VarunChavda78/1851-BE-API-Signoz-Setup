@@ -50,13 +50,13 @@ export class ImportController {
             Key: destinationPath,
           })
           .promise();
-
-        await s3
-          .deleteObject({
-            Bucket: bucketName,
-            Key: `supplier-db/images/${supplier.logo}`,
-          })
-          .promise();
+        console.log(supplier.logo);
+        // await s3
+        //   .deleteObject({
+        //     Bucket: bucketName,
+        //     Key: `supplier-db/images/${supplier.logo}`,
+        //   })
+        //   .promise();
       } catch (e) {
         console.log(e, 'S3 Error');
       }
