@@ -38,7 +38,8 @@ export class SupplierInfoService {
     } else {
       let data = {};
       const info = supplier?.supplierInfo;
-      if (info) {
+      let atsMediaContent;
+      if (info?.ats_media_id) {
         const atsMedia = info?.ats_media_id
           ? await this.mediaRepo.findOne({
               where: { id: info?.ats_media_id },
@@ -46,7 +47,7 @@ export class SupplierInfoService {
           : null;
         const atsextension = atsMedia?.image?.split('.')[1];
         const atsname = atsMedia?.image?.split('.')[0];
-        const atsMediaContent = atsMedia
+        atsMediaContent = atsMedia
           ? {
               id: atsMedia?.id,
               image: atsMedia?.image
@@ -59,6 +60,9 @@ export class SupplierInfoService {
                 atsMedia?.type === MediaTypes.TYPE_VIDEO ? 'video' : 'image',
             }
           : {};
+      }
+      let serviceMediaContent;
+      if (info?.service_media_id) {
         const serviceMedia = info?.service_media_id
           ? await this.mediaRepo.findOne({
               where: { id: info?.service_media_id },
@@ -66,7 +70,7 @@ export class SupplierInfoService {
           : null;
         const serviceextension = serviceMedia?.image?.split('.')[1];
         const servicename = serviceMedia?.image?.split('.')[0];
-        const serviceMediaContent = serviceMedia
+        serviceMediaContent = serviceMedia
           ? {
               id: serviceMedia?.id,
               image: serviceMedia?.image
@@ -81,76 +85,76 @@ export class SupplierInfoService {
                   : 'image',
             }
           : null;
-        let media = {};
-        if (supplier?.mts_video) {
-          const thumbnailImage = supplier?.mts_video
-            ? await this.commonService.getThumbnailUrl(supplier?.mts_video)
-            : null;
-          media = {
-            type: 'video',
-            image: thumbnailImage,
-            url: supplier?.mts_video,
-          };
-        }
-        let banner_media = {};
-        if (info?.banner_media_id) {
-          const bannereMedia = await this.mediaRepo.findOne({
-            where: { id: info?.banner_media_id },
-          });
-          banner_media = {
-            type: 'image',
-            image:
-              bannereMedia?.type === MediaTypes.TYPE_IMAGE
-                ? `${this.config.get(
-                    's3.imageUrl',
-                  )}/supplier-db/supplier/${supplier?.id}/${bannereMedia?.image}`
-                : '',
-            url: bannereMedia?.url ?? '',
-          };
-        }
-        data = {
-          id: supplier?.id,
-          info: {
-            id: supplier?.id,
-            name: supplier?.name,
-            slug: supplier?.slug,
-            logo: supplier?.logo
-              ? `${this.config.get(
-                  's3.imageUrl',
-                )}/supplier-db/supplier/${supplier?.id}/${supplier?.logo}`
-              : `${this.config.get(
-                  's3.imageUrl',
-                )}/supplier-db/supplier/client-logo.png`,
-            location:
-              supplier?.city && supplier?.state
-                ? `${supplier?.city}, ${supplier?.state}`
-                : supplier?.city && !supplier?.state
-                  ? `${supplier.state}`
-                  : !supplier?.city && supplier?.state
-                    ? `${supplier.city}`
-                    : '',
-            founded: supplier?.founded,
-            rating: Number(supplier?.rating)?.toFixed(1) ?? 0,
-            review: supplier?.review ?? 0,
-            description: info?.ats_content,
-            isFeatured: supplier?.is_featured ? supplier?.is_featured : false,
-            media,
-            category: await this.getCategory(supplier?.category_id),
-            website: info?.website,
-          },
-          banner_media,
-          highlight: await this.getHighlight(supplier?.id),
-          about_the_supplier: {
-            content: info?.ats_content,
-            media: atsMediaContent ?? null,
-          },
-          services: {
-            content: info?.service_content,
-            media: serviceMediaContent ?? null,
-          },
-          latest_news: await this.getLatestNews(info),
+      }
+      let media = {};
+      if (supplier?.mts_video) {
+        const thumbnailImage = supplier?.mts_video
+          ? await this.commonService.getThumbnailUrl(supplier?.mts_video)
+          : null;
+        media = {
+          type: 'video',
+          image: thumbnailImage,
+          url: supplier?.mts_video,
         };
       }
+      let banner_media = {};
+      if (info?.banner_media_id) {
+        const bannereMedia = await this.mediaRepo.findOne({
+          where: { id: info?.banner_media_id },
+        });
+        banner_media = {
+          type: 'image',
+          image:
+            bannereMedia?.type === MediaTypes.TYPE_IMAGE
+              ? `${this.config.get(
+                  's3.imageUrl',
+                )}/supplier-db/supplier/${supplier?.id}/${bannereMedia?.image}`
+              : '',
+          url: bannereMedia?.url ?? '',
+        };
+      }
+      data = {
+        id: supplier?.id,
+        info: {
+          id: supplier?.id,
+          name: supplier?.name,
+          slug: supplier?.slug,
+          logo: supplier?.logo
+            ? `${this.config.get(
+                's3.imageUrl',
+              )}/supplier-db/supplier/${supplier?.id}/${supplier?.logo}`
+            : `${this.config.get(
+                's3.imageUrl',
+              )}/supplier-db/supplier/client-logo.png`,
+          location:
+            supplier?.city && supplier?.state
+              ? `${supplier?.city}, ${supplier?.state}`
+              : supplier?.city && !supplier?.state
+                ? `${supplier.state}`
+                : !supplier?.city && supplier?.state
+                  ? `${supplier.city}`
+                  : '',
+          founded: supplier?.founded,
+          rating: Number(supplier?.rating)?.toFixed(1) ?? 0,
+          review: supplier?.review ?? 0,
+          description: info?.ats_content,
+          isFeatured: supplier?.is_featured ? supplier?.is_featured : false,
+          media,
+          category: await this.getCategory(supplier?.category_id),
+          website: info?.website,
+        },
+        banner_media,
+        highlight: await this.getHighlight(supplier?.id),
+        about_the_supplier: {
+          content: info?.ats_content,
+          media: atsMediaContent ?? null,
+        },
+        services: {
+          content: info?.service_content,
+          media: serviceMediaContent ?? null,
+        },
+        latest_news: await this.getLatestNews(info),
+      };
       return data;
     }
   }
