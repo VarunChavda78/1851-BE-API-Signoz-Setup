@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { SocialPlatformText } from 'src/social-platform/dtos/SocialPlatformDto';
+import { SocialPlatformText, SocialPlatforms } from 'src/social-platform/dtos/SocialPlatformDto';
 import { SupplierRepository } from 'src/supplier/repositories/supplier.repository';
 
 @Injectable()
@@ -134,16 +134,32 @@ export class LayoutService {
         socialLinks = supplier?.user?.socialPlatforms;
         if (socialLinks && socialLinks.length > 0) {
           const types = [
-            SocialPlatformText.FACEBOOK,
-            SocialPlatformText.LINKEDIN,
-            SocialPlatformText.YOUTUBE,
-            SocialPlatformText.INSTAGRAM,
+            {
+              id : SocialPlatforms.FACEBOOK, 
+              type: SocialPlatformText.FACEBOOK
+            },
+            {
+              id: SocialPlatforms.LINKEDIN,
+              type: SocialPlatformText.LINKEDIN
+            },
+            {
+              id: SocialPlatforms.YOUTUBE,
+              type: SocialPlatformText.YOUTUBE
+            },
+            {
+              id: SocialPlatforms.INSTAGRAM,
+              type: SocialPlatformText.INSTAGRAM
+            },
           ];
-          socialLinks.forEach((socialLink, i) => {
-            platforms.push({
-              title: types[i],
-              url: socialLink.url,
-            });
+
+          socialLinks.forEach((socialLink) => {
+            const platform = types.find(type => type?.id === socialLink?.type);
+            if (platform) {
+              platforms.push({
+                title: platform?.type,
+                url: socialLink.url,
+              });
+            }
           });
         }
       }
