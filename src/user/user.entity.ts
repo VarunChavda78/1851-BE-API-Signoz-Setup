@@ -10,6 +10,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { Supplier } from '../supplier/supplier.entity';
+import { SlugHistory } from 'src/slug-history/slug-history.entity';
 import { UserStatus } from './dtos/UserDto';
 import { SocialPlatform } from 'src/social-platform/social-platform.entity';
 
@@ -52,4 +53,7 @@ export class User {
 
   @OneToMany(() => SocialPlatform, (socialPlatforms) => socialPlatforms.user)
   socialPlatforms: SocialPlatform;
+
+  // @OneToMany(() => SlugHistory, (slugHistory) => slugHistory.user) 
+  // slugHistory: SlugHistory[];
 }

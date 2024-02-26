@@ -12,6 +12,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { PowerRanking } from 'src/power-ranking/power-ranking.entity';
+import { SlugHistory } from 'src/slug-history/slug-history.entity';
 
 @Entity('suppliers')
 export class Supplier {
