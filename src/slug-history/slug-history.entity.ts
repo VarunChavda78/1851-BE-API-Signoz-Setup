@@ -8,27 +8,22 @@ export class SlugHistory {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({name:'slug',nullable: true})
+  @Column({nullable: true})
   slug: string;
 
-  @Column({ name: 'object_id', nullable: true })
-  objectId: number;
+  @Column({nullable: true })
+  object_id: number;
 
-  @Column({ name: 'user_type',nullable:true, enum: SlugUserType})
-  userType: SlugUserType;
+  @Column({nullable:true})
+  user_type: SlugUserType;
 
-  @Column({ name: 'created_by'})
-  createdBy: number;
+  @Column({nullable: true})
+  created_by: number;
 
-  @Column({ name: 'created_at' })
-  createdAt: Date;
+  @Column({nullable: true})
+  created_at: Date;
 
-  @Column({ name: 'object_type',nullable: true})
-  objectType: SlugObjectType;
+  @Column({nullable: true})
+  object_type: SlugObjectType;
 
-//   @ManyToOne(() => Supplier, supplier => supplier.slugHistory, { nullable: true })
-//   supplier: Supplier;
-
-//   @ManyToOne(() => User, user => user.slugHistory, { nullable: true })
-//   user: User;
 }

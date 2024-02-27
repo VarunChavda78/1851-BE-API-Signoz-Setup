@@ -10,7 +10,7 @@ export class SlugHistoryRepository extends Repository<SlugHistory> {
   }
 
   async getBySupplierId(supplierId: number): Promise<SlugHistory[]>{
-    const history = await this.find({ where: { objectId: supplierId, objectType: SlugObjectType.OBJECT_TYPE_SUPPLIER} });
+    const history = await this.find({ where: { object_id: supplierId, object_type: SlugObjectType.OBJECT_TYPE_SUPPLIER} });
     if (!history) {
       throw new NotFoundException();
     }

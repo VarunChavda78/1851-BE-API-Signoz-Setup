@@ -28,18 +28,37 @@ export class SupplierInfoService {
 
   async getInfo(infoFilter: InfoFilter) {
     const { slug } = infoFilter;
-    const supplier = await this.supplierRepo
-      .createQueryBuilder('suppliers')
-      .leftJoinAndSelect('suppliers.user', 'user')
-      .leftJoinAndSelect('suppliers.supplierInfo', 'supplierInfo')
-      .where('suppliers.slug = :slug', { slug })
-      .andWhere('user.status = :status', { status: UserStatus.APPROVED })
-      .getOne();
+    let supplier = await this.supplierRepo
+        .createQueryBuilder('suppliers')
+        .leftJoinAndSelect('suppliers.user', 'user')
+        .leftJoinAndSelect('suppliers.supplierInfo', 'supplierInfo')
+        .where('suppliers.slug = :slug', { slug })
+        .andWhere('user.status = :status', { status: UserStatus.APPROVED })
+        .getOne();
+
     if (!supplier) {
-      throw new NotFoundException();
-    } else {
+        const supplierInSlugHistory = await this.slugHistory.getBySlug(slug);
+        if (supplierInSlugHistory) {
+            supplier = await this.supplierRepo
+                .createQueryBuilder('suppliers')
+                .leftJoinAndSelect('suppliers.user', 'user')
+                .leftJoinAndSelect('suppliers.supplierInfo', 'supplierInfo')
+                .where('suppliers.id = :id', { id: supplierInSlugHistory.object_id })
+                .andWhere('user.status = :status', { status: UserStatus.APPROVED })
+                .getOne();
+        } else {
+            throw new NotFoundException();
+        }
+    }
+
+    if (!supplier) {
+        throw new NotFoundException();
+    }
+
       let data = {};
+      
       const slugHistory =await this.slugHistory?.getBySupplierId(supplier?.id);
+      const supplierSlugHistory = slugHistory?.map((history)=>history?.slug);
       const info = supplier?.supplierInfo;
       let atsMediaContent;
       if (info?.ats_media_id) {
@@ -157,9 +176,10 @@ export class SupplierInfoService {
           media: serviceMediaContent ?? null,
         },
         latest_news: await this.getLatestNews(info),
+        slug_history: supplierSlugHistory,
       };
       return data;
-    }
+    
   }
 
   async getCategory(categoryId) {
