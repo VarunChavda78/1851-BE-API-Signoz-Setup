@@ -8,22 +8,22 @@ export class SlugHistory {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({nullable: true})
+  @Column()
   slug: string;
 
-  @Column({nullable: true })
+  @Column()
   object_id: number;
 
-  @Column({nullable:true})
+  @Column()
   user_type: SlugUserType;
 
-  @Column({nullable: true})
+  @Column()
   created_by: number;
 
-  @Column({nullable: true})
+  @Column()
   created_at: Date;
 
-  @Column({nullable: true})
+  @Column()
   object_type: SlugObjectType;
 
 }

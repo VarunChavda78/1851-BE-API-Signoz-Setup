@@ -28,7 +28,7 @@ export class SupplierInfoService {
 
   async getInfo(infoFilter: InfoFilter) {
     const { slug } = infoFilter;
-    let supplier = await this.supplierRepo
+    const supplier = await this.supplierRepo
         .createQueryBuilder('suppliers')
         .leftJoinAndSelect('suppliers.user', 'user')
         .leftJoinAndSelect('suppliers.supplierInfo', 'supplierInfo')
@@ -37,28 +37,13 @@ export class SupplierInfoService {
         .getOne();
 
     if (!supplier) {
-        const supplierInSlugHistory = await this.slugHistory.getBySlug(slug);
-        if (supplierInSlugHistory) {
-            supplier = await this.supplierRepo
-                .createQueryBuilder('suppliers')
-                .leftJoinAndSelect('suppliers.user', 'user')
-                .leftJoinAndSelect('suppliers.supplierInfo', 'supplierInfo')
-                .where('suppliers.id = :id', { id: supplierInSlugHistory.object_id })
-                .andWhere('user.status = :status', { status: UserStatus.APPROVED })
-                .getOne();
-        } else {
-            throw new NotFoundException();
-        }
-    }
-
-    if (!supplier) {
         throw new NotFoundException();
     }
 
       let data = {};
       
       const slugHistory =await this.slugHistory?.getBySupplierId(supplier?.id);
-      const supplierSlugHistory = slugHistory?.map((history)=>history?.slug);
+      const supplierSlugHistory = slugHistory?.filter((history)=> history?.slug !== supplier?.slug)?.map((s)=>s?.slug);
       const info = supplier?.supplierInfo;
       let atsMediaContent;
       if (info?.ats_media_id) {

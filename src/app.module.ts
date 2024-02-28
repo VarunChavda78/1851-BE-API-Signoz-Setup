@@ -22,7 +22,6 @@ import { RoleModule } from './role/role.module';
 import { MainPageModule } from './main-page/main-page.module';
 import { ImportModule } from './import/import.module';
 import { SeoModule } from './seo/seo.module';
-import { SlugHistoryModule } from './slug-history/slug-history.module';
 
 @Module({
   imports: [
@@ -47,7 +46,6 @@ import { SlugHistoryModule } from './slug-history/slug-history.module';
     MainPageModule,
     ImportModule,
     SeoModule,
-    SlugHistoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],
