@@ -38,10 +38,8 @@ export class SupplierInfoService {
 
     if (!supplier) {
         throw new NotFoundException();
-    }
-
-      let data = {};
-      
+    }else{
+      let data = {}; 
       const slugHistory =await this.slugHistory?.getBySupplierId(supplier?.id);
       const supplierSlugHistory = slugHistory?.filter((history)=> history?.slug !== supplier?.slug)?.map((s)=>s?.slug);
       const info = supplier?.supplierInfo;
@@ -164,7 +162,7 @@ export class SupplierInfoService {
         slug_history: supplierSlugHistory,
       };
       return data;
-    
+    }
   }
 
   async getCategory(categoryId) {
