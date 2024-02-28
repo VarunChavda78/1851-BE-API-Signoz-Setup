@@ -31,15 +31,14 @@ export class SupplierController {
   ) {
     return await this.supplierService.getLists(filterData, pageOptionsDto);
   }
-  
-  @Get('validate')
-  async validate(@Query('slug') slug: string) {
-    let data = {
-      isValid: false,
-      slug: '',
-      slugs: []
-    };
 
+  @Get('validate')
+  async validate(@Query('slug') slug: string){
+    let data ={
+      isValid : false,
+      slug : '',
+      slugs : []
+    }
     let supplier = await this.supplierRepository
       .createQueryBuilder('suppliers')
       .leftJoinAndSelect('suppliers.user', 'user')
@@ -50,31 +49,22 @@ export class SupplierController {
     if (!supplier) {
       const supplierInSlugHistory = await this.slugHistory.getBySlug(slug);
       if (supplierInSlugHistory) {
-        supplier = await this.supplierRepository
-          .createQueryBuilder('suppliers')
-          .leftJoinAndSelect('suppliers.user', 'user')
-          .where('suppliers.id = :id', { id: supplierInSlugHistory.object_id })
-          .andWhere('user.status = :status', { status: UserStatus.APPROVED })
-          .getOne();
-        if (supplier) {
-          const slugHistory =await this.slugHistory?.getBySupplierId(supplier?.id);
-          const supplierSlugHistory = slugHistory?.filter((history)=> history?.slug !== supplier?.slug)?.map((s)=>s?.slug);
-          data = {
-            isValid : true,
-            slug : supplier?.slug,
-            slugs :  [...supplierSlugHistory]
-          } 
-          return {
-            statusCode: HttpStatus.MOVED_PERMANENTLY,
-            data: data
-          };
-        } else {
-          throw new NotFoundException('Supplier not found');
-        }
+          supplier = await this.supplierRepository
+              .createQueryBuilder('suppliers')
+              .leftJoinAndSelect('suppliers.user', 'user')
+              .where('suppliers.id = :id', { id: supplierInSlugHistory.object_id })
+              .andWhere('user.status = :status', { status: UserStatus.APPROVED })
+              .getOne();
       } else {
-        throw new NotFoundException('Supplier not found');
+          throw new NotFoundException();
       }
-    }else{
+    }
+
+    if (!supplier) {
+        throw new NotFoundException();
+    }
+
+    if(supplier){
       const slugHistory =await this.slugHistory?.getBySupplierId(supplier?.id);
       const supplierSlugHistory = slugHistory?.filter((history)=> history?.slug !== supplier?.slug)?.map((s)=>s?.slug);
        data = {
@@ -82,10 +72,11 @@ export class SupplierController {
         slug : supplier?.slug,
         slugs :  [...supplierSlugHistory]
       } 
-      return {
-        statusCode: HttpStatus.OK,
-        data: data
-      };
+    }
+
+    return { 
+      statusCode: HttpStatus.OK,
+      data: data
     }
   }
 
