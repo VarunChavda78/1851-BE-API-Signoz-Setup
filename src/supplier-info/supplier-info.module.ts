@@ -12,7 +12,6 @@ import { HighlightRepository } from 'src/highlight/repositories/highlight.reposi
 import { CategoryRepository } from 'src/category/repositories/category.repository';
 import { CommonService } from 'src/shared/common.service';
 import { HttpModule } from '@nestjs/axios';
-import { SlugHistoryRepository } from 'src/slug-history/repositories/slug-history.repository';
 
 @Module({
   imports: [TypeOrmModule.forFeature([SupplierInfo]), HttpModule],
@@ -25,7 +24,6 @@ import { SlugHistoryRepository } from 'src/slug-history/repositories/slug-histor
     LatestNewsRepository,
     HighlightRepository,
     CategoryRepository,
-    SlugHistoryRepository,
     CommonService,
   ],
   controllers: [SupplierInfoController],

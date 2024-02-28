@@ -10,7 +10,6 @@ import { CategoryRepository } from 'src/category/repositories/category.repositor
 import { HighlightRepository } from 'src/highlight/repositories/highlight.repository';
 import { LatestNewsRepository } from 'src/latest-news/repositories/latest-news.repository';
 import { CommonService } from 'src/shared/common.service';
-import { SlugHistoryRepository } from 'src/slug-history/repositories/slug-history.repository';
 
 @Injectable()
 export class SupplierInfoService {
@@ -18,7 +17,6 @@ export class SupplierInfoService {
     private supplierRepo: SupplierRepository,
     private repository: SupplierInfoRepository,
     private mediaRepo: MediaRepository,
-    private slugHistory: SlugHistoryRepository,
     private categoryRepository: CategoryRepository,
     private highlightRepo: HighlightRepository,
     private latestNewsRepo: LatestNewsRepository,
@@ -40,8 +38,6 @@ export class SupplierInfoService {
         throw new NotFoundException();
     }else{
       let data = {}; 
-      const slugHistory =await this.slugHistory?.getBySupplierId(supplier?.id);
-      const supplierSlugHistory = slugHistory?.filter((history)=> history?.slug !== supplier?.slug)?.map((s)=>s?.slug);
       const info = supplier?.supplierInfo;
       let atsMediaContent;
       if (info?.ats_media_id) {
@@ -159,7 +155,6 @@ export class SupplierInfoService {
           media: serviceMediaContent ?? null,
         },
         latest_news: await this.getLatestNews(info),
-        slug_history: supplierSlugHistory,
       };
       return data;
     }
