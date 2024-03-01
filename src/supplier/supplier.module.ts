@@ -6,6 +6,7 @@ import { Supplier } from './supplier.entity';
 import { SupplierRepository } from './repositories/supplier.repository';
 import { CategoryRepository } from 'src/category/repositories/category.repository';
 import { ConfigService } from '@nestjs/config';
+import { SlugHistoryRepository } from 'src/slug-history/repositories/slug-history.repository';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Supplier])],
@@ -13,6 +14,7 @@ import { ConfigService } from '@nestjs/config';
     SupplierService,
     SupplierRepository,
     CategoryRepository,
+    SlugHistoryRepository,
     ConfigService,
   ],
   controllers: [SupplierController],

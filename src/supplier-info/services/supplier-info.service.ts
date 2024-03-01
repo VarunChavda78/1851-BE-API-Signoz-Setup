@@ -27,16 +27,17 @@ export class SupplierInfoService {
   async getInfo(infoFilter: InfoFilter) {
     const { slug } = infoFilter;
     const supplier = await this.supplierRepo
-      .createQueryBuilder('suppliers')
-      .leftJoinAndSelect('suppliers.user', 'user')
-      .leftJoinAndSelect('suppliers.supplierInfo', 'supplierInfo')
-      .where('suppliers.slug = :slug', { slug })
-      .andWhere('user.status = :status', { status: UserStatus.APPROVED })
-      .getOne();
+        .createQueryBuilder('suppliers')
+        .leftJoinAndSelect('suppliers.user', 'user')
+        .leftJoinAndSelect('suppliers.supplierInfo', 'supplierInfo')
+        .where('suppliers.slug = :slug', { slug })
+        .andWhere('user.status = :status', { status: UserStatus.APPROVED })
+        .getOne();
+
     if (!supplier) {
-      throw new NotFoundException();
-    } else {
-      let data = {};
+        throw new NotFoundException();
+    }else{
+      let data = {}; 
       const info = supplier?.supplierInfo;
       let atsMediaContent;
       if (info?.ats_media_id) {
