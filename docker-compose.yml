@@ -3,8 +3,8 @@ version: '3.8'
 services:
 
   api:
-    container_name: Supplier-Database-API
-    image: supplier-database-api-dev
+    container_name: 1851-adimin-be-api-dev
+    image: 1851-be-api-dev
     restart: unless-stopped
     build:
       context: ./
@@ -19,12 +19,12 @@ services:
     depends_on:
       - db
     networks:
-      - supplier-database-api 
+      - 1851-admin-be-api 
 
   db:
     image: postgres:latest
     restart: always
-    container_name: supplier-database-api-postgres
+    container_name: 1851-admin-be-api-postgres
     environment:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASS}
@@ -32,7 +32,7 @@ services:
     volumes:
       - ./psql-data:/var/lib/postgresql/data:delegated
     networks:
-      - supplier-database-api      
+      - 1851-admin-be-api    
     ports:
       - "5432:5432"
       
@@ -48,12 +48,12 @@ services:
     volumes:
       - pgadmin-data:/var/lib/pgadmin
     networks:
-      - supplier-database-api  
+      - 1851-admin-be-api  
 
 volumes:
   psql-data:
   pgadmin-data:
 
 networks:
-  supplier-database-api:
-    name: supplier-database-api 
+  1851-admin-be-api:
+    name: 1851-admin-be-api  
