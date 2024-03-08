@@ -8,32 +8,26 @@ export class UniverstiyDto {
   heading: string;
 
   @ApiProperty({ required: true })
-  @IsOptional()
   @IsString()
   url: string;
 
-  @ApiProperty({ required: false })
-  @IsOptional()
+  @ApiProperty({ required: true })
   @IsString()
   image: string;
 
-  @ApiProperty({ required: false })
-  @IsOptional()
+  @ApiProperty({ required: true })
   @IsString()
   pdf: string;
 
-  @ApiProperty({ required: false })
-  @IsOptional()
+  @ApiProperty({ required: true })
   @IsNumber()
   type: number;
 
   @ApiProperty({ required: false })
-  @IsOptional()
   @IsNumber()
   created_by: number;
 
   @ApiProperty({ required: false })
-  @IsOptional()
   @IsNumber()
   updated_by: number;
 }
