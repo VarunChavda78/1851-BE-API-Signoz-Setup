@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpStatus, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Param, Post, Put } from '@nestjs/common';
 import { UniversityRepository } from './respositories/university.repository';
 import { UniversityService } from './services/university.service';
 import { University } from './university.entity';
@@ -47,16 +47,16 @@ export class UniversityController {
         };
     }
   
-    @Post(':id')
+    @Put(':id')
     async update(@Param('id') id: number, @Body() item: UniverstiyDto) {
       const isExist = await this.repository.getById(id);
       if (isExist) {
         await this.repository.update({ id }, { 
             heading : item.heading,
-            // url : item.url,
-            // image : item.image,
-            // pdf : item.pdf,
-            // type : item.type,
+            url : item.url,
+            image : item.image,
+            pdf : item.pdf,
+            type : item.type,
          });
         return {
           statusCode: HttpStatus.CREATED,
