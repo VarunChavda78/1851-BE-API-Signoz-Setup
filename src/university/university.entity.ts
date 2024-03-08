@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { UniversityType } from './dtos/UniversityDto';
+import { UniversityType } from 'src/shared/constants/constants';
 
 @Entity('university')
 export class University {
