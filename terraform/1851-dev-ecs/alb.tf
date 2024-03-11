@@ -30,7 +30,7 @@ resource "aws_lb_listener_rule" "static" {
 
   condition {
     host_header {
-      values = ["apisupplier-internal.${var.domain_name}"]
+      values = ["apiadmin2.${var.domain_name}"]
     }
   }
 }

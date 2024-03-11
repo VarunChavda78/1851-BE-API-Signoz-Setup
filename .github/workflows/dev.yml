@@ -39,8 +39,8 @@ jobs:
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          APP_REPOSITORY:  supplier-api
-          NGINX_REPOSITORY: supplier-nginx
+          APP_REPOSITORY:  1851-admin-be-api
+          NGINX_REPOSITORY: 1851-admin-be-nginx
         run: |
           echo $IMAGE_TAG
           echo $APP_REPOSITORY
