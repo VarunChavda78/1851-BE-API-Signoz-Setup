@@ -42,7 +42,7 @@ variable "nginx_container_port" {
 }
 
 variable "Sandbox"{
-  default = "1851-admin-be-api"
+  default = "Admin-BE-API"
 
 }
 
