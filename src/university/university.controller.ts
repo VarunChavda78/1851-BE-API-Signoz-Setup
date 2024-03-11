@@ -1,8 +1,9 @@
-import { Body, Controller, Get, HttpStatus, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Param, Post, Put, Res } from '@nestjs/common';
 import { UniversityRepository } from './respositories/university.repository';
 import { UniversityService } from './services/university.service';
 import { University } from './university.entity';
 import { UniverstiyDto } from './dtos/UniversityDto';
+import { Response } from 'express';
 
 @Controller({
     version: '1',
@@ -39,12 +40,12 @@ export class UniversityController {
     }
   
     @Post()
-    async create(@Body() universityItem: UniverstiyDto) {
+    async create(@Body() universityItem: UniverstiyDto, @Res() res:Response) {
         await this.service.createUniversity(universityItem);
-        return {
+        return res.status(HttpStatus.CREATED).json({
           statusCode: HttpStatus.CREATED,
           status: 'University resource created successfully',
-        };
+      });
     }
   
     @Put(':id')
