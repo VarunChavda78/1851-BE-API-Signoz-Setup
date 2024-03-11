@@ -42,10 +42,10 @@ variable "nginx_container_port" {
 }
 
 variable "Sandbox"{
-  default = "supplier-api"
+  default = "1851-admin-be-api"
 
 }
 
 variable "secret_manager_arn" {
-  default = "arn:aws:secretsmanager:us-east-1:025212946569:secret:supplier-api.env-1PXhe8"
+  default = "arn:aws:secretsmanager:us-east-1:025212946569:secret:1851-Admin-BE-API-Dev-RDBZQZ"
 }

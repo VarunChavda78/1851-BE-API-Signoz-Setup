@@ -13,7 +13,7 @@ provider "aws" {
 terraform {
   backend "s3" {
     bucket = "1851-stg-terraform-state"
-    key = "ecsfrontend-supplier-api/terraform.tfstate"
+    key = "ecsfrontend-admin-be-api/terraform.tfstate"
     region = "us-east-1"
 }
 }
