@@ -2,32 +2,65 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { UniversityRepository } from '../respositories/university.repository';
 import { UniverstiyDto } from '../dtos/UniversityDto';
 import { University } from '../university.entity';
+import { ConfigService } from '@nestjs/config';
+import { FilterDto } from '../dtos/UniversityDto';
+import { PaginationDto } from 'src/shared/dtos/pagination.dto';
 
 @Injectable()
 export class UniversityService {
     constructor(
         private repository: UniversityRepository,
+        private config : ConfigService,
     ){}
 
-    async getDetails(universityItems: University[]) {
-        const data = [];
+
+    async getList(filterData: FilterDto, pageOptions : PaginationDto) {
+      const {
+        page = 1,
+        limit = 10,
+        order = 'DESC',
+        sort = 'created_at',
+      }: any = pageOptions;
+      const skip = ((pageOptions?.page > 0 ? pageOptions?.page: 1) - 1) * limit;
+      const { type} = filterData;
+      const queryBuilder = await this.repository
+        .createQueryBuilder('university')
+        .where('university.type = :type', {
+          type: type,
+        }).orderBy(sort, order )
+       
+      const itemCount = await queryBuilder.getCount();
+      const universityItems = await queryBuilder
+        .skip(skip)
+        .take(limit)
+        .getMany();
+        const details = [];
         if (universityItems.length) {
-          for (const item of universityItems) {
-            data.push({
-                heading : item.heading,
-                url : item.url,
-                image : item.image,
-                pdf : item.pdf,
-                type : item.type,
-                created_by : item.created_by,
-                updated_by : item.updated_by,
-                created_at : item.created_at,
-                updated_at : item.updated_at,
-            });
+          for (const data of universityItems) {
+            details.push(await this.getDetails(data));
           }
         }
-        return data;
-      }
+        return details;
+    }
+
+    async getDetails(data) {
+      return {
+              heading : data?.heading,
+              url : data?.url,
+              image : data?.image
+                  ? `${this.config.get(
+                    's3.imageUrl',
+                  )}/university/image/${data?.image}`
+                : '',
+              pdf : data?.pdf 
+                  ? `${this.config.get(
+                    's3.imageUrl',
+                  )}/university/pdf/${data?.pdf}`
+                : '',
+              type : data?.type,
+              created_at : data?.created_at,
+          }        
+    }
 
     async createUniversity(createUniversityDto: UniverstiyDto): Promise<University> {
         const { 

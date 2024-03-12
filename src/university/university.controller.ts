@@ -1,9 +1,10 @@
-import { Body, Controller, Get, HttpStatus, Param, Post, Put, Res } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Param, Post, Put, Query, Res } from '@nestjs/common';
 import { UniversityRepository } from './respositories/university.repository';
 import { UniversityService } from './services/university.service';
 import { University } from './university.entity';
-import { UniverstiyDto } from './dtos/UniversityDto';
+import { FilterDto, UniverstiyDto } from './dtos/UniversityDto';
 import { Response } from 'express';
+import { PaginationDto } from 'src/shared/dtos/pagination.dto';
 
 @Controller({
     version: '1',
@@ -16,9 +17,11 @@ export class UniversityController {
     ){}
 
     @Get()
-    async list() {
-      const universityItems = await this.repository.find();
-      const data = await this.service.getDetails(universityItems);
+    async list(
+        @Query() filterData : FilterDto,
+        @Query() pageOptions : PaginationDto,
+    ) {
+      const data = await this.service.getList(filterData,pageOptions);
       return { data: data };
     }
   
