@@ -36,29 +36,55 @@ export class UniversityController {
     }
   
     @Post()
-    async create(@Body() universityItem: UniverstiyDto, @Res() res:Response) {
-        await this.service.createUniversity(universityItem);
-        return res.status(HttpStatus.CREATED).json({
-          statusCode: HttpStatus.CREATED,
-          status: 'University resource created successfully',
-      });
+    async create(@Body() universityItem: UniverstiyDto, @Res() res: Response) {
+        try {
+            await this.service.createUniversity(universityItem);
+            return res.status(HttpStatus.CREATED).json({
+                statusCode: HttpStatus.CREATED,
+                status: 'University resource created successfully',
+            });
+        } catch (error) {
+            return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+                message: 'Failed to create university resource',
+            });
+        }
     }
   
+
     @Put(':id')
-    async update(@Param('id') id: number, @Body() item: UniverstiyDto) {
-      const isExist = await this.repository.getById(id);
-      if (isExist) {
-        await this.repository.update({ id }, { 
-            heading : item.heading,
-            url : item.url,
-            image : item.image,
-            pdf : item.pdf,
-            type : item.type,
-         });
-        return {
-          statusCode: HttpStatus.CREATED,
-          status: 'University resource updated successfully',
-        };
-      }
+    async update(
+        @Param('id') id: number,
+        @Body() item: UniverstiyDto,
+        @Res() res: Response,
+    ) {
+        const existingUniversity = await this.repository.getById(id);
+        if (!existingUniversity) {
+            return res.status(HttpStatus.NOT_FOUND).json({
+                statusCode: HttpStatus.NOT_FOUND,
+                message: 'University not found',
+            });
+        }
+
+        try {
+            existingUniversity.heading = item.heading;
+            existingUniversity.url = item.url;
+            existingUniversity.image = item.image;
+            existingUniversity.pdf = item.pdf;
+            existingUniversity.type = item.type;
+            existingUniversity.updated_by = item.updated_by;
+            await this.repository.save(existingUniversity);
+            return res.status(HttpStatus.OK).json({
+                statusCode: HttpStatus.OK,
+                message: 'University resource updated successfully',
+            });
+        } catch (error) {
+            return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+                message: 'Failed to update university resource',
+            });
+        }
     }
+
+
 }

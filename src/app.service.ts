@@ -5,6 +5,6 @@ export class AppService {
   constructor() {}
 
   getHello(): string {
-    return 'Welcome to Supplier DB!';
+    return 'Welcome to Admin Portal API!';
   }
 }

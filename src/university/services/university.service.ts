@@ -45,20 +45,13 @@ export class UniversityService {
 
     async getDetails(data) {
       return {
-              heading : data?.heading,
-              url : data?.url,
-              image : data?.image
-                  ? `${this.config.get(
-                    's3.imageUrl',
-                  )}/university/image/${data?.image}`
-                : '',
-              pdf : data?.pdf 
-                  ? `${this.config.get(
-                    's3.imageUrl',
-                  )}/university/pdf/${data?.pdf}`
-                : '',
-              type : data?.type,
-              created_at : data?.created_at,
+              id : data?.id ?? '',
+              heading : data?.heading ?? '',
+              url : data?.url ?? '',
+              image : data?.image ?? '',
+              pdf : data?.pdf ?? '',
+              type : data?.type ?? '',
+              created_at : data?.created_at ?? '',
           }        
     }
 
@@ -72,21 +65,18 @@ export class UniversityService {
             created_by,
             updated_by
          } = createUniversityDto;
-        const item = await this.repository.create({
-            heading,
-            url,
-            image,
-            pdf,
-            type,
-            created_by,
-            updated_by
-        });
-    
+         const university = new University();
+         university.heading = heading;
+         university.url = url;
+         university.pdf = pdf;
+         university.image = image;
+         university.type = type;
+         university.created_by = created_by;
+         university.updated_by = updated_by;
+        const item = await this.repository.save(university);
         if (!item) {
           throw new NotFoundException();
         }
-    
-        await this.repository.save(item);
         return item;
       }
 
