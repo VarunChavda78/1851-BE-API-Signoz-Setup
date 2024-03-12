@@ -28,17 +28,10 @@ export class UniversityController {
     @Get(':id')
     async show(@Param('id') id: number) {
       const item: University = await this.repository.getById(id);
-      const data = {
-                heading : item.heading,
-                url : item.url,
-                image : item.image,
-                pdf : item.pdf,
-                type : item.type,
-                created_by : item.created_by,
-                updated_by : item.updated_by,
-                created_at : item.created_at,
-                updated_at : item.updated_at,
-      };
+      let data = {};
+      if(item){
+        data = await this.service.getDetails(item);
+      }
       return { data: data };
     }
   
