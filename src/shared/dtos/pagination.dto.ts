@@ -1,4 +1,3 @@
-import { IsOptional } from "class-validator";
 
 export interface PaginationDto {
     limit: number;
