@@ -63,7 +63,6 @@ export class UniversityService {
           resource.pdf = value.pdf ?? '';
           resource.image = value.image ?? '';
           resource.type = value.type ;
-          resource.created_by = value.created_by;
           resource.updated_by = value.updated_by;
           await this.repository.save(resource);
       }
