@@ -1,9 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { UniversityRepository } from '../respositories/university.repository';
-import { UniverstiyDto } from '../dtos/UniversityDto';
+import { PayloadDto, UniverstiyDto } from '../dtos/UniversityDto';
 import { University } from '../university.entity';
 import { FilterDto } from '../dtos/UniversityDto';
-import { PaginationDto } from 'src/shared/dtos/pagination.dto';
 
 @Injectable()
 export class UniversityService {
@@ -12,25 +11,15 @@ export class UniversityService {
     ){}
 
 
-    async getList(filterData: FilterDto, pageOptions : PaginationDto) {
-      const {
-        page = 1,
-        limit = 10,
-        order = 'DESC',
-        sort = 'created_at',
-      }: any = pageOptions;
-      const skip = ((pageOptions?.page > 0 ? pageOptions?.page: 1) - 1) * limit;
-      const { type} = filterData;
+    async getList(filterDto : FilterDto) {
+      const {type} = filterDto
       const queryBuilder = await this.repository
         .createQueryBuilder('university')
         .where('university.type = :type', {
           type: type,
-        }).orderBy(sort, order )
+        })
        
-      const itemCount = await queryBuilder.getCount();
       const universityItems = await queryBuilder
-        .skip(skip)
-        .take(limit)
         .getMany();
         const details = [];
         if (universityItems.length) {
@@ -53,29 +42,33 @@ export class UniversityService {
           }        
     }
 
-    async createUniversity(createUniversityDto: UniverstiyDto): Promise<University> {
-        const { 
-            heading,
-            url,
-            image,
-            pdf,
-            type,
-            created_by,
-            updated_by
-         } = createUniversityDto;
-         const university = new University();
-         university.heading = heading;
-         university.url = url;
-         university.pdf = pdf;
-         university.image = image;
-         university.type = type;
-         university.created_by = created_by;
-         university.updated_by = updated_by;
-        const item = await this.repository.save(university);
-        if (!item) {
-          throw new NotFoundException();
-        }
-        return item;
+    async createUniversity(payload: PayloadDto, createdBy?: number): Promise<boolean>  {
+      const resources = payload.resources;
+      
+      for (let value of resources){
+        const resource = await this.repository.findOne({ where: { type: value.type } });
+        if (!resource && value.heading !== '') {
+          const university = new University();
+          university.heading = value.heading ?? '';
+          university.url = value.url ?? '';
+          university.pdf = value.pdf ?? '';
+          university.image = value.image ?? '';
+          university.type = value.type ;
+          university.created_by = value.created_by;
+          university.updated_by = value.updated_by;
+          await this.repository.save(university);
+      }else if(resource){
+          resource.heading = value.heading ?? '';
+          resource.url = value.url ?? '';
+          resource.pdf = value.pdf ?? '';
+          resource.image = value.image ?? '';
+          resource.type = value.type ;
+          resource.created_by = value.created_by;
+          resource.updated_by = value.updated_by;
+          await this.repository.save(resource);
       }
+    }
+    return true
+  }
 
 }

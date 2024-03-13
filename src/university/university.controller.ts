@@ -2,7 +2,7 @@ import { Body, Controller, Get, HttpStatus, Param, Post, Put, Query, Res } from 
 import { UniversityRepository } from './respositories/university.repository';
 import { UniversityService } from './services/university.service';
 import { University } from './university.entity';
-import { FilterDto, UniverstiyDto } from './dtos/UniversityDto';
+import { FilterDto, PayloadDto, UniverstiyDto } from './dtos/UniversityDto';
 import { Response } from 'express';
 import { PaginationDto } from 'src/shared/dtos/pagination.dto';
 
@@ -18,11 +18,10 @@ export class UniversityController {
 
     @Get()
     async list(
-        @Query() filterData : FilterDto,
-        @Query() pageOptions : PaginationDto,
+        @Query() filterDto : FilterDto,
     ) {
-      const data = await this.service.getList(filterData,pageOptions);
-      return { data: data };
+      const data = await this.service.getList(filterDto);
+      return { resources: [ ...data ] };
     }
   
     @Get(':id')
@@ -36,19 +35,19 @@ export class UniversityController {
     }
   
     @Post()
-    async create(@Body() universityItem: UniverstiyDto, @Res() res: Response) {
+    async create(@Body() payload:PayloadDto, @Res() res: Response) {
         try {
-            await this.service.createUniversity(universityItem);
+            await this.service.createUniversity(payload);
             return res.status(HttpStatus.CREATED).json({
-                statusCode: HttpStatus.CREATED,
-                status: 'University resource created successfully',
+              statusCode: HttpStatus.CREATED,
+              status: 'University resources created successfully',
             });
-        } catch (error) {
+          } catch (error) {
             return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-                message: 'Failed to create university resource',
+              statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+              message: 'Failed to create university resources',
             });
-        }
+          }
     }
   
 
