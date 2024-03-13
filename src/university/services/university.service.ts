@@ -46,7 +46,7 @@ export class UniversityService {
       const resources = payload.resources;
       
       for (let value of resources){
-        const resource = await this.repository.findOne({ where: { type: value.type } });
+        const resource = await this.repository.findOne({ where: { type: value.type, id:value.id || 0} });
         if (!resource && value.heading !== '') {
           const university = new University();
           university.heading = value.heading ?? '';
