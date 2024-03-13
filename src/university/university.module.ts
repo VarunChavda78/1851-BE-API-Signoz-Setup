@@ -7,9 +7,9 @@ import { UniversityRepository } from './respositories/university.repository';
 import { ConfigModule, ConfigService } from '@nestjs/config'; 
 
 @Module({
-  imports: [TypeOrmModule.forFeature([University]), ConfigModule], 
+  imports: [TypeOrmModule.forFeature([University])], 
   controllers: [UniversityController],
-  providers: [UniversityService, UniversityRepository, ConfigService],
+  providers: [UniversityService, UniversityRepository],
   exports: [UniversityService, UniversityRepository]
 })
 export class UniversityModule {}

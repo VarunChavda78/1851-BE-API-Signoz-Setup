@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { UniversityRepository } from '../respositories/university.repository';
 import { UniverstiyDto } from '../dtos/UniversityDto';
 import { University } from '../university.entity';
-import { ConfigService } from '@nestjs/config';
 import { FilterDto } from '../dtos/UniversityDto';
 import { PaginationDto } from 'src/shared/dtos/pagination.dto';
 
@@ -10,7 +9,6 @@ import { PaginationDto } from 'src/shared/dtos/pagination.dto';
 export class UniversityService {
     constructor(
         private repository: UniversityRepository,
-        private config : ConfigService,
     ){}
 
 
