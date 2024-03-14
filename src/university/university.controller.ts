@@ -17,7 +17,7 @@ export class UniversityController {
         @Query() filterDto : FilterDto,
     ) {
       const data = await this.service.getList(filterDto);
-      return { resources: [ ...data ] };
+      return { data: [ ...data ] };
     }
   
     @Post()

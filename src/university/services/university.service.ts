@@ -3,11 +3,13 @@ import { UniversityRepository } from '../respositories/university.repository';
 import { PayloadDto } from '../dtos/UniversityDto';
 import { University } from '../university.entity';
 import { FilterDto } from '../dtos/UniversityDto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UniversityService {
     constructor(
         private repository: UniversityRepository,
+        private config : ConfigService,
     ){}
 
 
@@ -36,6 +38,16 @@ export class UniversityService {
               heading : data?.heading ?? '',
               url : data?.url ?? '',
               image : data?.image ?? '',
+              imageUrl : data?.image
+                    ? `${this.config.get(
+                      's3.imageUrl',
+                    )}/university/image/${data?.image}`
+                  : '',
+                pdfUrl : data?.pdf 
+                    ? `${this.config.get(
+                      's3.imageUrl',
+                    )}/university/pdf/${data?.pdf}`
+                  : '',
               pdf : data?.pdf ?? '',
               type : data?.type ?? '',
               created_at : data?.created_at ?? '',
