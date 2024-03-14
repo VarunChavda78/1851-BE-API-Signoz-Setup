@@ -1,8 +1,6 @@
-import { Body, Controller, Get, HttpStatus, Param, Post, Put, Res } from '@nestjs/common';
-import { UniversityRepository } from './respositories/university.repository';
+import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Query, Res } from '@nestjs/common';
 import { UniversityService } from './services/university.service';
-import { University } from './university.entity';
-import { UniverstiyDto } from './dtos/UniversityDto';
+import { FilterDto, PayloadDto} from './dtos/UniversityDto';
 import { Response } from 'express';
 
 @Controller({
@@ -11,58 +9,48 @@ import { Response } from 'express';
   })
 export class UniversityController {
     constructor(
-        private repository: UniversityRepository,
         private service : UniversityService,
     ){}
 
     @Get()
-    async list() {
-      const universityItems = await this.repository.find();
-      const data = await this.service.getDetails(universityItems);
-      return { data: data };
-    }
-  
-    @Get(':id')
-    async show(@Param('id') id: number) {
-      const item: University = await this.repository.getById(id);
-      const data = {
-                heading : item.heading,
-                url : item.url,
-                image : item.image,
-                pdf : item.pdf,
-                type : item.type,
-                created_by : item.created_by,
-                updated_by : item.updated_by,
-                created_at : item.created_at,
-                updated_at : item.updated_at,
-      };
-      return { data: data };
+    async list(
+        @Query() filterDto : FilterDto,
+    ) {
+      const data = await this.service.getList(filterDto);
+      return { resources: [ ...data ] };
     }
   
     @Post()
-    async create(@Body() universityItem: UniverstiyDto, @Res() res:Response) {
-        await this.service.createUniversity(universityItem);
-        return res.status(HttpStatus.CREATED).json({
-          statusCode: HttpStatus.CREATED,
-          status: 'University resource created successfully',
-      });
+    async create(@Body() payload:PayloadDto, @Res() res: Response) {
+        try {
+            await this.service.createUniversity(payload);
+            return res.status(HttpStatus.CREATED).json({
+              statusCode: HttpStatus.CREATED,
+              status: 'University resources created successfully',
+            });
+          } catch (error) {
+            return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+              statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+              message: 'Failed to create university resources',
+            });
+          }
     }
-  
-    @Put(':id')
-    async update(@Param('id') id: number, @Body() item: UniverstiyDto) {
-      const isExist = await this.repository.getById(id);
-      if (isExist) {
-        await this.repository.update({ id }, { 
-            heading : item.heading,
-            url : item.url,
-            image : item.image,
-            pdf : item.pdf,
-            type : item.type,
-         });
-        return {
-          statusCode: HttpStatus.CREATED,
-          status: 'University resource updated successfully',
-        };
+
+    @Delete(':id')
+    async delete(@Param('id') id:number, @Res() res: Response) {
+      try {
+        await this.service.deleteUniversity(id);
+        return res.status(HttpStatus.OK).json({
+              statusCode: HttpStatus.OK,
+              status: 'University resource deleted successfully',
+        }); 
+      } catch (error) {
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: 'Failed to delete university resource',
+        });
       }
     }
+  
+
 }

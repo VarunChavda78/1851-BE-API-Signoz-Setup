@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { UniversityRepository } from '../respositories/university.repository';
-import { UniverstiyDto } from '../dtos/UniversityDto';
+import { PayloadDto } from '../dtos/UniversityDto';
 import { University } from '../university.entity';
+import { FilterDto } from '../dtos/UniversityDto';
 
 @Injectable()
 export class UniversityService {
@@ -9,52 +10,66 @@ export class UniversityService {
         private repository: UniversityRepository,
     ){}
 
-    async getDetails(universityItems: University[]) {
-        const data = [];
+
+    async getList(filterDto : FilterDto) {
+      const {type} = filterDto
+      const queryBuilder = await this.repository
+        .createQueryBuilder('university')
+        .where('university.type = :type', {
+          type: type,
+        }).limit(4)
+       
+      const universityItems = await queryBuilder
+        .getMany();
+        const details = [];
         if (universityItems.length) {
-          for (const item of universityItems) {
-            data.push({
-                heading : item.heading,
-                url : item.url,
-                image : item.image,
-                pdf : item.pdf,
-                type : item.type,
-                created_by : item.created_by,
-                updated_by : item.updated_by,
-                created_at : item.created_at,
-                updated_at : item.updated_at,
-            });
+          for (const data of universityItems) {
+            details.push(await this.getDetails(data));
           }
         }
-        return data;
+        return details;
+    }
+
+    async getDetails(data) {
+      return {
+              id : data?.id ?? '',
+              heading : data?.heading ?? '',
+              url : data?.url ?? '',
+              image : data?.image ?? '',
+              pdf : data?.pdf ?? '',
+              type : data?.type ?? '',
+              created_at : data?.created_at ?? '',
+          }        
+    }
+
+    async createUniversity(payload: PayloadDto, createdBy?: number): Promise<boolean>  {
+      const resources = payload.resources;
+      
+      for (let value of resources){
+        let university = await this.repository.findOne({ where: { type: value.type, id:value.id || 0} });
+        if (!university) {
+          university = new University();
+          university.created_by = value.created_by;   
+        }
+        university.heading = value.heading ?? '';
+        university.url = value.url ?? '';
+        university.pdf = value.pdf ?? '';
+        university.image = value.image ?? '';
+        university.type = value.type ;
+        university.updated_by = value.updated_by;
+        await this.repository.save(university);
+      }
+      return true
+    }
+
+    async deleteUniversity(id:number): Promise<void> {
+      const university = await this.repository.findOne({where : {id:id}});
+      if (!university) {
+          throw new NotFoundException('Resource not found'); 
       }
 
-    async createUniversity(createUniversityDto: UniverstiyDto): Promise<University> {
-        const { 
-            heading,
-            url,
-            image,
-            pdf,
-            type,
-            created_by,
-            updated_by
-         } = createUniversityDto;
-        const item = await this.repository.create({
-            heading,
-            url,
-            image,
-            pdf,
-            type,
-            created_by,
-            updated_by
-        });
-    
-        if (!item) {
-          throw new NotFoundException();
-        }
-    
-        await this.repository.save(item);
-        return item;
-      }
+      await this.repository.remove(university);
+  }
+
 
 }

@@ -1,8 +1,14 @@
 
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString,IsNumber} from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsString,IsNumber, ValidateNested,} from 'class-validator';
+import { number } from 'joi';
 
 export class UniverstiyDto {
+  @ApiProperty({ required: true })
+  @IsNumber()
+  id: number;
+
   @ApiProperty({ required: true })
   @IsString()
   heading: string;
@@ -32,6 +38,18 @@ export class UniverstiyDto {
   updated_by: number;
 }
 
+export class PayloadDto {
+  @ApiProperty({ type: [UniverstiyDto] })
+  @ValidateNested({ each: true })
+  @Type(() => UniverstiyDto)
+  resources: UniverstiyDto[];
+}
+
+export class FilterDto {
+  @Type(() => number)
+  @IsNumber()
+  type: number;
+}
 
 
 
