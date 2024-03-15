@@ -1,3 +1,3 @@
 locals {
-  common_name = "${var.ProjectName}-${var.environment}"
+  common_name = "${var.environment}-API"
 }

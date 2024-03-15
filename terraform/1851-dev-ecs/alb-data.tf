@@ -4,7 +4,7 @@ data "aws_lb" "backend" {
      Environment = var.environment
      Project     = var.ProjectName
      workspace   = terraform.workspace
-     Type        = "Backend"
+     Type        = "API"
    }
 }
 
