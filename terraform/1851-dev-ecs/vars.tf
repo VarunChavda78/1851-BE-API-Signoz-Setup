@@ -4,6 +4,11 @@ variable "region" {
 variable "ProjectName" {
   default = "1851"
 }
+
+variable "vpc_name"{
+  default = "1851-development-API-vpc"
+}
+
 variable "tf_backend_bucket_name" {
   default = "1851-stg-terraform-state"
 }
