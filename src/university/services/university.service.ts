@@ -45,7 +45,7 @@ export class UniversityService {
                   : '',
                 pdfUrl : data?.pdf 
                     ? `${this.config.get(
-                      's3.pdfUrl',
+                      's3.url',
                     )}/university/pdf/${data?.pdf}`
                   : '',
               pdf : data?.pdf ?? '',

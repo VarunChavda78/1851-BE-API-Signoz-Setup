@@ -10,7 +10,7 @@ export default (): any => ({
   },
   s3: {
     imageUrl: process.env.AWS_IMAGE_PROXY_URL,
-    pdfUrl: process.env.AWS_S3_URL,
+    url: process.env.AWS_S3_URL,
   },
   aws: {
     bucketName: process.env.AWS_BUCKET_NAME,
