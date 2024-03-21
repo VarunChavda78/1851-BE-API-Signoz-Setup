@@ -3,11 +3,11 @@ data "aws_ecs_cluster" "main" {
 }
 
 resource "aws_cloudwatch_log_group" "ecs_task" {
-  name = "${local.common_name}-${var.Sandbox}"
+  name = "${local.common_name}-${var.Product}"
 }
 
 resource "aws_ecs_service" "main" {
-  name            = "${local.common_name}-${var.Sandbox}"
+  name            = "${local.common_name}-${var.Product}"
   cluster         = data.aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.service.family
   desired_count   = var.task_count
@@ -26,7 +26,7 @@ resource "aws_ecs_service" "main" {
 }
 
 resource "aws_security_group" "ecs-task" {
-  name        = "${local.common_name}-ecs-task-s-${var.Sandbox}"
+  name        = "${local.common_name}-ecs-task-s-${var.Product}"
   description = "Default SG to allow traffic from the VPC"
   vpc_id      = data.aws_vpc.vpc.id
 
@@ -57,7 +57,7 @@ resource "aws_security_group" "ecs-task" {
 }
 
 resource "aws_ecs_task_definition" "service" {
-  family                   = "${local.common_name}-${var.Sandbox}"
+  family                   = "${local.common_name}-${var.Product}"
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
   task_role_arn            = aws_iam_role.ecs_task_role.arn
   network_mode             = "awsvpc"
@@ -114,7 +114,7 @@ resource "aws_ecs_task_definition" "service" {
 
 
 resource "aws_iam_role" "ecs_task_role" {
-  name = "${local.common_name}-ecsTaskRole-${var.Sandbox}"
+  name = "${local.common_name}-ecsTaskRole-${var.Product}"
 
   assume_role_policy = <<EOF
 {
@@ -134,7 +134,7 @@ EOF
 }
 
 resource "aws_iam_policy" "dynamodb" {
-  name        = "${local.common_name}-task-policy-dynamodb-${var.Sandbox}"
+  name        = "${local.common_name}-task-policy-dynamodb-${var.Product}"
   description = "Policy that allows access to DynamoDB"
 
   policy = <<EOF
@@ -154,7 +154,7 @@ EOF
 }
 
 resource "aws_iam_policy" "ecs_task_execution_role" {
-  name        = "${local.common_name}-ecs_task_execution_role-${var.Sandbox}"
+  name        = "${local.common_name}-ecs_task_execution_role-${var.Product}"
   description = "Policy that allows access to AWS Secrets"
 
   policy = <<EOF
@@ -185,7 +185,7 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_role" {
 
 
 resource "aws_iam_role" "ecs_task_execution_role" {
-  name = "${local.common_name}-ecsTaskExecutionRole-${var.Sandbox}"
+  name = "${local.common_name}-ecsTaskExecutionRole-${var.Product}"
 
   assume_role_policy = <<EOF
 {

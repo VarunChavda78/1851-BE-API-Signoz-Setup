@@ -4,7 +4,7 @@ provider "aws" {
     tags = {
       ManagedBy = "terraform"
       Workspace = terraform.workspace
-      Project   = "Supplier-Database"
+      Project   = "1851"
       Billing = "API"
     }
   }
@@ -13,7 +13,7 @@ provider "aws" {
 terraform {
   backend "s3" {
     bucket = "1851-terraform-state"
-    key = "ecsfrontend-supplier-api/terraform.tfstate"
+    key = "1851-Admin-API/prod/terraform.tfstate"
     region = "us-east-1"
 }
 }

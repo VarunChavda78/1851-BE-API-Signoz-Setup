@@ -1,3 +1,3 @@
 locals {
-  common_name = "${var.ProjectName}-prod"
+  common_name = "${var.ProjectName}-prod-API"
 }
