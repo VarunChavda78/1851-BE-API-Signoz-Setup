@@ -1,9 +1,8 @@
 data "aws_lb" "backend" {
    tags = {
      ManagedBy   = "terraform"
-     Environment = var.environment
-     workspace   = "1851-prod"
-     Type        = "Frontend"
+     Type        = "Api"
+     Usage =   "Backend"
    }
 }
 

@@ -3,5 +3,5 @@ data "aws_ecr_repository" "app" {
 }
 
 data "aws_ecr_repository" "nginx" {
-  name = "s1851-admin-be-nginx"
+  name = "1851-admin-be-nginx"
 }
