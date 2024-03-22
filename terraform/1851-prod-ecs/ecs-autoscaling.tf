@@ -1,7 +1,7 @@
 resource "aws_appautoscaling_target" "dev_to_target" {
   max_capacity       = var.as_max_count
   min_capacity       = var.task_count
-  resource_id        = "service/${var.ProjectName}-prod/${aws_ecs_service.main.name}"
+  resource_id        = "service/${var.ProjectName}-prod-API/${aws_ecs_service.main.name}"
   scalable_dimension = "ecs:service:DesiredCount"
   service_namespace  = "ecs"
 }
