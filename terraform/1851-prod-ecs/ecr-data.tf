@@ -1,7 +1,7 @@
 data "aws_ecr_repository" "app" {
-  name = "supplier-api"
+  name = "1851-admin-be-api"
 }
 
 data "aws_ecr_repository" "nginx" {
-  name = "supplier-api-nginx"
+  name = "1851-admin-be-nginx"
 }

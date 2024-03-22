@@ -40,12 +40,17 @@ variable "nginx_container_port" {
   type    = number
   default = 80
 }
+variable "vpc_name"{
 
-variable "Sandbox"{
+  default = "VPC_API_PROD"
+}
+
+variable "Product"{
   default = "supplier-api"
 
 }
 
 variable "secret_manager_arn" {
-  default = "arn:aws:secretsmanager:us-east-1:580880756845:secret:supplier-api-VG0oOm"
+  default = "arn:aws:secretsmanager:us-east-1:580880756845:secret:1851-Admin-BE-API-Prod-hilfCK"
 }
+
