@@ -14,18 +14,13 @@ export class UniversityService {
 
 
     async getList(filterDto : FilterDto) {
-      const {type, created_by} = filterDto
+      const {type} = filterDto
       const queryBuilder = await this.repository
         .createQueryBuilder('university')
         .where('university.type = :type', {
           type: type,
-        });
+        }).orderBy('university.sort_id', 'ASC').limit(4);
 
-        if (created_by) {
-          queryBuilder.andWhere('university.created_by = :created_by', { created_by });
-        }
-        queryBuilder.orderBy('university.sort_id', 'ASC').limit(4);
-       
       const universityItems = await queryBuilder
         .getMany();
         const details = [];

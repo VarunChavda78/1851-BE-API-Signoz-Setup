@@ -53,10 +53,6 @@ export class FilterDto {
   @Type(() => number)
   @IsNumber()
   type: number;
-  
-  @Type(() => number)
-  @IsNumber()
-  created_by?: number;
 }
 
 
