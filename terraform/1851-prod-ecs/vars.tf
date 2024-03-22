@@ -46,7 +46,7 @@ variable "vpc_name"{
 }
 
 variable "Product"{
-  default = "supplier-api"
+  default = "Admin-BE-API"
 
 }
 
