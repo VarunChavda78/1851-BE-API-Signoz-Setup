@@ -1,7 +1,7 @@
 
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsString,IsNumber, ValidateNested, IsOptional,} from 'class-validator';
+import { IsString,IsNumber, ValidateNested} from 'class-validator';
 import { number } from 'joi';
 
 export class UniverstiyDto {
