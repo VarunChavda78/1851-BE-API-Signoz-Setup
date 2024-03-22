@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { UniversityType } from 'src/shared/constants/constants';
+import { UniversityType } from '../shared/constants/constants';
 
 @Entity('university')
 export class University {
@@ -27,6 +27,9 @@ export class University {
 
   @Column()
   type: UniversityType;
+
+  @Column({ nullable: true , default: 1})
+  sort_id: number;
 
   @Column({ nullable: true })
   created_by?: number | null;

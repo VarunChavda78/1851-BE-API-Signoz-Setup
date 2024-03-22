@@ -1,7 +1,7 @@
 
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsString,IsNumber, ValidateNested,} from 'class-validator';
+import { IsString,IsNumber, ValidateNested, IsOptional,} from 'class-validator';
 import { number } from 'joi';
 
 export class UniverstiyDto {
@@ -29,6 +29,10 @@ export class UniverstiyDto {
   @IsNumber()
   type: number;
 
+  @ApiProperty({ required: true })
+  @IsNumber()
+  sort_id: number;
+
   @ApiProperty({ required: false })
   @IsNumber()
   created_by: number;
@@ -49,6 +53,10 @@ export class FilterDto {
   @Type(() => number)
   @IsNumber()
   type: number;
+  
+  @Type(() => number)
+  @IsNumber()
+  created_by?: number;
 }
 
 

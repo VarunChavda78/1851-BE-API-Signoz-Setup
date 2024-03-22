@@ -14,12 +14,17 @@ export class UniversityService {
 
 
     async getList(filterDto : FilterDto) {
-      const {type} = filterDto
+      const {type, created_by} = filterDto
       const queryBuilder = await this.repository
         .createQueryBuilder('university')
         .where('university.type = :type', {
           type: type,
-        }).limit(4)
+        });
+
+        if (created_by) {
+          queryBuilder.andWhere('university.created_by = :created_by', { created_by });
+        }
+        queryBuilder.orderBy('university.sort_id', 'ASC').limit(4);
        
       const universityItems = await queryBuilder
         .getMany();
@@ -50,6 +55,7 @@ export class UniversityService {
                   : '',
               pdf : data?.pdf ?? '',
               type : data?.type ?? '',
+              sort_id : data?.sort_id ?? '',
               created_at : data?.created_at ?? '',
           }        
     }
@@ -68,6 +74,7 @@ export class UniversityService {
         university.pdf = value.pdf ?? '';
         university.image = value.image ?? '';
         university.type = value.type ;
+        university.sort_id = value.sort_id ;
         university.updated_by = value.updated_by;
         await this.repository.save(university);
       }
