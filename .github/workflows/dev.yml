@@ -10,11 +10,37 @@ on:
 env:
   AWS_REGION: us-east-1
   IMAGE_TAG: ${{ github.sha }}
+  ECS_SERVICE: development-API-Admin-BE-API
+  ECS_CLUSTER: development-API       
+  ECS_TASK_DEFINITION: development-API-Admin-BE-API                   
+  CONTAINER_NAME: app
+  CONTAINER_NAME_NGINX: nginx
 
 jobs:
-  cd:
+  code_check:
+    name: "Code_Check"
+    runs-on: "ubuntu-latest"
+    outputs:
+      terraform: ${{ steps.changes.outputs.terraform }}
+      env: ${{ steps.changes.outputs.env }}
+    steps:
+     - name: "Checkout Code"
+       uses: "actions/checkout@v2"
+     - uses: dorny/paths-filter@v3
+       id: changes
+       with:
+        filters: |
+         terraform: 
+          - 'terraform/**'
+         env:
+         - '.env.example'
+    
+  Deployment:
     name: "Deployment"
     runs-on: "ubuntu-latest"
+    needs: code_check
+    timeout-minutes: 15
+    if: ${{ needs.code_check.outputs.terraform == 'false' && needs.code_check.outputs.env == 'false' }}
     steps:
       - name: "Checkout Code"
         uses: "actions/checkout@v2"
@@ -47,12 +73,85 @@ jobs:
     
           docker build -f Docker/Dockerfile -t $ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG  
-          echo "::set-output name=image::$ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG"
+          echo "::set-output name=app::$ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG"
     
           echo $NGINX_REPOSITORY
           docker build  -f Docker/Dockerfile-nginx -t $ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG
-          echo "::set-output name=image::$ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG"
+          echo "::set-output name=nginx::$ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG"
+          
+      - name: Download task definition
+        run: |
+            aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK_DEFINITION }} --query taskDefinition > task-definition.json
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def_nginx
+        uses: aws-actions/amazon-ecs-render-task-definition@v1.3.0
+        with:
+          task-definition: task-definition.json
+          container-name: ${{ env.CONTAINER_NAME_NGINX }}
+          image: ${{ steps.build-image.outputs.nginx }}
+          
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1.3.0
+        with:
+          task-definition: ${{ steps.task-def_nginx.outputs.task-definition }}
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ steps.build-image.outputs.app}}
+
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1.5.0
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+     
+  Infra-Change:
+      name: "Infra-change"
+      runs-on: ubuntu-latest
+      needs: code_check
+      if: ${{ needs.code_check.outputs.terraform == 'true' || needs.code_check.outputs.env == 'true' }}
+      steps:
+      - name: "Checkout Code"
+        uses: "actions/checkout@v2"
+
+      - name: Set tag
+        id: vars
+        run: echo "::set-output name=tag::${GITHUB_REF#refs/*/}"
+
+      - name: Configure AWS credential
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image to Amazon ECRs
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          APP_REPOSITORY:  1851-admin-be-api
+          NGINX_REPOSITORY: 1851-admin-be-nginx
+        run: |
+          echo $IMAGE_TAG
+          echo $APP_REPOSITORY
+          sed -i "s|<changeme>|$IMAGE_TAG|g" ./terraform/1851-dev-ecs/ecs-service.tf
+    
+          docker build -f Docker/Dockerfile -t $ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG  
+          echo "::set-output name=app::$ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG"
+    
+          echo $NGINX_REPOSITORY
+          docker build  -f Docker/Dockerfile-nginx -t $ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG
+          echo "::set-output name=nginx::$ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
