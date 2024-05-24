@@ -1,17 +1,102 @@
 name: "1851_Production"
 on:
-
-# Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+ workflow_dispatch:
+   inputs:
+      job-selection:
+        description: 'Select the job to run'
+        required: true
+        default: 'Prod-Deployment'
+        type: choice
+        options:
+          - Prod-Deployment
+          - Infra-Change
 
 env:
   AWS_REGION: us-east-1
   IMAGE_TAG: ${{ github.sha }}
+  ECS_SERVICE: 1851-prod-API-Franchise-Apis 
+  ECS_CLUSTER: 1851-prod-API
+  ECS_TASK_DEFINITION: 1851-prod-API-Franchise-Apis         
+  CONTAINER_NAME: app
+  CONTAINER_NAME_NGINX: nginx
 
 jobs:
-  cd:
+  Prod-Deployment:
     name: "Prod-Deployment"
     runs-on: "ubuntu-latest"
+    timeout-minutes: 15
+    if: ${{ github.event.inputs.job-selection == 'Prod-Deployment' }}
+    steps:
+      - name: "Checkout Code"
+        uses: "actions/checkout@v2"
+
+      - name: Set tag
+        id: vars
+        run: echo "::set-output name=tag::${GITHUB_REF#refs/*/}"
+
+      - name: Configure AWS credential
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image to Amazon ECRs
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          APP_REPOSITORY:  1851-franchise-api-app
+          NGINX_REPOSITORY: 1851-franchise-api-nginx
+        run: |
+          echo $IMAGE_TAG
+          echo $APP_REPOSITORY
+          sed -i "s|<changeme>|$IMAGE_TAG|g" ./terraform/1851-dev-ecs/ecs-service.tf
+          
+          docker build -f Docker/Dockerfile -t $ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG  
+          echo "::set-output name=app::$ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG"
+    
+          echo $NGINX_REPOSITORY
+          docker build  -f Docker/Dockerfile-nginx -t $ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG
+          echo "::set-output name=nginx::$ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG"
+      - name: Download task definition
+        run: |
+            aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK_DEFINITION }} --query taskDefinition > task-definition.json
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def_nginx
+        uses: aws-actions/amazon-ecs-render-task-definition@v1.3.0
+        with:
+          task-definition: task-definition.json
+          container-name: ${{ env.CONTAINER_NAME_NGINX }}
+          image: ${{ steps.build-image.outputs.nginx }}
+          
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1.3.0
+        with:
+          task-definition: ${{ steps.task-def_nginx.outputs.task-definition }}
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ steps.build-image.outputs.app}}
+
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1.5.0
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+
+  Infra-Change:
+    name: "Infra-Change"
+    runs-on: "ubuntu-latest"
+    if: ${{ github.event.inputs.job-selection == 'Infra-Change' }}
     steps:
       - name: "Checkout Code"
         uses: "actions/checkout@v2"
