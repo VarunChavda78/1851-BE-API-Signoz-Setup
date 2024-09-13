@@ -11,7 +11,16 @@ resource "aws_ecs_service" "main" {
   cluster         = data.aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.service.family
   desired_count   = var.task_count
-  launch_type     = "FARGATE"
+  
+  capacity_provider_strategy {
+    capacity_provider = "FARGATE_SPOT"
+    weight            = 1
+  }
+
+  capacity_provider_strategy {
+    capacity_provider = "FARGATE"
+    weight            = 1
+  }
 
   network_configuration {
     subnets          = data.aws_subnets.public_subnets_id.ids
@@ -62,8 +71,8 @@ resource "aws_ecs_task_definition" "service" {
   task_role_arn            = aws_iam_role.ecs_task_role.arn
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = 1024
-  memory                   = 2048
+  cpu                      = 512
+  memory                   = 1024
   container_definitions = jsonencode([
     {
       name  = "app"
