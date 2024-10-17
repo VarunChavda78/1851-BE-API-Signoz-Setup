@@ -7,9 +7,9 @@ import { FaqService } from './faq.service';
 })
 export class FaqController {
   constructor(private readonly faqService: FaqService) {}
-  
+
   @Get()
-  hello() {
-    return this.faqService.hello();
+  async hello() {
+    return {data: await this.faqService.hello()};
   }
 }

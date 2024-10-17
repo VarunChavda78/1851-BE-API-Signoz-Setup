@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { FaqRepository } from './faq.repository';
 
 @Injectable()
 export class FaqService {
-  hello() {
-    return 'hello 123';
+  constructor(private faqRepository: FaqRepository) {}
+  async hello() {
+    return await this.faqRepository.find();
   }
 }
