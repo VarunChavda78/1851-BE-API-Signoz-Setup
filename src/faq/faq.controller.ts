@@ -42,7 +42,6 @@ export class FaqController {
       const newFaq = await this.faqService.create(brandId, createFaqDto);
       return { message: 'FAQ added successfully.', data: newFaq };
     } catch (error) {
-      console.log('mmm error', error)
       throw new HttpException(
         'Failed to create FAQ',
         HttpStatus.INTERNAL_SERVER_ERROR,
