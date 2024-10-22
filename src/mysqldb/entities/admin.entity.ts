@@ -47,7 +47,7 @@ export class Admin {
   })
   pass_type: string;
 
-  @Column({ type: 'date', nullable: false })
+  @Column({ type: 'date', nullable: false, default: () => 'CURRENT_TIMESTAMP' })
   created_date: Date;
 
   @Column({ type: 'text', nullable: false })

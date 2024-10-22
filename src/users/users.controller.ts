@@ -1,5 +1,12 @@
-import { Controller, Get, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpException,
+  HttpStatus,
+  Query,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
+import { FilterDto } from './dtos/filter-dto';
 
 @Controller({
   path: 'users',
@@ -8,10 +15,10 @@ import { UsersService } from './users.service';
 export class UsersController {
   constructor(private user: UsersService) {}
   @Get()
-  async getUsers() {
+  async getUsers(@Query() filterDto: FilterDto) {
     try {
-      const users = await this.user.finaAll();
-      return { data: users };
+      const response = await this.user.findAll(filterDto);
+      return response;
     } catch (error) {
       throw new HttpException(
         'Failed to retrieve users',

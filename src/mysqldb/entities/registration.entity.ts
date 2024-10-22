@@ -131,7 +131,7 @@ export class Registration {
   @Column({ type: 'int', nullable: true })
   parent_id: number;
 
-  @Column({ type: 'date' })
+  @Column({ type: 'date', default: () => 'CURRENT_TIMESTAMP' })
   created_date: Date;
 
   @Column({ type: 'varchar', length: 50 })
