@@ -8,6 +8,14 @@ export default (): any => ({
     user: process.env.DB_USER,
     pass: process.env.DB_PASS,
   },
+  mysqldb: {
+    readHost: process.env.MSQL_DB_READ_HOST,
+    writeHost: process.env.MSQL_DB_WRITE_HOST,
+    port: process.env.MSQL_DB_PORT ? parseInt(process.env.MSQL_DB_PORT, 10) : undefined,
+    name: process.env.MSQL_DB_NAME,
+    user: process.env.MSQL_DB_USER,
+    pass: process.env.MSQL_DB_PASS,
+  },
   s3: {
     imageUrl: process.env.AWS_IMAGE_PROXY_URL,
     url: process.env.AWS_S3_URL,
