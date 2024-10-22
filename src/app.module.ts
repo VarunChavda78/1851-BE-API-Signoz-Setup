@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 import { UniversityModule } from './university/university.module';
 import { SharedModule } from './shared/shared.module';
 import { FaqModule } from './faq/faq.module';
+import { UsersModule } from './users/users.module';
 
 
 @Module({
@@ -24,6 +25,7 @@ import { FaqModule } from './faq/faq.module';
     inject: [ConfigService],
   }),
   FaqModule,
+  UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
