@@ -24,6 +24,36 @@ import { HttpModule } from '@nestjs/axios';
         debug: configService.get<string>('env') === 'development',
       }),
     }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        type: 'mysql',
+        replication: {
+          master: {
+            host: configService.get<string>('mysqldb.writeHost'),
+            port: configService.get<number | undefined>('mysqldb.port'),
+            database: configService.get<string>('mysqldb.name'),
+            username: configService.get<string>('mysqldb.user'),
+            password: configService.get<string>('mysqldb.pass'),
+          },
+          slaves: [
+            {
+              host: configService.get<string>('mysqldb.readHost'),
+              port: configService.get<number | undefined>('mysqldb.port'),
+              database: configService.get<string>('mysqldb.name'),
+              username: configService.get<string>('mysqldb.user'),
+              password: configService.get<string>('mysqldb.pass'),
+            },
+          ],
+        },
+        entities: [__dirname + '/../**/entities/*.entity{.ts,.js}'],
+        timezone: 'Z',
+        synchronize: false,
+        autoLoadEntities: true,
+        debug: configService.get<string>('env') === 'development',
+      }),
+    }),
     HttpModule,
   ],
   exports: [ConfigModule],
