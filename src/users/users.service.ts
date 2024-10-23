@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { FilterDto } from './dtos/filter-dto';
 import { CommonService } from 'src/shared/services/common.service';
 import { Registration } from 'src/mysqldb/entities/registration.entity';
@@ -42,12 +42,13 @@ export class UsersService {
         let results = [...adminResults, ...userResults].sort((a, b) => {
           const dateA = new Date(a.created_date);
           const dateB = new Date(b.created_date);
-        
-          const dateComparison = dateB.getFullYear() - dateA.getFullYear() 
-                              || dateB.getMonth() - dateA.getMonth() 
-                              || dateB.getDate() - dateA.getDate();
-        
-          return dateComparison || dateB.getTime() - dateA.getTime(); 
+
+          const dateComparison =
+            dateB.getFullYear() - dateA.getFullYear() ||
+            dateB.getMonth() - dateA.getMonth() ||
+            dateB.getDate() - dateA.getDate();
+
+          return dateComparison || dateB.getTime() - dateA.getTime();
         });
 
         totalRecords = results.length;
@@ -61,7 +62,7 @@ export class UsersService {
           limitNum,
           pageNum,
         );
-        
+
         return { data: formattedData, pagination };
       }
 
@@ -75,7 +76,11 @@ export class UsersService {
         }
 
         totalRecords = await query.getCount();
-        const results = await query.skip(skip).take(limit).orderBy('admin.created_date', 'DESC').getMany();
+        const results = await query
+          .skip(skip)
+          .take(limit)
+          .orderBy('admin.created_date', 'DESC')
+          .getMany();
         const formattedData = this.formatData(results);
 
         const pagination = this.commonService.getPagination(
@@ -100,7 +105,11 @@ export class UsersService {
           query = query.andWhere('registration.user_type = :role', { role });
         }
         totalRecords = await query.getCount();
-        const results = await query.skip(skip).take(limit).orderBy('registration.created_date', 'DESC').getMany();
+        const results = await query
+          .skip(skip)
+          .take(limit)
+          .orderBy('registration.created_date', 'DESC')
+          .getMany();
         const formattedData = this.formatData(results);
 
         const pagination = this.commonService.getPagination(
@@ -130,7 +139,7 @@ export class UsersService {
         name: `${user.first_name} ${user.last_name}`,
         role,
         date_created: user.created_date,
-        last_seen: ''
+        last_seen: '',
       };
     });
 
@@ -168,6 +177,70 @@ export class UsersService {
       'registration.photo',
       'registration.brand_category_id',
       'registration.status',
+      'registration.gtm',
+      'registration.google_ads_account_id',
     ];
+  }
+
+  async findOne(id: number, role: string) {
+    try {
+      if (!id || !role) {
+        throw new BadRequestException('Please provide id and role');
+      }
+      if (role === 'admin' || role === 'superadmin') {
+        const admin = await this.adminRepository
+          .createQueryBuilder('admin')
+          .select(this.selectAdminFields())
+          .where('admin.id = :id', { id })
+          .getOne();
+        const formattedData = this.formatDetails(admin, role);
+        return { data: formattedData };
+      } else {
+        const user = await this.usersRepository
+          .createQueryBuilder('registration')
+          .select(this.selectUserFields())
+          .where('registration.id = :id', { id })
+          .getOne();
+
+        const formattedData = this.formatDetails(user, role);
+        return { data: formattedData };
+      }
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+  private formatDetails(data: any, role: string) {
+    const pageUrl =
+      role === 'admin'
+        ? '/admin/dashboard'
+        : role === 'author'
+          ? '/author/content'
+          : role === 'brand'
+            ? '/brand/profile'
+            : '';
+    const siteUrl =
+      role === 'brand' && data.brand_url
+        ? `${data.brand_url}.com/franchise`
+        : '';
+    const authorTitle = role === 'author' ? `${data.author_title}` : '';
+    const response = {
+      id: data.id,
+      name: `${data.first_name} ${data.last_name}`,
+      email: data.email,
+      photo: data.photo,
+      role,
+      username: data.user_name,
+      password: data.password,
+      phone: data.phone,
+      pageUrl, // verify
+      siteUrl, // verify
+      authorTitle,
+      authorFrom: '', // what
+      brands: [], // what
+      gtm: role === 'brand' ? data.gtm : '',
+      adsAccountId: role === 'brand' ? data.google_ads_account_id : '',
+    };
+    return response;
   }
 }
