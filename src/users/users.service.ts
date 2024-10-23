@@ -1,14 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { UsersRepository } from './repositories/users.repository';
-import { AdminRepository } from './repositories/admin.repository';
 import { FilterDto } from './dtos/filter-dto';
 import { CommonService } from 'src/shared/services/common.service';
+import { Registration } from 'src/mysqldb/entities/registration.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Admin } from 'src/mysqldb/entities/admin.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
-    private usersRepository: UsersRepository,
-    private adminRepository: AdminRepository,
+    @InjectRepository(Registration, 'mysqldb')
+    private usersRepository: Repository<Registration>,
+    @InjectRepository(Admin, 'mysqldb')
+    private adminRepository: Repository<Admin>,
     private commonService: CommonService,
   ) {}
 
@@ -35,11 +39,16 @@ export class UsersService {
           userQuery.getMany(),
         ]);
 
-        let results = [...adminResults, ...userResults].sort(
-          (a, b) =>
-            new Date(b.created_date).getTime() -
-            new Date(a.created_date).getTime(),
-        );
+        let results = [...adminResults, ...userResults].sort((a, b) => {
+          const dateA = new Date(a.created_date);
+          const dateB = new Date(b.created_date);
+        
+          const dateComparison = dateB.getFullYear() - dateA.getFullYear() 
+                              || dateB.getMonth() - dateA.getMonth() 
+                              || dateB.getDate() - dateA.getDate();
+        
+          return dateComparison || dateB.getTime() - dateA.getTime(); 
+        });
 
         totalRecords = results.length;
 
@@ -52,7 +61,7 @@ export class UsersService {
           limitNum,
           pageNum,
         );
-
+        
         return { data: formattedData, pagination };
       }
 
@@ -66,7 +75,7 @@ export class UsersService {
         }
 
         totalRecords = await query.getCount();
-        const results = await query.skip(skip).take(limit).getMany();
+        const results = await query.skip(skip).take(limit).orderBy('admin.created_date', 'DESC').getMany();
         const formattedData = this.formatData(results);
 
         const pagination = this.commonService.getPagination(
@@ -91,7 +100,7 @@ export class UsersService {
           query = query.andWhere('registration.user_type = :role', { role });
         }
         totalRecords = await query.getCount();
-        const results = await query.skip(skip).take(limit).getMany();
+        const results = await query.skip(skip).take(limit).orderBy('registration.created_date', 'DESC').getMany();
         const formattedData = this.formatData(results);
 
         const pagination = this.commonService.getPagination(
@@ -118,8 +127,10 @@ export class UsersService {
       }
       return {
         id: user.id,
+        name: `${user.first_name} ${user.last_name}`,
         role,
         date_created: user.created_date,
+        last_seen: ''
       };
     });
 
