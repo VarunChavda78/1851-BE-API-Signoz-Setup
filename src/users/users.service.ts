@@ -5,6 +5,7 @@ import { Registration } from 'src/mysqldb/entities/registration.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Admin } from 'src/mysqldb/entities/admin.entity';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
@@ -14,6 +15,7 @@ export class UsersService {
     @InjectRepository(Admin, 'mysqldb')
     private adminRepository: Repository<Admin>,
     private commonService: CommonService,
+    private configservice: ConfigService,
   ) {}
 
   async findAll(filterDto?: FilterDto) {
@@ -224,11 +226,20 @@ export class UsersService {
         ? `${data.brand_url}.com/franchise`
         : '';
     const authorTitle = role === 'author' ? `${data.author_title}` : '';
+    let photo = `${this.configservice.get('s3.imageUrl')}/`;
+    if (role === 'author') {
+      photo += `author/${data.photo}`;
+    } else if (role === 'brand') {
+      photo += `brand/logo/${data.photo}`;
+    } else if (role === 'admin' || role === 'superadmin') {
+      photo += `admin/${data.photo}`;
+    }
+    // For user what
     const response = {
       id: data.id,
       name: `${data.first_name} ${data.last_name}`,
       email: data.email,
-      photo: data.photo,
+      photo,
       role,
       username: data.user_name,
       password: data.password,
