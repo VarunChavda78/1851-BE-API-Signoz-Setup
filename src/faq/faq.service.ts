@@ -12,6 +12,9 @@ export class FaqService {
   async findAll(brandId: number) {
     const data = await this.faqRepository.find({
       where: { brandId: brandId, deletedAt: IsNull() },
+      order: {
+        id: 'ASC'
+      }
     });
     return data.map((item) => ({
       id: item?.id,
