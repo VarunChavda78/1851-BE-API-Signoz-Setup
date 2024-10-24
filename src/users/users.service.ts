@@ -11,6 +11,7 @@ import { Repository } from 'typeorm';
 import { Admin } from 'src/mysqldb/entities/admin.entity';
 import { ConfigService } from '@nestjs/config';
 import { Brand } from 'src/mysqldb/entities/brand.entity';
+import * as dayjs from 'dayjs'
 
 @Injectable()
 export class UsersService {
@@ -148,12 +149,30 @@ export class UsersService {
             ? 'brand'
             : user.user_type;
       }
+      let photo = `${this.configservice.get('s3.imageUrl')}/`;
+      if (role === 'author') {
+        photo += `author/${data.photo}`;
+      } else if (role === 'brand') {
+        photo += `brand/logo/${data.photo}`;
+      } else if (role === 'admin' || role === 'superadmin') {
+        photo += `admin/${data.photo}`;
+      } else {
+        photo += `user/${data.photo}`;
+      }
+      const formattedCreatedDate = user.created_date
+      ? dayjs(user.created_date).format('MMMM D, YYYY h:mm A')
+      : dayjs().format('MMMM D, YYYY h:mm A');
+
+  const formattedLastSeen = user.last_seen
+      ? dayjs(user.last_seen).format('MMMM D, YYYY h:mm A')
+      : dayjs().format('MMMM D, YYYY h:mm A');
       return {
         id: user.id,
         name: `${user.first_name} ${user.last_name}`,
         role,
-        date_created: user.created_date,
-        last_seen: '',
+        date_created:formattedCreatedDate,
+        last_seen: formattedLastSeen,
+        photo: data.photo ? photo : '',
       };
     });
 
@@ -242,7 +261,6 @@ export class UsersService {
     }
   }
   private async formatDetails(data: any, role: string) {
-    console.log(data);
     const pageUrl =
       role === 'admin'
         ? '/admin/dashboard'
@@ -265,7 +283,8 @@ export class UsersService {
       photo += `admin/${data.photo}`;
     }
     // For user what
-    const brands = role === 'author' ? await this.getBrandsForAuthor(data.id) : [];
+    const brands =
+      role === 'author' ? await this.getBrandsForAuthor(data.id) : [];
     const response = {
       id: data.id,
       name: `${data.first_name} ${data.last_name}`,
