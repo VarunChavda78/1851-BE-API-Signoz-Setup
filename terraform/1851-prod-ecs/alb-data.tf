@@ -1,4 +1,4 @@
-=data "aws_lb" "backend" {
+data "aws_lb" "backend" {
    tags = {
      ManagedBy   = "terraform"
      Environment = var.environment
