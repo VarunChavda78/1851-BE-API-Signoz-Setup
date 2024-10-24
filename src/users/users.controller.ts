@@ -35,8 +35,8 @@ export class UsersController {
       return response;
     } catch (error) {
       throw new HttpException(
-        'Failed to retrieve user detail',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        error?.message || 'Failed to retrieve user detail',
+        error?.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

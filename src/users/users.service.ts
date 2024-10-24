@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { FilterDto } from './dtos/filter-dto';
 import { CommonService } from 'src/shared/services/common.service';
 import { Registration } from 'src/mysqldb/entities/registration.entity';
@@ -6,6 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Admin } from 'src/mysqldb/entities/admin.entity';
 import { ConfigService } from '@nestjs/config';
+import { Brand } from 'src/mysqldb/entities/brand.entity';
 
 @Injectable()
 export class UsersService {
@@ -14,6 +19,8 @@ export class UsersService {
     private usersRepository: Repository<Registration>,
     @InjectRepository(Admin, 'mysqldb')
     private adminRepository: Repository<Admin>,
+    @InjectRepository(Brand, 'mysqldb')
+    private brandRepository: Repository<Brand>,
     private commonService: CommonService,
     private configservice: ConfigService,
   ) {}
@@ -102,7 +109,9 @@ export class UsersService {
         }
 
         if (role === 'brand') {
-          query = query.andWhere('registration.brand_category_id > 0 OR registration.brand_url != \'\'');
+          query = query.andWhere(
+            "registration.brand_category_id > 0 OR registration.brand_url != ''",
+          );
         } else if (role === 'author' || role === 'user') {
           query = query.andWhere('registration.user_type = :role', { role });
         }
@@ -134,7 +143,10 @@ export class UsersService {
       if (user?.type) {
         role = user.type;
       } else if (user?.user_type) {
-        role = user.brand_category_id > 0 || user.brand_url ? 'brand' : user.user_type;
+        role =
+          user.brand_category_id > 0 || user.brand_url
+            ? 'brand'
+            : user.user_type;
       }
       return {
         id: user.id,
@@ -195,17 +207,33 @@ export class UsersService {
           .createQueryBuilder('admin')
           .select(this.selectAdminFields())
           .where('admin.id = :id', { id })
-          .getOne();
-        const formattedData = this.formatDetails(admin, role);
-        return { data: formattedData };
-      } else {
-        const user = await this.usersRepository
-          .createQueryBuilder('registration')
-          .select(this.selectUserFields())
-          .where('registration.id = :id', { id })
+          .andWhere('admin.type = :role', { role })
           .getOne();
 
-        const formattedData = this.formatDetails(user, role);
+        if (!admin) {
+          throw new NotFoundException('Admin not found');
+        }
+        const formattedData = await this.formatDetails(admin, role);
+        return { data: formattedData };
+      } else {
+        const userQuery = this.usersRepository
+          .createQueryBuilder('registration')
+          .select(this.selectUserFields())
+          .where('registration.id = :id', { id });
+
+        if (role === 'brand') {
+          userQuery.andWhere(
+            "registration.brand_category_id > 0 OR registration.brand_url != ''",
+          );
+        } else if (role === 'author' || role === 'user') {
+          userQuery.andWhere('registration.user_type = :role', { role });
+        }
+
+        const user = await userQuery.getOne();
+        if (!user) {
+          throw new NotFoundException('User not found');
+        }
+        const formattedData = await this.formatDetails(user, role);
         return { data: formattedData };
       }
     } catch (error) {
@@ -213,7 +241,8 @@ export class UsersService {
       throw error;
     }
   }
-  private formatDetails(data: any, role: string) {
+  private async formatDetails(data: any, role: string) {
+    console.log(data);
     const pageUrl =
       role === 'admin'
         ? '/admin/dashboard'
@@ -236,6 +265,7 @@ export class UsersService {
       photo += `admin/${data.photo}`;
     }
     // For user what
+    const brands = role === 'author' ? await this.getBrandsForAuthor(data.id) : [];
     const response = {
       id: data.id,
       name: `${data.first_name} ${data.last_name}`,
@@ -249,10 +279,19 @@ export class UsersService {
       siteUrl, // verify
       authorTitle,
       authorFrom: '', // what
-      brands: [], // what
+      brands: brands?.length ? brands : [],
       gtm: role === 'brand' ? data.gtm : '',
       adsAccountId: role === 'brand' ? data.google_ads_account_id : '',
     };
     return response;
+  }
+
+  private async getBrandsForAuthor(id: number) {
+    const brands = await this.brandRepository
+      .createQueryBuilder('brand')
+      .select(['brand.id', 'brand.title'])
+      .where('brand.user_id = :id', { id })
+      .getMany();
+    return brands;
   }
 }

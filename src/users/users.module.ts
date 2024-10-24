@@ -6,9 +6,10 @@ import { Registration } from '../mysqldb/entities/registration.entity';
 import { Admin } from '../mysqldb/entities/admin.entity';
 import { CommonService } from 'src/shared/services/common.service';
 import { ConfigService } from '@nestjs/config';
+import { Brand } from 'src/mysqldb/entities/brand.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Registration, Admin], 'mysqldb')],
+  imports: [TypeOrmModule.forFeature([Registration, Admin, Brand], 'mysqldb')],
   controllers: [UsersController],
   providers: [UsersService, CommonService, ConfigService],
 })
