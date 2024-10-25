@@ -33,9 +33,10 @@ export class UsersService {
         limit = 20,
         status,
         role,
-        order,
-        sort,
+        sort = 'date_created',
       } = filterDto || {};
+      let { order = 'DESC' } = filterDto || {};
+      order = order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
       const pageNum = Number(page);
       const limitNum = Number(limit);
       const skip = (pageNum - 1) * limitNum;
