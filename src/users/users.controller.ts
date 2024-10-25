@@ -27,17 +27,4 @@ export class UsersController {
       );
     }
   }
-
-  @Get(':id')
-  async getUser(@Param('id') id: number, @Query('role') role: string) {
-    try {
-      const response = await this.user.findOne(id, role);
-      return response;
-    } catch (error) {
-      throw new HttpException(
-        error?.message || 'Failed to retrieve user detail',
-        error?.status || HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
 }

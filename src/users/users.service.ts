@@ -141,7 +141,7 @@ export class UsersService {
 
         results = results.slice(skip, skip + limitNum);
 
-        const formattedData = this.formatData(results);
+        const formattedData = await this.formatData(results);
 
         const pagination = this.commonService.getPagination(
           totalRecords,
@@ -163,7 +163,7 @@ export class UsersService {
         query = applySort(query);
         totalRecords = await query.getCount();
         const results = await query.skip(skip).take(limit).getMany();
-        const formattedData = this.formatData(results);
+        const formattedData = await this.formatData(results);
 
         const pagination = this.commonService.getPagination(
           totalRecords,
@@ -191,7 +191,7 @@ export class UsersService {
         query = applySort(query);
         totalRecords = await query.getCount();
         const results = await query.skip(skip).take(limit).getMany();
-        const formattedData = this.formatData(results);
+        const formattedData = await this.formatData(results);
 
         const pagination = this.commonService.getPagination(
           totalRecords,
@@ -296,18 +296,29 @@ export class UsersService {
     return role;
   }
 
-  private formatData(data: any) {
-    const response = data.map((user) => {
+  private async formatData(data: any) {
+    const promises = data.map(async (user) => {
       const role = this.getRoleFromUser(user);
+      const pageUrl =
+        role === 'admin'
+          ? '/admin/dashboard'
+          : role === 'author'
+            ? '/author/content'
+            : role === 'brand'
+              ? '/brand/profile'
+              : '';
+      const siteUrl =
+        role === 'brand' && user.brand_url
+          ? `${user.brand_url}.com/franchise`
+          : '';
+      const authorTitle = role === 'author' ? `${user.author_title}` : '';
       let photo = `${this.configservice.get('s3.imageUrl')}/`;
       if (role === 'author') {
-        photo += `author/${data.photo}`;
+        photo += `author/${user.photo}`;
       } else if (role === 'brand') {
-        photo += `brand/logo/${data.photo}`;
+        photo += `brand/logo/${user.photo}`;
       } else if (role === 'admin' || role === 'superadmin') {
-        photo += `admin/${data.photo}`;
-      } else {
-        photo += `user/${data.photo}`;
+        photo += `admin/${user.photo}`;
       }
       const formattedCreatedDate = user.created_date
         ? dayjs(user.created_date).format('MMMM D, YYYY h:mm A')
@@ -316,17 +327,30 @@ export class UsersService {
       const formattedLastSeen = user.last_seen
         ? dayjs(user.last_seen).format('MMMM D, YYYY h:mm A')
         : dayjs().format('MMMM D, YYYY h:mm A');
+      const brands =
+        role === 'author' ? await this.getBrandsForAuthor(user.id) : [];
       return {
         id: user.id,
         name: `${user.first_name} ${user.last_name}`,
+        email: user.email,
+        username: user.user_name,
+        password: user.password,
         role,
         date_created: formattedCreatedDate,
         last_seen: formattedLastSeen,
-        photo: data.photo ? photo : '',
+        photo: user.photo ? photo : '',
+        phone: user.phone,
+        pageUrl,
+        siteUrl,
+        authorTitle,
+        authorFrom: '',
+        brands: brands?.length ? brands : [],
+        gtm: role === 'brand' ? user.gtm : '',
+        adsAccountId: role === 'brand' ? user.google_ads_account_id : '',
       };
     });
 
-    return response;
+    return Promise.all(promises);
   }
 
   private selectAdminFields() {
@@ -364,95 +388,6 @@ export class UsersService {
       'registration.google_ads_account_id',
       'registration.brand_url',
     ];
-  }
-
-  async findOne(id: number, role: string) {
-    try {
-      if (!id || !role) {
-        throw new BadRequestException('Please provide id and role');
-      }
-      if (role === 'admin' || role === 'superadmin') {
-        const admin = await this.adminRepository
-          .createQueryBuilder('admin')
-          .select(this.selectAdminFields())
-          .where('admin.id = :id', { id })
-          .andWhere('admin.type = :role', { role })
-          .getOne();
-
-        if (!admin) {
-          throw new NotFoundException('Admin not found');
-        }
-        const formattedData = await this.formatDetails(admin, role);
-        return { data: formattedData };
-      } else {
-        const userQuery = this.usersRepository
-          .createQueryBuilder('registration')
-          .select(this.selectUserFields())
-          .where('registration.id = :id', { id });
-
-        if (role === 'brand') {
-          userQuery.andWhere(
-            "registration.brand_category_id > 0 OR registration.brand_url != ''",
-          );
-        } else if (role === 'author' || role === 'user') {
-          userQuery.andWhere('registration.user_type = :role', { role });
-        }
-
-        const user = await userQuery.getOne();
-        if (!user) {
-          throw new NotFoundException('User not found');
-        }
-        const formattedData = await this.formatDetails(user, role);
-        return { data: formattedData };
-      }
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
-  }
-  private async formatDetails(data: any, role: string) {
-    const pageUrl =
-      role === 'admin'
-        ? '/admin/dashboard'
-        : role === 'author'
-          ? '/author/content'
-          : role === 'brand'
-            ? '/brand/profile'
-            : '';
-    const siteUrl =
-      role === 'brand' && data.brand_url
-        ? `${data.brand_url}.com/franchise`
-        : '';
-    const authorTitle = role === 'author' ? `${data.author_title}` : '';
-    let photo = `${this.configservice.get('s3.imageUrl')}/`;
-    if (role === 'author') {
-      photo += `author/${data.photo}`;
-    } else if (role === 'brand') {
-      photo += `brand/logo/${data.photo}`;
-    } else if (role === 'admin' || role === 'superadmin') {
-      photo += `admin/${data.photo}`;
-    }
-    // For user what
-    const brands =
-      role === 'author' ? await this.getBrandsForAuthor(data.id) : [];
-    const response = {
-      id: data.id,
-      name: `${data.first_name} ${data.last_name}`,
-      email: data.email,
-      photo,
-      role,
-      username: data.user_name,
-      password: data.password,
-      phone: data.phone,
-      pageUrl, // verify
-      siteUrl, // verify
-      authorTitle,
-      authorFrom: '', // what
-      brands: brands?.length ? brands : [],
-      gtm: role === 'brand' ? data.gtm : '',
-      adsAccountId: role === 'brand' ? data.google_ads_account_id : '',
-    };
-    return response;
   }
 
   private async getBrandsForAuthor(id: number) {
