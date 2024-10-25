@@ -182,10 +182,10 @@ export class UsersService {
         }
 
         if (role === 'brand') {
-          query = query.andWhere(
-            "registration.brand_category_id > 0 OR registration.brand_url != ''",
-          );
-        } else if (role === 'author' || role === 'user') {
+          query = query.andWhere('registration.user_type = :user_type', {
+            user_type: 'user',
+          });
+        } else if (role === 'author') {
           query = query.andWhere('registration.user_type = :role', { role });
         }
         query = applySort(query);
@@ -289,8 +289,7 @@ export class UsersService {
     if (user?.type) {
       role = user.type;
     } else if (user?.user_type) {
-      role =
-        user.brand_category_id > 0 || user.brand_url ? 'brand' : user.user_type;
+      role = user.user_type === 'user' ? 'brand' : user.user_type;
     }
 
     return role;
