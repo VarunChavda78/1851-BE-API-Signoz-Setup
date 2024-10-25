@@ -41,6 +41,83 @@ export class UsersService {
       const limitNum = Number(limit);
       const skip = (pageNum - 1) * limitNum;
 
+      const applySort = (query) => {
+        if (sort) {
+          switch (sort.toLowerCase()) {
+            case 'role':
+              query = query.orderBy(
+                role === 'admin' || role === 'superadmin'
+                  ? 'admin.type'
+                  : 'registration.user_type',
+                order,
+              );
+              break;
+            case 'date_created':
+              query = query.orderBy(
+                role === 'admin' || role === 'superadmin'
+                  ? 'admin.created_date'
+                  : 'registration.created_date',
+                order,
+              );
+              break;
+            case 'last_seen':
+              query = query.orderBy(
+                role === 'admin' || role === 'superadmin'
+                  ? 'admin.last_seen'
+                  : 'registration.last_seen',
+                order,
+              );
+              break;
+            case 'first_name':
+              query = query.orderBy(
+                role === 'admin' || role === 'superadmin'
+                  ? 'admin.first_name'
+                  : 'registration.first_name',
+                order,
+              );
+              break;
+            case 'last_name':
+              query = query.orderBy(
+                role === 'admin' || role === 'superadmin'
+                  ? 'admin.last_name'
+                  : 'registration.last_name',
+                order,
+              );
+              break;
+            case 'name':
+              query = query
+                .orderBy(
+                  role === 'admin' || role === 'superadmin'
+                    ? 'admin.first_name'
+                    : 'registration.first_name',
+                  order,
+                )
+                .addOrderBy(
+                  role === 'admin' || role === 'superadmin'
+                    ? 'admin.last_name'
+                    : 'registration.last_name',
+                  order,
+                );
+              break;
+            default:
+              query = query.orderBy(
+                role === 'admin' || role === 'superadmin'
+                  ? 'admin.created_date'
+                  : 'registration.created_date',
+                'DESC',
+              );
+          }
+        } else {
+          query = query.orderBy(
+            role === 'admin' || role === 'superadmin'
+              ? 'admin.created_date'
+              : 'registration.created_date',
+            'DESC',
+          );
+        }
+        return query;
+      };
+
       let query;
       let totalRecords = 0;
 
@@ -61,8 +138,8 @@ export class UsersService {
         let results = [...adminResults, ...userResults];
 
         totalRecords = results.length;
-        results = results.slice(skip, skip + limitNum);
         results = this.applySorting(results, sort, order);
+        results = results.slice(skip, skip + limitNum);
 
 
         const formattedData = await this.formatData(results);
@@ -85,11 +162,9 @@ export class UsersService {
           query = query.andWhere('admin.type = :role', { role });
         }
         totalRecords = await query.getCount();
-        query = query.skip(skip).take(limitNum);
-        // query = applySort(query);
-        let results = await query.getMany();
+        query = applySort(query);
+        const results = await query.skip(skip).take(limitNum).getMany();
 
-        results = this.applySorting(results, sort, order);
         const formattedData = await this.formatData(results);
 
         const pagination = this.commonService.getPagination(
@@ -116,11 +191,9 @@ export class UsersService {
           query = query.andWhere('registration.user_type = :role', { role });
         }
         totalRecords = await query.getCount();
-        query = query.skip(skip).take(limitNum)
-        // query = applySort(query);
-        let results = await query.getMany();
+        query = applySort(query);
+        const results = await query.skip(skip).take(limitNum).getMany();
 
-        results = this.applySorting(results, sort, order);
         const formattedData = await this.formatData(results);
 
         const pagination = this.commonService.getPagination(
