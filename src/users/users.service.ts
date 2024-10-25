@@ -44,82 +44,6 @@ export class UsersService {
       let query;
       let totalRecords = 0;
 
-      const applySort = (query) => {
-        if (sort) {
-          switch (sort.toLowerCase()) {
-            case 'role':
-              query = query.orderBy(
-                role === 'admin' || role === 'superadmin'
-                  ? 'admin.type'
-                  : 'registration.user_type',
-                order,
-              );
-              break;
-            case 'date_created':
-              query = query.orderBy(
-                role === 'admin' || role === 'superadmin'
-                  ? 'admin.created_date'
-                  : 'registration.created_date',
-                order,
-              );
-              break;
-            case 'last_seen':
-              query = query.orderBy(
-                role === 'admin' || role === 'superadmin'
-                  ? 'admin.last_seen'
-                  : 'registration.last_seen',
-                order,
-              );
-              break;
-            case 'first_name':
-              query = query.orderBy(
-                role === 'admin' || role === 'superadmin'
-                  ? 'admin.first_name'
-                  : 'registration.first_name',
-                order,
-              );
-              break;
-            case 'last_name':
-              query = query.orderBy(
-                role === 'admin' || role === 'superadmin'
-                  ? 'admin.last_name'
-                  : 'registration.last_name',
-                order,
-              );
-              break;
-            case 'name':
-              query = query
-                .orderBy(
-                  role === 'admin' || role === 'superadmin'
-                    ? 'admin.first_name'
-                    : 'registration.first_name',
-                  order,
-                )
-                .addOrderBy(
-                  role === 'admin' || role === 'superadmin'
-                    ? 'admin.last_name'
-                    : 'registration.last_name',
-                  order,
-                );
-              break;
-            default:
-              query = query.orderBy(
-                role === 'admin' || role === 'superadmin'
-                  ? 'admin.created_date'
-                  : 'registration.created_date',
-                'DESC',
-              );
-          }
-        } else {
-          query = query.orderBy(
-            role === 'admin' || role === 'superadmin'
-              ? 'admin.created_date'
-              : 'registration.created_date',
-            'DESC',
-          );
-        }
-        return query;
-      };
       if (!role && !status) {
         const adminQuery = this.adminRepository
           .createQueryBuilder('admin')
@@ -136,10 +60,10 @@ export class UsersService {
 
         let results = [...adminResults, ...userResults];
 
-        results = this.applySorting(results, sort, order);
         totalRecords = results.length;
-
         results = results.slice(skip, skip + limitNum);
+        results = this.applySorting(results, sort, order);
+
 
         const formattedData = await this.formatData(results);
 
@@ -160,9 +84,12 @@ export class UsersService {
         if (role) {
           query = query.andWhere('admin.type = :role', { role });
         }
-        query = applySort(query);
         totalRecords = await query.getCount();
-        const results = await query.skip(skip).take(limit).getMany();
+        query = query.skip(skip).take(limitNum);
+        // query = applySort(query);
+        let results = await query.getMany();
+
+        results = this.applySorting(results, sort, order);
         const formattedData = await this.formatData(results);
 
         const pagination = this.commonService.getPagination(
@@ -188,16 +115,20 @@ export class UsersService {
         } else if (role === 'author') {
           query = query.andWhere('registration.user_type = :role', { role });
         }
-        query = applySort(query);
         totalRecords = await query.getCount();
-        const results = await query.skip(skip).take(limit).getMany();
+        query = query.skip(skip).take(limitNum)
+        // query = applySort(query);
+        let results = await query.getMany();
+
+        results = this.applySorting(results, sort, order);
         const formattedData = await this.formatData(results);
 
         const pagination = this.commonService.getPagination(
           totalRecords,
-          limit,
-          page,
+          limitNum,
+          pageNum,
         );
+        console.log(pagination);
 
         return { data: formattedData, pagination };
       }
