@@ -201,7 +201,6 @@ export class UsersService {
           limitNum,
           pageNum,
         );
-        console.log(pagination);
 
         return { data: formattedData, pagination };
       }
