@@ -141,7 +141,6 @@ export class UsersService {
         results = this.applySorting(results, sort, order);
         results = results.slice(skip, skip + limitNum);
 
-
         const formattedData = await this.formatData(results);
 
         const pagination = this.commonService.getPagination(
@@ -333,7 +332,10 @@ export class UsersService {
         role === 'author' ? await this.getBrandsForAuthor(user.id) : [];
       return {
         id: user.id,
-        name: `${user.first_name} ${user.last_name}`,
+        name:
+          role === 'brand'
+            ? user?.company
+            : `${user.first_name} ${user.last_name}`,
         email: user.email,
         username: user.user_name,
         password: user.password,
