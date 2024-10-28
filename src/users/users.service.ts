@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { FilterDto } from './dtos/filter-dto';
 import { CommonService } from 'src/shared/services/common.service';
 import { Registration } from 'src/mysqldb/entities/registration.entity';
@@ -8,6 +8,7 @@ import { Admin } from 'src/mysqldb/entities/admin.entity';
 import { ConfigService } from '@nestjs/config';
 import { Brand } from 'src/mysqldb/entities/brand.entity';
 import * as dayjs from 'dayjs';
+import { UpdateUserDto } from './dtos/edit-dto';
 
 @Injectable()
 export class UsersService {
@@ -398,5 +399,88 @@ export class UsersService {
       .where('brand.user_id = :id', { id })
       .getMany();
     return brands;
+  }
+
+  async updateUser(id: number, role, updateUserDto: UpdateUserDto) {
+    try {
+      if (!id || !role) {
+        throw new BadRequestException('Invalid request');
+      }
+      const {
+        name,
+        username,
+        email,
+        phone,
+        pageUrl,
+        authorFrom,
+        authorTitle,
+        siteUrl,
+        gtmId,
+        adsAccountId,
+      } = updateUserDto;
+      let first_name, last_name;
+      if (name) {
+        [first_name, last_name] = updateUserDto.name.split(' ');
+      }
+      if (role === 'admin' || role === 'superadmin') {
+        await this.adminRepository.update(id, {
+          first_name,
+          last_name,
+          user_name: username,
+          email,
+          phone,
+        });
+        return {
+          message: 'User updated successfully',
+        };
+      } else if (role === 'author') {
+        await this.usersRepository.update(id, {
+          first_name,
+          last_name,
+          email,
+          phone,
+          author_title: authorTitle,
+          updated_at: new Date(),
+        });
+        return {
+          message: 'User updated successfully',
+        };
+      } else if (role === 'brand') {
+        const user = await this.usersRepository.findOneBy({ id });
+        if (user && user.first_name) {
+          await this.usersRepository.update(id, {
+            first_name,
+            last_name,
+            email,
+            phone,
+            brand_url: siteUrl,
+            gtm: gtmId,
+            google_ads_account_id: adsAccountId,
+            updated_at: new Date(),
+          });
+          return {
+            message: 'User updated successfully',
+          };
+        } else {
+          await this.usersRepository.update(id, {
+            company: name,
+            email,
+            phone,
+            brand_url: siteUrl,
+            gtm: gtmId,
+            google_ads_account_id: adsAccountId,
+            updated_at: new Date(),
+          });
+          return {
+            message: 'User updated successfully',
+          };
+        }
+      } else {
+        throw new BadRequestException('Invalid request');
+      }
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 }
