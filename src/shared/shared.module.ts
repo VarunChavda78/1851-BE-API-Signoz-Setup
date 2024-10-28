@@ -19,7 +19,7 @@ import { HttpModule } from '@nestjs/axios';
         password: configService.get<string>('database.pass'),
         entities: [__dirname + '/../**/*.entity{.ts,.js}'],
         timezone: 'Z',
-        synchronize: true,
+        synchronize: false,
         autoLoadEntities: true,
         debug: configService.get<string>('env') === 'development',
       }),
@@ -27,6 +27,7 @@ import { HttpModule } from '@nestjs/axios';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
+      name: 'mysqldb',
       useFactory: async (configService: ConfigService) => ({
         type: 'mysql',
         replication: {
@@ -47,7 +48,7 @@ import { HttpModule } from '@nestjs/axios';
             },
           ],
         },
-        entities: [__dirname + '/../**/entities/*.entity{.ts,.js}'],
+        entities: [__dirname + '/../mysqldb/entities/*.entity{.ts,.js}'],
         timezone: 'Z',
         synchronize: false,
         autoLoadEntities: true,

@@ -3,6 +3,7 @@ import {
   Get,
   HttpException,
   HttpStatus,
+  Param,
   Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';

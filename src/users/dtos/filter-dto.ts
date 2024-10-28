@@ -12,4 +12,10 @@ export class FilterDto {
 
   @IsString()
   role?: string;
+
+  @IsString()
+  sort?: string;
+
+  @IsString()
+  order?: 'ASC' | 'DESC';
 }

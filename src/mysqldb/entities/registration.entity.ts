@@ -44,7 +44,7 @@ export class Registration {
   @Column({ type: 'varchar', length: 50 })
   user_name: string;
 
-  @Column({ type: 'mediumtext' })
+  @Column()
   user_description: string;
 
   @Column({ type: 'text', nullable: true })
@@ -137,7 +137,7 @@ export class Registration {
   @Column({ type: 'varchar', length: 50 })
   gaViewcode: string;
 
-  @Column({ type: 'tinyint', default: 0 })
+  @Column()
   is_admin: number;
 
   @Column({ type: 'text', nullable: true })
