@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { FilterDto } from './dtos/filter-dto';
 import { CommonService } from 'src/shared/services/common.service';
 import { Registration } from 'src/mysqldb/entities/registration.entity';
@@ -330,12 +326,13 @@ export class UsersService {
         : dayjs().format('MMMM D, YYYY h:mm A');
       const brands =
         role === 'author' ? await this.getBrandsForAuthor(user.id) : [];
+      const name =
+        role === 'brand' && !user.first_name
+          ? user.company
+          : `${user.first_name} ${user.last_name}`;
       return {
         id: user.id,
-        name:
-          role === 'brand'
-            ? user?.company
-            : `${user.first_name} ${user.last_name}`,
+        name,
         email: user.email,
         username: user.user_name,
         password: user.password,
