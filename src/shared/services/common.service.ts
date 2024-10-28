@@ -5,7 +5,6 @@ import { Pagination } from '../dtos/pagination.dto';
 export class CommonService {
   getPagination(totalRecords: number, limit: number, page: number): Pagination {
     const totalPages = Math.ceil(totalRecords / limit);
-    console.log(totalPages);
     return {
       page,
       limit,
