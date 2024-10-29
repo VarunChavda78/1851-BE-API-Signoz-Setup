@@ -297,17 +297,21 @@ export class UsersService {
   private async formatData(data: any) {
     const promises = data.map(async (user) => {
       const role = this.getRoleFromUser(user);
-      const pageUrl =
-        role === 'admin'
-          ? '/admin/dashboard'
-          : role === 'author'
-            ? '/author/content'
-            : role === 'brand'
-              ? '/brand/profile'
-              : '';
+      let pageUrl = ''
+      if (role === 'admin') {
+        pageUrl = '/admin/dashboard'
+      } else if (role === 'author') {
+        pageUrl = '/author/content'
+      } else if (role === 'brand' && user.brand_url) {
+        pageUrl = `${user.brand_url}/info`
+      }
       const siteUrl =
         role === 'brand' && user.brand_url
-          ? `${user.brand_url}.com/franchise`
+          ? `${
+              this.configservice.get('env') === 'development'
+                ? '1851dev'
+                : '1851franchise'
+            }.com/${user.brand_url}`
           : '';
       const authorTitle = role === 'author' ? `${user.author_title}` : '';
       let photo = `${this.configservice.get('s3.imageUrl')}/`;
@@ -416,7 +420,7 @@ export class UsersService {
         siteUrl,
         gtmId,
         adsAccountId,
-        photo
+        photo,
       } = updateUserDto;
       let first_name, last_name;
       if (name) {
@@ -429,7 +433,7 @@ export class UsersService {
           user_name: username,
           email,
           phone,
-          photo
+          photo,
         });
         return {
           message: 'User updated successfully',
@@ -442,7 +446,7 @@ export class UsersService {
           phone,
           author_title: authorTitle,
           updated_at: new Date(),
-          photo
+          photo,
         });
         return {
           message: 'User updated successfully',
@@ -459,7 +463,7 @@ export class UsersService {
             gtm: gtmId,
             google_ads_account_id: adsAccountId,
             updated_at: new Date(),
-            photo
+            photo,
           });
           return {
             message: 'User updated successfully',
@@ -473,7 +477,7 @@ export class UsersService {
             gtm: gtmId,
             google_ads_account_id: adsAccountId,
             updated_at: new Date(),
-            photo
+            photo,
           });
           return {
             message: 'User updated successfully',
