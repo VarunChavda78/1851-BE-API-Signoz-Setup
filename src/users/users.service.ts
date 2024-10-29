@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { FilterDto } from './dtos/filter-dto';
 import { CommonService } from 'src/shared/services/common.service';
 import { Registration } from 'src/mysqldb/entities/registration.entity';
@@ -12,6 +8,7 @@ import { Admin } from 'src/mysqldb/entities/admin.entity';
 import { ConfigService } from '@nestjs/config';
 import { Brand } from 'src/mysqldb/entities/brand.entity';
 import * as dayjs from 'dayjs';
+import { UpdateUserDto } from './dtos/edit-dto';
 
 @Injectable()
 export class UsersService {
@@ -300,26 +297,24 @@ export class UsersService {
   private async formatData(data: any) {
     const promises = data.map(async (user) => {
       const role = this.getRoleFromUser(user);
-      const pageUrl =
-        role === 'admin'
-          ? '/admin/dashboard'
-          : role === 'author'
-            ? '/author/content'
-            : role === 'brand'
-              ? '/brand/profile'
-              : '';
+      let pageUrl = ''
+      if (role === 'admin') {
+        pageUrl = '/admin/dashboard'
+      } else if (role === 'author') {
+        pageUrl = '/author/content'
+      } else if (role === 'brand' && user.brand_url) {
+        pageUrl = `${user.brand_url}/info`
+      }
       const siteUrl =
-        role === 'brand' && user.brand_url
-          ? `${user.brand_url}.com/franchise`
+        role === 'brand' && user.franchise_link
+          ? user.franchise_link
           : '';
       const authorTitle = role === 'author' ? `${user.author_title}` : '';
       let photo = `${this.configservice.get('s3.imageUrl')}/`;
-      if (role === 'author') {
-        photo += `author/${user.photo}`;
+      if (role === 'author' || role === 'admin' || role === 'superadmin') {
+        photo += `${role}/${user.photo}`;
       } else if (role === 'brand') {
         photo += `brand/logo/${user.photo}`;
-      } else if (role === 'admin' || role === 'superadmin') {
-        photo += `admin/${user.photo}`;
       }
       const formattedCreatedDate = user.created_date
         ? dayjs(user.created_date).format('MMMM D, YYYY h:mm A')
@@ -330,12 +325,13 @@ export class UsersService {
         : dayjs().format('MMMM D, YYYY h:mm A');
       const brands =
         role === 'author' ? await this.getBrandsForAuthor(user.id) : [];
+      const name =
+        role === 'brand' && !user.first_name
+          ? user.company
+          : `${user.first_name} ${user.last_name}`;
       return {
         id: user.id,
-        name:
-          role === 'brand'
-            ? user?.company
-            : `${user.first_name} ${user.last_name}`,
+        name,
         email: user.email,
         username: user.user_name,
         password: user.password,
@@ -391,6 +387,8 @@ export class UsersService {
       'registration.gtm',
       'registration.google_ads_account_id',
       'registration.brand_url',
+      'registration.author_title',
+      'registration.franchise_link'
     ];
   }
 
@@ -401,5 +399,95 @@ export class UsersService {
       .where('brand.user_id = :id', { id })
       .getMany();
     return brands;
+  }
+
+  async updateUser(id: number, role, updateUserDto: UpdateUserDto) {
+    try {
+      if (!id || !role) {
+        throw new BadRequestException('Invalid request');
+      }
+      const {
+        name,
+        username,
+        email,
+        phone,
+        pageUrl,
+        authorFrom,
+        authorTitle,
+        siteUrl,
+        gtm,
+        adsAccountId,
+        photo,
+      } = updateUserDto;
+      let first_name, last_name;
+      if (name) {
+        [first_name, last_name] = updateUserDto.name.split(' ');
+      }
+      if (role === 'admin' || role === 'superadmin') {
+        await this.adminRepository.update(id, {
+          first_name,
+          last_name,
+          user_name: username,
+          email,
+          phone,
+          photo,
+        });
+        return {
+          message: 'User updated successfully',
+        };
+      } else if (role === 'author') {
+        await this.usersRepository.update(id, {
+          first_name,
+          last_name,
+          email,
+          phone,
+          author_title: authorTitle,
+          updated_at: new Date(),
+          photo,
+        });
+        return {
+          message: 'User updated successfully',
+        };
+      } else if (role === 'brand') {
+        const user = await this.usersRepository.findOneBy({ id });
+        if (user && user.first_name) {
+          await this.usersRepository.update(id, {
+            first_name,
+            last_name,
+            email,
+            phone,
+            brand_url: pageUrl?.split('/')[0],
+            franchise_link: siteUrl,
+            gtm,
+            google_ads_account_id: adsAccountId,
+            updated_at: new Date(),
+            photo,
+          });
+          return {
+            message: 'User updated successfully',
+          };
+        } else {
+          await this.usersRepository.update(id, {
+            company: name,
+            email,
+            phone,
+            brand_url: pageUrl?.split('/')[0],
+            franchise_link: siteUrl,
+            gtm,
+            google_ads_account_id: adsAccountId,
+            updated_at: new Date(),
+            photo,
+          });
+          return {
+            message: 'User updated successfully',
+          };
+        }
+      } else {
+        throw new BadRequestException('Invalid request');
+      }
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 }
