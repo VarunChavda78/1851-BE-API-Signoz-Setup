@@ -26,7 +26,7 @@ export class UpdateUserDto {
   brands?: number[];
 
   @IsString()
-  gtmId?: string;
+  gtm?: string;
 
   @IsString()
   adsAccountId?: string;
