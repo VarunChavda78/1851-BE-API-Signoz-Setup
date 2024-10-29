@@ -306,12 +306,8 @@ export class UsersService {
         pageUrl = `${user.brand_url}/info`
       }
       const siteUrl =
-        role === 'brand' && user.brand_url
-          ? `${
-              this.configservice.get('env') === 'development'
-                ? '1851dev'
-                : '1851franchise'
-            }.com/${user.brand_url}`
+        role === 'brand' && user.franchise_link
+          ? user.franchise_link
           : '';
       const authorTitle = role === 'author' ? `${user.author_title}` : '';
       let photo = `${this.configservice.get('s3.imageUrl')}/`;
@@ -392,6 +388,7 @@ export class UsersService {
       'registration.google_ads_account_id',
       'registration.brand_url',
       'registration.author_title',
+      'registration.franchise_link'
     ];
   }
 
