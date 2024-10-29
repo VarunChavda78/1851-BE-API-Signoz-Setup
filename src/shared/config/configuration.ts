@@ -11,7 +11,9 @@ export default (): any => ({
   mysqldb: {
     readHost: process.env.MSQL_DB_READ_HOST,
     writeHost: process.env.MSQL_DB_WRITE_HOST,
-    port: process.env.MSQL_DB_PORT ? parseInt(process.env.MSQL_DB_PORT, 10) : undefined,
+    port: process.env.MSQL_DB_PORT
+      ? parseInt(process.env.MSQL_DB_PORT, 10)
+      : undefined,
     name: process.env.MSQL_DB_NAME,
     user: process.env.MSQL_DB_USER,
     pass: process.env.MSQL_DB_PASS,
@@ -29,5 +31,19 @@ export default (): any => ({
   rollbar: {
     rollbarEnvironment: process.env.APP_ENV,
     rollbarAccessToken: process.env.ROLLBAR_ACCESS_TOKEN,
+  },
+  smtp: {
+    host: process.env.SMTP_HOST,
+    port: process.env.SMTP_PORT,
+    username: process.env.SMTP_USERNAME,
+    password: process.env.SMTP_PASSWORD,
+  },
+  email: {
+    from: process.env.ADMIN_FROM_EMAIL,
+    noReply: process.env.NO_REPLY_EMAIL,
+    bcc: process.env.BCC_EMAIL,
+  },
+  gip: {
+    tenantId: process.env.GIP_TENANT_ID,
   },
 });
