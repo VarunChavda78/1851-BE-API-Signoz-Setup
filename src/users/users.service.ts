@@ -311,12 +311,10 @@ export class UsersService {
           : '';
       const authorTitle = role === 'author' ? `${user.author_title}` : '';
       let photo = `${this.configservice.get('s3.imageUrl')}/`;
-      if (role === 'author') {
-        photo += `author/${user.photo}`;
+      if (role === 'author' || role === 'admin' || role === 'superadmin') {
+        photo += `${role}/${user.photo}`;
       } else if (role === 'brand') {
         photo += `brand/logo/${user.photo}`;
-      } else if (role === 'admin' || role === 'superadmin') {
-        photo += `admin/${user.photo}`;
       }
       const formattedCreatedDate = user.created_date
         ? dayjs(user.created_date).format('MMMM D, YYYY h:mm A')
@@ -389,6 +387,7 @@ export class UsersService {
       'registration.gtm',
       'registration.google_ads_account_id',
       'registration.brand_url',
+      'registration.author_title',
     ];
   }
 
@@ -417,6 +416,7 @@ export class UsersService {
         siteUrl,
         gtmId,
         adsAccountId,
+        photo
       } = updateUserDto;
       let first_name, last_name;
       if (name) {
@@ -429,6 +429,7 @@ export class UsersService {
           user_name: username,
           email,
           phone,
+          photo
         });
         return {
           message: 'User updated successfully',
@@ -441,6 +442,7 @@ export class UsersService {
           phone,
           author_title: authorTitle,
           updated_at: new Date(),
+          photo
         });
         return {
           message: 'User updated successfully',
@@ -457,6 +459,7 @@ export class UsersService {
             gtm: gtmId,
             google_ads_account_id: adsAccountId,
             updated_at: new Date(),
+            photo
           });
           return {
             message: 'User updated successfully',
@@ -470,6 +473,7 @@ export class UsersService {
             gtm: gtmId,
             google_ads_account_id: adsAccountId,
             updated_at: new Date(),
+            photo
           });
           return {
             message: 'User updated successfully',

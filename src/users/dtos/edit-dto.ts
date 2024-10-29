@@ -33,4 +33,7 @@ export class UpdateUserDto {
 
   @IsString()
   siteUrl?: string;
+
+  @IsString()
+  photo?: string
 }
