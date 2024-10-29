@@ -9,6 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import { Brand } from 'src/mysqldb/entities/brand.entity';
 import * as dayjs from 'dayjs';
 import { UpdateUserDto } from './dtos/edit-dto';
+import { BrandCreateDto } from './dtos/brand-create-dto';
 
 @Injectable()
 export class UsersService {
@@ -488,6 +489,34 @@ export class UsersService {
     } catch (error) {
       console.log(error);
       throw error;
+    }
+  }
+
+  async createBrand(payload: BrandCreateDto) {
+    try {
+      const {company, brand_url, user_name, phone, facebook_page, franchise_link, photo, analytics_domain, brand_category_id, franchise_connection_email, story_approve_email, story_approve_text} = payload
+      const response = await this.usersRepository.save({
+        company,
+        brand_url,
+        user_name,
+        phone,
+        facebook_page,
+        franchise_link,
+        brand_category_id,
+        user_type: 'user',
+        created_date: new Date(),
+        registration_date: new Date(),
+        brandLogo: photo,
+        created_at: new Date(),
+      })
+      if (response) {
+        return {
+          message: 'Brand created successfully'
+        }
+      }
+    } catch (error) {
+      console.log(error)
+      throw error
     }
   }
 }

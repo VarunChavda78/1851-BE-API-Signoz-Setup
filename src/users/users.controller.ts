@@ -11,6 +11,7 @@ import {
 import { UsersService } from './users.service';
 import { FilterDto } from './dtos/filter-dto';
 import { UpdateUserDto } from './dtos/edit-dto';
+import { BrandCreateDto } from './dtos/brand-create-dto';
 
 @Controller({
   path: 'users',
@@ -45,6 +46,19 @@ export class UsersController {
         'Failed to update user',
         error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    }
+  }
+
+  @Post('brand/create')
+  async createBrand(@Body() payload: BrandCreateDto) {
+    try {
+      const response = await this.user.createBrand(payload);
+      return response;
+    } catch (error) {
+      throw new HttpException(
+        'Failed to create brand',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      )
     }
   }
 }
