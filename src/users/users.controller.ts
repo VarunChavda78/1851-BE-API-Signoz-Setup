@@ -6,11 +6,13 @@ import {
   HttpStatus,
   Param,
   Post,
+  Put,
   Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { FilterDto } from './dtos/filter-dto';
 import { UpdateUserDto } from './dtos/edit-dto';
+import { BrandCreateDto, BrandUpdateDto } from './dtos/brand-create-dto';
 
 @Controller({
   path: 'users',
@@ -43,6 +45,32 @@ export class UsersController {
     } catch (error) {
       throw new HttpException(
         'Failed to update user',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Put('brands/:id')
+  async updateBrand(@Param('id') id: number, @Body() payload: BrandUpdateDto) {
+    try {
+      const response = await this.user.updateBrand(id, payload);
+      return response;
+    } catch (error) {
+      throw new HttpException(
+        'Failed to update brand',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Post('brands/create')
+  async createBrand(@Body() payload: BrandCreateDto) {
+    try {
+      const response = await this.user.createBrand(payload);
+      return response;
+    } catch (error) {
+      throw new HttpException(
+        'Failed to create brand',
         error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
