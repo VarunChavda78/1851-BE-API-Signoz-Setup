@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { configModuleOptions } from './config/module-options';
 import { HttpModule } from '@nestjs/axios';
+import { EnvironmentConfigService } from './config/environment-config.service';
 
 @Module({
   imports: [
@@ -57,7 +58,7 @@ import { HttpModule } from '@nestjs/axios';
     }),
     HttpModule,
   ],
-  exports: [ConfigModule],
-  providers: [ConfigService],
+  exports: [ConfigModule, EnvironmentConfigService],
+  providers: [ConfigService, EnvironmentConfigService],
 })
 export class SharedModule {}

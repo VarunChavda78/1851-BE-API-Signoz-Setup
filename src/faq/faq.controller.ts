@@ -61,7 +61,11 @@ export class FaqController {
         faqId,
         updateFaqDto,
       );
-      return { status: true, message: 'FAQ updated successfully.', data: updatedFaq };
+      return {
+        status: true,
+        message: 'FAQ updated successfully.',
+        data: updatedFaq,
+      };
     } catch (error) {
       throw new HttpException(
         'Failed to update FAQ',
