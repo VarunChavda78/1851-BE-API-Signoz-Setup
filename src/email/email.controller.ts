@@ -2,11 +2,11 @@ import { Body, Controller, Post } from '@nestjs/common';
 import { EnvironmentConfigService } from 'src/shared/config/environment-config.service';
 import { EmailService } from './email.service';
 import * as admin from 'firebase-admin';
-import * as serviceAccount from './gcp-auth.json';
+// import * as serviceAccount from './gcp-auth.json';
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
-});
+// admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
+// });
 
 @Controller({
   version: '1',
@@ -21,6 +21,19 @@ export class EmailController {
   @Post('forgot-password')
   async forgotPassword(@Body() request: any) {
     try {
+      const response = await fetch(
+        'https://1851-dev.s3.us-east-1.amazonaws.com/static/gcp-auth.json',
+      );
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const serviceAccount = await response.json();
+
+      admin.initializeApp({
+        credential: admin.credential.cert(
+          serviceAccount as admin.ServiceAccount,
+        ),
+      });
       const subject = 'Reset your password for 1851 Franchise';
       const tenantId = this.config.getTenantId();
       const emailId = request?.email;
