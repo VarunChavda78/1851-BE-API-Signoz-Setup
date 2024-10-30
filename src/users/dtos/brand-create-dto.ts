@@ -44,3 +44,5 @@ export class BrandCreateDto {
   @IsString()
   type: string;
 }
+
+export class BrandUpdateDto extends BrandCreateDto {}
