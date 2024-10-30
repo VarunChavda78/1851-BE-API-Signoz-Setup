@@ -585,7 +585,8 @@ export class UsersService {
         brandLogo: photo,
         type,
         story_approval_email,
-        franConnectEmail: franchise_connection_email
+        franConnectEmail: franchise_connection_email,
+        updated_at: new Date(),
       });
       if(analytics_domain){
         await Promise.all(
