@@ -10,6 +10,7 @@ import { Brand } from 'src/mysqldb/entities/brand.entity';
 import * as dayjs from 'dayjs';
 import { UpdateUserDto } from './dtos/edit-dto';
 import { BrandCreateDto } from './dtos/brand-create-dto';
+import { BrandFranchise } from 'src/mysqldb/entities/brand-franchise.entity';
 
 @Injectable()
 export class UsersService {
@@ -20,6 +21,8 @@ export class UsersService {
     private adminRepository: Repository<Admin>,
     @InjectRepository(Brand, 'mysqldb')
     private brandRepository: Repository<Brand>,
+    @InjectRepository(BrandFranchise, 'mysqldb')
+    private brandFranchiseRepository: Repository<BrandFranchise>,
     private commonService: CommonService,
     private configservice: ConfigService,
   ) {}
@@ -494,7 +497,7 @@ export class UsersService {
 
   async createBrand(payload: BrandCreateDto) {
     try {
-      const {company, brand_url, user_name, phone, facebook_page, franchise_link, photo, analytics_domain, brand_category_id, franchise_connection_email, story_approve_email, story_approve_text} = payload
+      const {company, brand_url, user_name, phone, facebook_page, franchise_link, photo, analytics_domain, brand_category_id, franchise_connection_email, story_approval_email, story_approve_text, type} = payload
       const response = await this.usersRepository.save({
         company,
         brand_url,
@@ -502,13 +505,27 @@ export class UsersService {
         phone,
         facebook_page,
         franchise_link,
+        franConnectEmail: franchise_connection_email,
         brand_category_id,
         user_type: 'user',
         created_date: new Date(),
         registration_date: new Date(),
         brandLogo: photo,
         created_at: new Date(),
+        type,
+        story_approval_email,
       })
+
+      if(analytics_domain?.length){
+        for (const domain of analytics_domain) {
+          await this.brandFranchiseRepository.save({
+            brand_id: response.id,
+            url: domain,
+            created_at: new Date(),
+            updated_at: new Date()
+          })
+      }
+
       if (response) {
         return {
           message: 'Brand created successfully'
