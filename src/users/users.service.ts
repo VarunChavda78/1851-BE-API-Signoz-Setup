@@ -314,7 +314,7 @@ export class UsersService {
       if (role === 'author' || role === 'admin' || role === 'superadmin') {
         photo += `${role}/${user.photo}`;
       } else if (role === 'brand') {
-        photo += `brand/logo/${user.photo}`;
+        photo += `brand/logo/${user.brandLogo}`;
       }
       const formattedCreatedDate = user.created_date
         ? dayjs(user.created_date).format('MMMM D, YYYY h:mm A')
@@ -338,7 +338,7 @@ export class UsersService {
         role,
         date_created: formattedCreatedDate,
         last_seen: formattedLastSeen,
-        photo: user.photo ? photo : '',
+        photo: user.photo || user?.brandLogo ? photo : '',
         phone: user.phone,
         pageUrl,
         siteUrl,
@@ -388,7 +388,8 @@ export class UsersService {
       'registration.google_ads_account_id',
       'registration.brand_url',
       'registration.author_title',
-      'registration.franchise_link'
+      'registration.franchise_link',
+      'registration.brandLogo'
     ];
   }
 
@@ -461,7 +462,7 @@ export class UsersService {
             gtm,
             google_ads_account_id: adsAccountId,
             updated_at: new Date(),
-            photo,
+            brandLogo: photo,
           });
           return {
             message: 'User updated successfully',
@@ -476,7 +477,7 @@ export class UsersService {
             gtm,
             google_ads_account_id: adsAccountId,
             updated_at: new Date(),
-            photo,
+            brandLogo: photo,
           });
           return {
             message: 'User updated successfully',
