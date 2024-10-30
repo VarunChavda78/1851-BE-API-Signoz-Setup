@@ -542,13 +542,13 @@ export class UsersService {
             });
           })
         );
-
-        if (response) {
-          return {
-            message: 'Brand created successfully',
-            brandId: response.id,
-          };
-        }
+        
+      }
+      if (response) {
+        return {
+          message: 'Brand created successfully',
+          brandId: response.id,
+        };
       }
     } catch (error) {
       console.log(error);
