@@ -75,4 +75,17 @@ export class UsersController {
       );
     }
   }
+
+  @Get('brand-categories')
+  async getBrandCategories() {
+    try {
+      const response = await this.user.getBrandCategories();
+      return response;
+    } catch (error) {
+      throw new HttpException(
+        'Failed to retrieve brand categories',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }

@@ -11,6 +11,7 @@ import * as dayjs from 'dayjs';
 import { UpdateUserDto } from './dtos/edit-dto';
 import { BrandCreateDto, BrandUpdateDto } from './dtos/brand-create-dto';
 import { BrandFranchise } from 'src/mysqldb/entities/brand-franchise.entity';
+import { BrandCategory } from 'src/mysqldb/entities/brand-category.entity';
 
 @Injectable()
 export class UsersService {
@@ -23,6 +24,8 @@ export class UsersService {
     private brandRepository: Repository<Brand>,
     @InjectRepository(BrandFranchise, 'mysqldb')
     private brandFranchiseRepository: Repository<BrandFranchise>,
+    @InjectRepository(BrandCategory, 'mysqldb')
+    private brandCategoryRepository: Repository<BrandCategory>,
     private commonService: CommonService,
     private configservice: ConfigService,
   ) {}
@@ -604,6 +607,18 @@ export class UsersService {
       };
     } catch (error) {
       console.log(error);
+      throw error;
+    }
+  }
+
+  async getBrandCategories(){
+    try {
+      const categories = await this.brandCategoryRepository.find();
+      return {
+        data: categories,
+        message: 'Brand categories fetched successfully',
+      };
+    } catch (error) {
       throw error;
     }
   }
