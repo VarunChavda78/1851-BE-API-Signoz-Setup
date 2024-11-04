@@ -51,7 +51,7 @@ jobs:
         env:
            ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-                sh env/dev_api.sh
+                sh env/dev.sh
                 docker build -f Docker/Dockerfile -t $ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG .
                 docker push $ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG
                 echo "app=$ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
