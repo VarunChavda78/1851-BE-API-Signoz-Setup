@@ -14,9 +14,9 @@ on:
 env:
   AWS_REGION: us-east-1
   IMAGE_TAG: ${{ github.sha }}
-  ECS_SERVICE: 1851-prod-API-Admin-BE_API
+  ECS_SERVICE: 1851-prod-API-Admin-BE-API
   ECS_CLUSTER: 1851-prod-API
-  ECS_TASK_DEFINITION: 1851-prod-Admin-BE_API
+  ECS_TASK_DEFINITION: 1851-prod-Admin-BE-API
   CONTAINER_NAME: app
   CONTAINER_NAME_NGINX: nginx
   APP_REPOSITORY: 1851-admin-be-api
