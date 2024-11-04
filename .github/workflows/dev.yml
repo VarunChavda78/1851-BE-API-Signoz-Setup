@@ -4,50 +4,36 @@ on:
     branches:
       - main
 
-# Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+    inputs:
+      deploy:
+        description: 'Deploy or Infra Change'
+        required: true
+        default: 'deploy'
+        type: choice
+        options:
+        - deploy
+        - infra-change
 
 env:
   AWS_REGION: us-east-1
   IMAGE_TAG: ${{ github.sha }}
   ECS_SERVICE: development-API-Admin-BE-API
   ECS_CLUSTER: development-API       
-  ECS_TASK_DEFINITION: development-API-Admin-BE-API                   
+  ECS_TASK_DEFINITION: development-API-Admin-BE-API         
   CONTAINER_NAME: app
   CONTAINER_NAME_NGINX: nginx
+  APP_REPOSITORY: 1851-admin-be-api
+  NGINX_REPOSITORY: 1851-admin-be-nginx
 
 jobs:
-  code_check:
-    name: "Code_Check"
+  Build:
+    name: "Build"
     runs-on: "ubuntu-latest"
-    outputs:
-      terraform: ${{ steps.changes.outputs.terraform }}
-      env: ${{ steps.changes.outputs.env }}
     steps:
-     - name: "Checkout Code"
-       uses: "actions/checkout@v2"
-     - uses: dorny/paths-filter@v3
-       id: changes
-       with:
-        filters: |
-         terraform: 
-          - 'terraform/**'
-         env:
-         - '.env.example'
-    
-  Deployment:
-    name: "Deployment"
-    runs-on: "ubuntu-latest"
-    needs: code_check
-    timeout-minutes: 15
-    if: ${{ needs.code_check.outputs.terraform == 'false' && needs.code_check.outputs.env == 'false' }}
-    steps:
+      
       - name: "Checkout Code"
         uses: "actions/checkout@v2"
-
-      - name: Set tag
-        id: vars
-        run: echo "::set-output name=tag::${GITHUB_REF#refs/*/}"
 
       - name: Configure AWS credential
         uses: aws-actions/configure-aws-credentials@v1
@@ -63,43 +49,67 @@ jobs:
       - name: Build, tag, and push image to Amazon ECRs
         id: build-image
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          APP_REPOSITORY:  1851-admin-be-api
-          NGINX_REPOSITORY: 1851-admin-be-nginx
+           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          echo $IMAGE_TAG
-          echo $APP_REPOSITORY
-          sed -i "s|<changeme>|$IMAGE_TAG|g" ./terraform/1851-dev-ecs/ecs-service.tf
+                sh env/dev_api.sh
+                docker build -f Docker/Dockerfile -t $ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG .
+                docker push $ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG
+                echo "app=$ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+                docker build  -f Docker/Dockerfile-nginx -t $ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG .
+                docker push $ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG
+                echo "nginx=$ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+  
+  Deployment:
+    name: "Deployment"
+    runs-on: "ubuntu-latest"
+    needs: Build
+    if: ${{ github.event_name == 'push' || (github.event.inputs.deploy == 'deploy') }}
+    timeout-minutes: 5
     
-          docker build -f Docker/Dockerfile -t $ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG  
-          echo "::set-output name=app::$ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG"
-    
-          echo $NGINX_REPOSITORY
-          docker build  -f Docker/Dockerfile-nginx -t $ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG
-          echo "::set-output name=nginx::$ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG"
-          
+    steps:
+      - name: "Checkout Code"
+        uses: "actions/checkout@v2"
+
+      - name: Configure AWS credential
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        
       - name: Download task definition
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
+            echo "NGINX_IMAGE=$ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
+            echo "APP_IMAGE=$ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
             aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK_DEFINITION }} --query taskDefinition > task-definition.json
+
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def_nginx
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         uses: aws-actions/amazon-ecs-render-task-definition@v1.3.0
         with:
           task-definition: task-definition.json
           container-name: ${{ env.CONTAINER_NAME_NGINX }}
-          image: ${{ steps.build-image.outputs.nginx }}
+          image: ${{ env.NGINX_IMAGE }}
           
 
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1.3.0
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         with:
           task-definition: ${{ steps.task-def_nginx.outputs.task-definition }}
           container-name: ${{ env.CONTAINER_NAME }}
-          image: ${{ steps.build-image.outputs.app}}
-
+          image: ${{ env.APP_IMAGE }}
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1.5.0
@@ -108,77 +118,59 @@ jobs:
           service: ${{ env.ECS_SERVICE }}
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
-     
+
+
+
   Infra-Change:
-      name: "Infra-change"
-      runs-on: ubuntu-latest
-      needs: code_check
-      if: ${{ needs.code_check.outputs.terraform == 'true' || needs.code_check.outputs.env == 'true' }}
-      steps:
-      - name: "Checkout Code"
-        uses: "actions/checkout@v2"
-
-      - name: Set tag
-        id: vars
-        run: echo "::set-output name=tag::${GITHUB_REF#refs/*/}"
-
-      - name: Configure AWS credential
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
-          aws-region: us-east-1
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-
-      - name: Build, tag, and push image to Amazon ECRs
-        id: build-image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          APP_REPOSITORY:  1851-admin-be-api
-          NGINX_REPOSITORY: 1851-admin-be-nginx
-        run: |
-          echo $IMAGE_TAG
-          echo $APP_REPOSITORY
-          sed -i "s|<changeme>|$IMAGE_TAG|g" ./terraform/1851-dev-ecs/ecs-service.tf
-    
-          docker build -f Docker/Dockerfile -t $ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG  
-          echo "::set-output name=app::$ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG"
-    
-          echo $NGINX_REPOSITORY
-          docker build  -f Docker/Dockerfile-nginx -t $ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG
-          echo "::set-output name=nginx::$ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG"
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v1
-        with:
-          terraform_version: 1.3.2
-
-      - name: Terraform Init
-        id: init 
-        run: terraform init
-        working-directory: ./terraform/1851-dev-ecs
-
-      - name: Terraform state
-        id: state
-        run: terraform state rm aws_ecs_task_definition.service
-        working-directory: ./terraform/1851-dev-ecs
-        continue-on-error: true
-
-      - name: Terraform Validate
-        id: validate
-        run: terraform validate -no-color
-        working-directory: ./terraform/1851-dev-ecs
-
-      - name: Terraform Plan
-        id: plan
-        run: terraform plan -no-color -input=false 
-        working-directory: ./terraform/1851-dev-ecs
-
-      - name: Terraform Apply
-        run: terraform apply -auto-approve -input=false 
-        working-directory: ./terraform/1851-dev-ecs
+    name: "Infra-change"
+    runs-on: ubuntu-latest
+    needs: Build
+    if: ${{ github.event.inputs.deploy == 'infra-change' }}
+    steps:
+        - name: "Checkout Code"
+          uses: "actions/checkout@v2"
+        
+        - name: add tags to ecs
+          run: sed -i "s|<changeme>|${{ env.IMAGE_TAG }}|g" ./terraform/1851-dev-ecs/ecs-service.tf
+        
+        - name: Configure AWS credential
+          uses: aws-actions/configure-aws-credentials@v1
+          with:
+            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
+            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
+            aws-region: us-east-1
+  
+        - name: Login to Amazon ECR
+          id: login-ecr
+          uses: aws-actions/amazon-ecr-login@v1
+  
+  
+        - name: Setup Terraform
+          uses: hashicorp/setup-terraform@v1
+          with:
+            terraform_version: 1.3.2
+  
+        - name: Terraform Init
+          id: init 
+          run: terraform init
+          working-directory: ./terraform/1851-dev-ecs
+  
+        - name: Terraform state
+          id: state
+          run: terraform state rm aws_ecs_task_definition.service
+          working-directory: ./terraform/1851-dev-ecs
+          continue-on-error: true
+  
+        - name: Terraform Validate
+          id: validate
+          run: terraform validate -no-color
+          working-directory: ./terraform/1851-dev-ecs
+  
+        - name: Terraform Plan
+          id: plan
+          run: terraform plan -no-color -input=false 
+          working-directory: ./terraform/1851-dev-ecs
+  
+        - name: Terraform Apply
+          run: terraform apply -auto-approve -input=false 
+          working-directory: ./terraform/1851-dev-ecs
