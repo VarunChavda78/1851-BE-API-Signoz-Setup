@@ -9,6 +9,9 @@ import { ConfigService } from '@nestjs/config';
 import { Brand } from 'src/mysqldb/entities/brand.entity';
 import * as dayjs from 'dayjs';
 import { UpdateUserDto } from './dtos/edit-dto';
+import { BrandCreateDto, BrandUpdateDto } from './dtos/brand-create-dto';
+import { BrandFranchise } from 'src/mysqldb/entities/brand-franchise.entity';
+import { BrandCategory } from 'src/mysqldb/entities/brand-category.entity';
 
 @Injectable()
 export class UsersService {
@@ -19,6 +22,10 @@ export class UsersService {
     private adminRepository: Repository<Admin>,
     @InjectRepository(Brand, 'mysqldb')
     private brandRepository: Repository<Brand>,
+    @InjectRepository(BrandFranchise, 'mysqldb')
+    private brandFranchiseRepository: Repository<BrandFranchise>,
+    @InjectRepository(BrandCategory, 'mysqldb')
+    private brandCategoryRepository: Repository<BrandCategory>,
     private commonService: CommonService,
     private configservice: ConfigService,
   ) {}
@@ -297,24 +304,22 @@ export class UsersService {
   private async formatData(data: any) {
     const promises = data.map(async (user) => {
       const role = this.getRoleFromUser(user);
-      let pageUrl = ''
+      let pageUrl = '';
       if (role === 'admin') {
-        pageUrl = '/admin/dashboard'
+        pageUrl = '/admin/dashboard';
       } else if (role === 'author') {
-        pageUrl = '/author/content'
+        pageUrl = '/author/content';
       } else if (role === 'brand' && user.brand_url) {
-        pageUrl = `${user.brand_url}/info`
+        pageUrl = `${user.brand_url}/info`;
       }
       const siteUrl =
-        role === 'brand' && user.franchise_link
-          ? user.franchise_link
-          : '';
+        role === 'brand' && user.franchise_link ? user.franchise_link : '';
       const authorTitle = role === 'author' ? `${user.author_title}` : '';
       let photo = `${this.configservice.get('s3.imageUrl')}/`;
       if (role === 'author' || role === 'admin' || role === 'superadmin') {
         photo += `${role}/${user.photo}`;
       } else if (role === 'brand') {
-        photo += `brand/logo/${user.photo}`;
+        photo += `brand/logo/${user.brandLogo}`;
       }
       const formattedCreatedDate = user.created_date
         ? dayjs(user.created_date).format('MMMM D, YYYY h:mm A')
@@ -338,7 +343,7 @@ export class UsersService {
         role,
         date_created: formattedCreatedDate,
         last_seen: formattedLastSeen,
-        photo: user.photo ? photo : '',
+        photo: user.photo || user?.brandLogo ? photo : '',
         phone: user.phone,
         pageUrl,
         siteUrl,
@@ -388,7 +393,8 @@ export class UsersService {
       'registration.google_ads_account_id',
       'registration.brand_url',
       'registration.author_title',
-      'registration.franchise_link'
+      'registration.franchise_link',
+      'registration.brandLogo'
     ];
   }
 
@@ -461,7 +467,7 @@ export class UsersService {
             gtm,
             google_ads_account_id: adsAccountId,
             updated_at: new Date(),
-            photo,
+            brandLogo: photo,
           });
           return {
             message: 'User updated successfully',
@@ -476,7 +482,7 @@ export class UsersService {
             gtm,
             google_ads_account_id: adsAccountId,
             updated_at: new Date(),
-            photo,
+            brandLogo: photo,
           });
           return {
             message: 'User updated successfully',
@@ -487,6 +493,132 @@ export class UsersService {
       }
     } catch (error) {
       console.log(error);
+      throw error;
+    }
+  }
+
+  async createBrand(payload: BrandCreateDto) {
+    try {
+      const {
+        company,
+        brand_url,
+        user_name,
+        email,
+        phone,
+        facebook_page,
+        franchise_link,
+        photo,
+        analytics_domain,
+        brand_category_id,
+        franchise_connection_email,
+        story_approval_email,
+        story_approve_text,
+        type,
+      } = payload;
+      const response = await this.usersRepository.save({
+        company,
+        email,
+        brand_url,
+        user_name,
+        phone,
+        facebook_page,
+        franchise_link,
+        franConnectEmail: franchise_connection_email,
+        brand_category_id,
+        user_type: 'user',
+        created_date: new Date(),
+        registration_date: new Date(),
+        brandLogo: photo,
+        created_at: new Date(),
+        type,
+        story_approval_email,
+      });
+
+      if (analytics_domain?.length) {
+        await Promise.all(
+          analytics_domain.map(async (url) => {
+            await this.brandFranchiseRepository.save({
+              brand_id: response.id,
+              url,
+              created_at: new Date(),
+              updated_at: new Date(),
+            });
+          })
+        );
+        
+      }
+      if (response) {
+        return {
+          message: 'Brand created successfully',
+          brandId: response.id,
+        };
+      }
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async updateBrand(id: number, payload: BrandUpdateDto) {
+    try {
+      const {
+        company,
+        email,
+        brand_url,
+        user_name,
+        phone,
+        facebook_page,
+        franchise_link,
+        photo,
+        brand_category_id,
+        type,
+        story_approval_email,
+        analytics_domain,
+        franchise_connection_email,
+        story_approve_text,
+      } = payload;
+      await this.usersRepository.update(id, {
+        company,
+        email,
+        brand_url,
+        user_name,
+        phone,
+        facebook_page,
+        franchise_link,
+        brand_category_id,
+        brandLogo: photo,
+        type,
+        story_approval_email,
+        franConnectEmail: franchise_connection_email,
+        updated_at: new Date(),
+      });
+      if(analytics_domain){
+        await Promise.all(
+          analytics_domain.map(async (url) => {
+            await this.brandFranchiseRepository.update(
+              { brand_id: id },
+              { url }
+            );
+          })
+        );
+      }
+      return {
+        message: 'Brand updated successfully',
+      };
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async getBrandCategories(){
+    try {
+      const categories = await this.brandCategoryRepository.find();
+      return {
+        data: categories,
+        message: 'Brand categories fetched successfully',
+      };
+    } catch (error) {
       throw error;
     }
   }
