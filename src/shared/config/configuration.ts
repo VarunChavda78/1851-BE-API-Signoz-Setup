@@ -27,6 +27,7 @@ export default (): any => ({
     accessKey: process.env.AWS_ACCESS_KEY_ID,
     secretKey: process.env.AWS_SECRET_ACCESS_KEY,
     region: process.env.AWS_REGION,
+    s3Url: process.env.AWS_S3_URL,
   },
   rollbar: {
     rollbarEnvironment: process.env.APP_ENV,
