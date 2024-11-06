@@ -70,7 +70,7 @@ export class UsersController {
       return response;
     } catch (error) {
       throw new HttpException(
-        'Failed to create brand',
+        error.message || 'Failed to create brand',
         error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

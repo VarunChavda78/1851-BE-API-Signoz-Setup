@@ -516,6 +516,20 @@ export class UsersService {
         type,
         newsletter_list_id
       } = payload;
+      const brandUrlExists = await this.usersRepository.findOneBy({
+        brand_url
+      })
+
+      if (brandUrlExists) {
+        throw new BadRequestException('This url is already taken');
+      }
+      const brandUsernameExists = await this.usersRepository.findOneBy({
+        user_name
+      })
+
+      if (brandUsernameExists) {
+        throw new BadRequestException('User Name already exists');
+      }
       const response = await this.usersRepository.save({
         company,
         email,
