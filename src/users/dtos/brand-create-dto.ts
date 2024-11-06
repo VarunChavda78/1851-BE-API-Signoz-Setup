@@ -43,6 +43,9 @@ export class BrandCreateDto {
 
   @IsString()
   type: string;
+
+  @IsString()
+  newsletter_list_id?: string;
 }
 
 export class BrandUpdateDto extends BrandCreateDto {}

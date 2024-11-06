@@ -514,6 +514,7 @@ export class UsersService {
         story_approval_email,
         story_approve_text,
         type,
+        newsletter_list_id
       } = payload;
       const response = await this.usersRepository.save({
         company,
@@ -532,6 +533,7 @@ export class UsersService {
         created_at: new Date(),
         type,
         story_approval_email,
+        mailchimp_list_id: newsletter_list_id,
       });
 
       if (analytics_domain?.length) {
@@ -575,6 +577,7 @@ export class UsersService {
         story_approval_email,
         analytics_domain,
         franchise_connection_email,
+        newsletter_list_id,
         story_approve_text,
       } = payload;
       await this.usersRepository.update(id, {
@@ -591,6 +594,7 @@ export class UsersService {
         story_approval_email,
         franConnectEmail: franchise_connection_email,
         updated_at: new Date(),
+        mailchimp_list_id: newsletter_list_id,
       });
       if(analytics_domain){
         await Promise.all(
