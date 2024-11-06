@@ -1,14 +1,7 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { EnvironmentConfigService } from 'src/shared/config/environment-config.service';
 import { EmailService } from './email.service';
-import * as admin from 'firebase-admin';
 import { initializeFirebaseApp, getFirebaseApp } from './firebase.config';
-
-// import * as serviceAccount from './gcp-auth.json';
-
-// admin.initializeApp({
-//   credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
-// });
 
 @Controller({
   version: '1',
