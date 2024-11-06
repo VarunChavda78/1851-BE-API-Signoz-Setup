@@ -21,9 +21,8 @@ export class EmailController {
   @Post('forgot-password')
   async forgotPassword(@Body() request: any) {
     try {
-      const response = await fetch(
-        'https://1851-dev.s3.us-east-1.amazonaws.com/static/gcp-auth.json',
-      );
+      const url = `${this.config.getAwsS3Url()}/static/gcp-auth.json`;
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
