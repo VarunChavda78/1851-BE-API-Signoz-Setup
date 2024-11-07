@@ -8,6 +8,7 @@ import { SharedModule } from './shared/shared.module';
 import { FaqModule } from './faq/faq.module';
 import { UsersModule } from './users/users.module';
 import { EmailModule } from './email/email.module';
+import { S3Module } from './s3/s3.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { EmailModule } from './email/email.module';
     FaqModule,
     UsersModule,
     EmailModule,
+    S3Module,
   ],
   controllers: [AppController],
   providers: [AppService],
