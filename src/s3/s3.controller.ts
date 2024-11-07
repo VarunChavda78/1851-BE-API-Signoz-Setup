@@ -13,7 +13,11 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { S3Service } from './s3.service';
 import { RollbarLogger } from 'nestjs-rollbar';
 
-@Controller('s3')
+@Controller({
+  version: '1',
+  path: 's3',
+})
+
 export class S3Controller {
   constructor(
     private readonly s3Service: S3Service,
