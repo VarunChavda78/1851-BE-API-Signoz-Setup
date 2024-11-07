@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { FilterDto } from './dtos/filter-dto';
 import { CommonService } from 'src/shared/services/common.service';
 import { Registration } from 'src/mysqldb/entities/registration.entity';
@@ -623,6 +623,38 @@ export class UsersService {
       return {
         message: 'Brand updated successfully',
       };
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async getBrandDetails(id: number) {
+    try {
+      const brand = await this.usersRepository.findOne({ where:{ id }, select: ['id', 'company', 'brand_url', 'user_name', 'email', 'phone', 'facebook_page', 'franchise_link', 'brandLogo', 'type', 'story_approval_email', 'mailchimp_list_id', 'franConnectEmail'] });
+      if(!brand){
+        throw new NotFoundException('Brand not found');
+      }
+      let analyticsDomain = await this.brandFranchiseRepository.find({ where: { brand_id: id }, select: ['url'] });
+      let category = await this.brandCategoryRepository.findOne({where: { brand_category_id: brand.brand_category_id }, select: ['brand_category_name', 'brand_category_id'] });
+      const formattedData = {
+        company: brand.company,
+        brandUrl: brand.brand_url,
+        userName: brand.user_name,
+        email: brand.email,
+        phone: brand.phone,
+        facebookPage: brand.facebook_page,
+        franchiseLink: brand.franchise_link,
+        brandLogo: brand.brandLogo,
+        type: brand.type,
+        storyApprovalEmail: brand.story_approval_email,
+        newsletterListId: brand.mailchimp_list_id,
+        franchiseConnectionEmail: brand.franConnectEmail,
+        brandId: brand.id,
+        analyticsDomain,
+        category
+      }
+      return formattedData;
     } catch (error) {
       console.log(error);
       throw error;
