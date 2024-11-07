@@ -23,10 +23,10 @@ export class S3Controller {
   // used in legacy portal image upload
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
-  async uploadFile(@UploadedFile() file: any, @Body() body: { path: string; filename?: string }) {
+  async uploadFile(@UploadedFile() file: any, @Body() body: { path: string; fileName?: string }) {
     try {
       // Handle file uploads
-      const result = await this.s3Service.uploadFile(file, body.path, body?.filename);
+      const result = await this.s3Service.uploadFile(file, body.path, body?.fileName);
       return {
         message: 'Image successfully uploaded',
         data: {
