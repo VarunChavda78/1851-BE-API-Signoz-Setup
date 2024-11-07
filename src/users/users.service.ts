@@ -621,6 +621,7 @@ export class UsersService {
         );
       }
       return {
+        brandId: id,
         message: 'Brand updated successfully',
       };
     } catch (error) {
