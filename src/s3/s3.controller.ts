@@ -7,6 +7,7 @@ import {
   UseInterceptors,
   HttpException,
   HttpStatus,
+  Body,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { S3Service } from './s3.service';
@@ -22,10 +23,10 @@ export class S3Controller {
   // used in legacy portal image upload
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
-  async uploadFile(@UploadedFile() file: any, @Query('path') path?: string) {
+  async uploadFile(@UploadedFile() file: any, @Body() body: { path: string; filename?: string }) {
     try {
       // Handle file uploads
-      const result = await this.s3Service.uploadFile(file, path);
+      const result = await this.s3Service.uploadFile(file, body.path, body?.filename);
       return {
         message: 'Image successfully uploaded',
         data: {

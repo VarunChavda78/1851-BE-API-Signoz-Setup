@@ -38,11 +38,14 @@ export class S3Service {
   async uploadFile(
     file: any,
     path: string = '',
+    filename: string = '',
   ): Promise<{ url: string; imagePath: string; message: string }> {
     if (path && !path.endsWith('/')) {
       path += '/';
     }
-    const key = `${path}${Date.now()}_${file.originalname}`;
+    const finalFileName = filename || `${Date.now()}_${file.originalname}`;
+
+    const key = `${path}${finalFileName}`;
     const fileUrl = `${this.configservice.get('s3.imageUrl')}/${key}`;
     this.logger.debug(`key: ${key}, fileUrl: ${fileUrl}`);
 
