@@ -532,7 +532,7 @@ export class UsersService {
       }
       const response = await this.usersRepository.save({
         company,
-        email,
+        email: email.join(','),
         brand_url,
         user_name,
         phone,
@@ -546,7 +546,7 @@ export class UsersService {
         brandLogo: photo,
         created_at: new Date(),
         type,
-        story_approval_email,
+        story_approval_email: story_approval_email.join(','),
         mailchimp_list_id: newsletter_list_id,
       });
 
@@ -596,7 +596,7 @@ export class UsersService {
       } = payload;
       await this.usersRepository.update(id, {
         company,
-        email,
+        email: email.join(','),
         brand_url,
         user_name,
         phone,
@@ -605,7 +605,7 @@ export class UsersService {
         brand_category_id,
         brandLogo: photo,
         type,
-        story_approval_email,
+        story_approval_email: story_approval_email.join(','),
         franConnectEmail: franchise_connection_email,
         updated_at: new Date(),
         mailchimp_list_id: newsletter_list_id,
@@ -640,17 +640,20 @@ export class UsersService {
       let category = await this.brandCategoryRepository.findOne({where: { brand_category_id: brand.brand_category_id }, select: ['brand_category_name', 'brand_category_id'] });
 
       let photo = `${this.configservice.get('s3.imageUrl')}/brand/logo/${brand.brandLogo}`;
+
+      const emailArray = brand.email ? brand.email.split(',') : [];
+    const storyApprovalEmailArray = brand.story_approval_email ? brand.story_approval_email.split(',') : [];
       const formattedData = {
         company: brand.company,
         brandUrl: brand.brand_url,
         userName: brand.user_name,
-        email: brand.email,
+        email: emailArray,
         phone: brand.phone,
         facebookPage: brand.facebook_page,
         franchiseLink: brand.franchise_link,
         brandLogo: photo,
         type: brand.type,
-        storyApprovalEmail: brand.story_approval_email,
+        storyApprovalEmail: storyApprovalEmailArray,
         newsletterListId: brand.mailchimp_list_id,
         franchiseConnectionEmail: brand.franConnectEmail,
         brandId: brand.id,

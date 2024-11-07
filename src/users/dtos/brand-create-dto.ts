@@ -1,4 +1,10 @@
-import { IsArray, IsEmail, IsNumber, IsPhoneNumber, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsEmail,
+  IsNumber,
+  IsPhoneNumber,
+  IsString,
+} from 'class-validator';
 
 export class BrandCreateDto {
   @IsString()
@@ -10,8 +16,9 @@ export class BrandCreateDto {
   @IsString()
   user_name: string;
 
-  @IsEmail()
-  email: string;
+  @IsArray()
+  @IsEmail({}, { each: true })
+  email: string[];
 
   @IsPhoneNumber()
   phone: string;
@@ -29,8 +36,9 @@ export class BrandCreateDto {
   @IsEmail()
   franchise_connection_email?: string;
 
-  @IsEmail()
-  story_approval_email?: string;
+  @IsArray()
+  @IsEmail({}, { each: true })
+  story_approval_email?: string[];
 
   @IsString()
   story_approve_text?: string;
