@@ -639,7 +639,7 @@ export class UsersService {
       let analyticsDomain = await this.brandFranchiseRepository.find({ where: { brand_id: id }, select: ['url'] });
       let category = await this.brandCategoryRepository.findOne({where: { brand_category_id: brand.brand_category_id }, select: ['brand_category_name', 'brand_category_id'] });
 
-      let photo = `${this.configservice.get('s3.imageUrl')}/brand/logo/${brand.brandLogo}`;
+      let photo = brand.brandLogo && `${this.configservice.get('s3.imageUrl')}/brand/logo/${brand.brandLogo}`;
 
       const emailArray = brand.email ? brand.email.split(',') : [];
     const storyApprovalEmailArray = brand.story_approval_email ? brand.story_approval_email.split(',') : [];
