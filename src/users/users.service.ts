@@ -638,7 +638,7 @@ export class UsersService {
 
   async getBrandDetails(id: number) {
     try {
-      const brand = await this.usersRepository.findOne({ where:{ id }, select: ['id', 'company', 'brand_url', 'user_name', 'email', 'phone', 'facebook_page', 'franchise_link', 'brandLogo', 'type', 'story_approval_email', 'mailchimp_list_id', 'franConnectEmail'] });
+      const brand = await this.usersRepository.findOne({ where:{ id }, select: ['id', 'company', 'brand_url', 'user_name', 'email', 'phone', 'facebook_page', 'franchise_link', 'brandLogo', 'type', 'story_approval_email', 'mailchimp_list_id', 'franConnectEmail', 'brand_category_id'] });
       if(!brand){
         throw new NotFoundException('Brand not found');
       }
