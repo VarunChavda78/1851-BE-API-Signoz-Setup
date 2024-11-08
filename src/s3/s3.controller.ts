@@ -29,6 +29,8 @@ export class S3Controller {
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(@UploadedFile() file: any, @Body() body: { path: string; fileName?: string }) {
     try {
+      this.rollbar.info('Uploading file..');
+
       // Handle file uploads
       const result = await this.s3Service.uploadFile(file, body.path, body?.fileName);
       return {
@@ -41,13 +43,15 @@ export class S3Controller {
     } catch (error) {
       this.rollbar.error('Error in upload File method', error);
       const msg = error?.message || 'Failed to upload image or thumbnail';
-      throw new HttpException(msg, HttpStatus.NOT_FOUND);
+      throw new HttpException(msg, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
-  @Delete('delete')
-  async deleteFile(@Query('key') key: string) {
+  @Delete('remove')
+  async removeFile(@Query('key') key: string) {
     try {
+      this.rollbar.info('removing file..');
+
       const result = await this.s3Service.deleteFile(key);
       return {
         message: 'File successfully deleted',
@@ -58,7 +62,7 @@ export class S3Controller {
     } catch (error) {
       this.rollbar.error('Error in delete File method', error);
       const msg = error?.message || 'Failed to delete file';
-      throw new HttpException(msg, HttpStatus.NOT_FOUND);
+      throw new HttpException(msg, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }
