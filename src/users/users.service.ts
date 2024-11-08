@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { FilterDto } from './dtos/filter-dto';
 import { CommonService } from 'src/shared/services/common.service';
 import { Registration } from 'src/mysqldb/entities/registration.entity';
@@ -337,7 +337,7 @@ export class UsersService {
       return {
         id: user.id,
         name,
-        email: user.email,
+        email: user.email?.split(',')[0],
         username: user.user_name,
         password: user.password,
         role,
@@ -450,17 +450,23 @@ export class UsersService {
           author_title: authorTitle,
           updated_at: new Date(),
           photo,
+          usersFrom: authorFrom,
         });
         return {
           message: 'User updated successfully',
         };
       } else if (role === 'brand') {
         const user = await this.usersRepository.findOneBy({ id });
+        let existingEmails = user.email ? user.email.split(',') : [];
+        if (existingEmails && !existingEmails.includes(email)) {
+          existingEmails = [email, ...existingEmails];
+        }
+        const updatedEmail = existingEmails.join(',');
         if (user && user.first_name) {
           await this.usersRepository.update(id, {
             first_name,
             last_name,
-            email,
+            email: updatedEmail,
             phone,
             brand_url: pageUrl?.split('/')[0],
             franchise_link: siteUrl,
@@ -475,7 +481,7 @@ export class UsersService {
         } else {
           await this.usersRepository.update(id, {
             company: name,
-            email,
+            email: updatedEmail,
             phone,
             brand_url: pageUrl?.split('/')[0],
             franchise_link: siteUrl,
@@ -514,10 +520,25 @@ export class UsersService {
         story_approval_email,
         story_approve_text,
         type,
+        newsletter_list_id
       } = payload;
+      const brandUrlExists = await this.usersRepository.findOneBy({
+        brand_url
+      })
+
+      if (brandUrlExists) {
+        throw new BadRequestException('This url is already taken');
+      }
+      const brandUsernameExists = await this.usersRepository.findOneBy({
+        user_name
+      })
+
+      if (brandUsernameExists) {
+        throw new BadRequestException('User Name already exists');
+      }
       const response = await this.usersRepository.save({
         company,
-        email,
+        email: email.join(','),
         brand_url,
         user_name,
         phone,
@@ -531,7 +552,8 @@ export class UsersService {
         brandLogo: photo,
         created_at: new Date(),
         type,
-        story_approval_email,
+        story_approval_email: story_approval_email.join(','),
+        mailchimp_list_id: newsletter_list_id,
       });
 
       if (analytics_domain?.length) {
@@ -575,11 +597,12 @@ export class UsersService {
         story_approval_email,
         analytics_domain,
         franchise_connection_email,
+        newsletter_list_id,
         story_approve_text,
       } = payload;
       await this.usersRepository.update(id, {
         company,
-        email,
+        email: email.join(','),
         brand_url,
         user_name,
         phone,
@@ -588,9 +611,10 @@ export class UsersService {
         brand_category_id,
         brandLogo: photo,
         type,
-        story_approval_email,
+        story_approval_email: story_approval_email.join(','),
         franConnectEmail: franchise_connection_email,
         updated_at: new Date(),
+        mailchimp_list_id: newsletter_list_id,
       });
       if(analytics_domain){
         await Promise.all(
@@ -603,8 +627,46 @@ export class UsersService {
         );
       }
       return {
+        brandId: id,
         message: 'Brand updated successfully',
       };
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async getBrandDetails(id: number) {
+    try {
+      const brand = await this.usersRepository.findOne({ where:{ id }, select: ['id', 'company', 'brand_url', 'user_name', 'email', 'phone', 'facebook_page', 'franchise_link', 'brandLogo', 'type', 'story_approval_email', 'mailchimp_list_id', 'franConnectEmail', 'brand_category_id'] });
+      if(!brand){
+        throw new NotFoundException('Brand not found');
+      }
+      let analyticsDomain = await this.brandFranchiseRepository.find({ where: { brand_id: id }, select: ['url'] });
+      let category = await this.brandCategoryRepository.findOne({where: { brand_category_id: brand.brand_category_id }, select: ['brand_category_name', 'brand_category_id'] });
+
+      let photo = brand.brandLogo && `${this.configservice.get('s3.imageUrl')}/brand/logo/${brand.brandLogo}`;
+
+      const emailArray = brand.email ? brand.email.split(',') : [];
+    const storyApprovalEmailArray = brand.story_approval_email ? brand.story_approval_email.split(',') : [];
+      const formattedData = {
+        company: brand.company,
+        brandUrl: brand.brand_url,
+        userName: brand.user_name,
+        email: emailArray,
+        phone: brand.phone,
+        facebookPage: brand.facebook_page,
+        franchiseLink: brand.franchise_link,
+        brandLogo: photo,
+        type: brand.type,
+        storyApprovalEmail: storyApprovalEmailArray,
+        newsletterListId: brand.mailchimp_list_id,
+        franchiseConnectionEmail: brand.franConnectEmail,
+        brandId: brand.id,
+        analyticsDomain,
+        category
+      }
+      return formattedData;
     } catch (error) {
       console.log(error);
       throw error;

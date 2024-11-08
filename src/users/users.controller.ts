@@ -50,6 +50,19 @@ export class UsersController {
     }
   }
 
+  @Get('brands/:id')
+  async brandDetails(@Param('id') id: number) {
+    try {
+      const response = await this.user.getBrandDetails(id);
+      return response;
+    } catch (error) {
+      throw new HttpException(
+        error?.message || 'Failed to retrieve brand details',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   @Put('brands/:id')
   async updateBrand(@Param('id') id: number, @Body() payload: BrandUpdateDto) {
     try {
@@ -70,7 +83,7 @@ export class UsersController {
       return response;
     } catch (error) {
       throw new HttpException(
-        'Failed to create brand',
+        error.message || 'Failed to create brand',
         error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
