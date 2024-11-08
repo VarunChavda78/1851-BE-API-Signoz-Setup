@@ -337,7 +337,7 @@ export class UsersService {
       return {
         id: user.id,
         name,
-        email: user.email,
+        email: user.email?.split(',')[0],
         username: user.user_name,
         password: user.password,
         role,
@@ -450,17 +450,23 @@ export class UsersService {
           author_title: authorTitle,
           updated_at: new Date(),
           photo,
+          usersFrom: authorFrom,
         });
         return {
           message: 'User updated successfully',
         };
       } else if (role === 'brand') {
         const user = await this.usersRepository.findOneBy({ id });
+        let existingEmails = user.email ? user.email.split(',') : [];
+        if (existingEmails && !existingEmails.includes(email)) {
+          existingEmails = [email, ...existingEmails];
+        }
+        const updatedEmail = existingEmails.join(',');
         if (user && user.first_name) {
           await this.usersRepository.update(id, {
             first_name,
             last_name,
-            email,
+            email: updatedEmail,
             phone,
             brand_url: pageUrl?.split('/')[0],
             franchise_link: siteUrl,
@@ -475,7 +481,7 @@ export class UsersService {
         } else {
           await this.usersRepository.update(id, {
             company: name,
-            email,
+            email: updatedEmail,
             phone,
             brand_url: pageUrl?.split('/')[0],
             franchise_link: siteUrl,
