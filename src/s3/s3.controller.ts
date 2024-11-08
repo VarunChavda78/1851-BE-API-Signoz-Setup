@@ -43,12 +43,12 @@ export class S3Controller {
     } catch (error) {
       this.rollbar.error('Error in upload File method', error);
       const msg = error?.message || 'Failed to upload image or thumbnail';
-      throw new HttpException(msg, HttpStatus.NOT_FOUND);
+      throw new HttpException(msg, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
-  @Delete('delete')
-  async deleteFile(@Query('key') key: string) {
+  @Delete('remove')
+  async removeFile(@Query('key') key: string) {
     try {
       this.rollbar.info('removing file..');
 
@@ -62,7 +62,7 @@ export class S3Controller {
     } catch (error) {
       this.rollbar.error('Error in delete File method', error);
       const msg = error?.message || 'Failed to delete file';
-      throw new HttpException(msg, HttpStatus.NOT_FOUND);
+      throw new HttpException(msg, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }
