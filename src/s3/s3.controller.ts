@@ -29,6 +29,8 @@ export class S3Controller {
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(@UploadedFile() file: any, @Body() body: { path: string; fileName?: string }) {
     try {
+      this.rollbar.info('Uploading file..');
+
       // Handle file uploads
       const result = await this.s3Service.uploadFile(file, body.path, body?.fileName);
       return {
@@ -48,6 +50,8 @@ export class S3Controller {
   @Delete('delete')
   async deleteFile(@Query('key') key: string) {
     try {
+      this.rollbar.info('removing file..');
+
       const result = await this.s3Service.deleteFile(key);
       return {
         message: 'File successfully deleted',
