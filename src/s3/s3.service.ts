@@ -21,17 +21,39 @@ export class S3Service {
     private configservice: ConfigService,
     private readonly rollbar: RollbarLogger,
   ) {
-    this.bucketName = this.configservice.get('aws.bucketName');
-    this.s3Client = new S3Client({
-      region: this.configservice.get('aws.region'),
-      credentials: {
-        accessKeyId: this.configservice.get('aws.accessKey'),
-        secretAccessKey: this.configservice.get('aws.secretKey'),
-      },
-    });
+    
+  }
 
-    if (!this.bucketName) {
-      throw new Error('S3 bucket name is not configured.');
+  async init(siteId: string) {
+    if(siteId == 'SC') { 
+      this.bucketName = this.configservice.get('aws.bucketNameSc');
+      this.s3Client = new S3Client({
+        region: this.configservice.get('aws.region'),
+        credentials: {
+          accessKeyId: this.configservice.get('aws.accessKeySc'),
+          secretAccessKey: this.configservice.get('aws.secretKeySc'),
+        },
+      });
+    }
+     else {
+      this.bucketName = this.configservice.get('aws.bucketName');
+      this.s3Client = new S3Client({
+        region: this.configservice.get('aws.region'),
+        credentials: {
+          accessKeyId: this.configservice.get('aws.accessKey'),
+          secretAccessKey: this.configservice.get('aws.secretKey'),
+        },
+      });
+    }
+    
+  }
+
+  getBaseUrl(siteId: string){
+    if(siteId == 'SC') {
+      return this.configservice.get('aws.s3UrlSc');
+    }
+    else {
+      return this.configservice.get('s3.imageUrl');
     }
   }
 
@@ -39,14 +61,17 @@ export class S3Service {
     file: any,
     path: string = '',
     filename: string = '',
+    siteId: string = '1851',
   ): Promise<{ url: string; imagePath: string; message: string }> {
+    this.init(siteId);
     if (path && !path.endsWith('/')) {
       path += '/';
     }
     const finalFileName = filename || `${Date.now()}_${file.originalname}`;
 
     const key = `${path}${finalFileName}`;
-    const fileUrl = `${this.configservice.get('s3.imageUrl')}/${key}`;
+    
+    const fileUrl = `${this.getBaseUrl(siteId)}/${key}`;
     this.logger.debug(`key: ${key}, fileUrl: ${fileUrl}`);
 
     const command = new PutObjectCommand({

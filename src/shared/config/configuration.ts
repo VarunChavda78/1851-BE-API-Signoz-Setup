@@ -28,6 +28,25 @@ export default (): any => ({
     secretKey: process.env.AWS_SECRET_ACCESS_KEY,
     region: process.env.AWS_REGION,
     s3Url: process.env.AWS_S3_URL,
+
+    // stachecow
+    s3UrlSc: process.env.AWS_S3_BASE_URL_SC,
+    bucketNameSc: process.env.AWS_BUCKET_NAME_SC,
+    accessKeySc: process.env.AWS_ACCESS_KEY_ID_SC,
+    secretKeySc: process.env.AWS_SECRET_ACCESS_KEY_SC,
+
+    // EE
+    s3UrlEe: process.env.AWS_S3_BASE_URL_EE,
+    bucketNameEe: process.env.AWS_BUCKET_NAME_EE,
+    accessKeyEe: process.env.AWS_ACCESS_KEY_ID_EE,
+    secretKeyEe: process.env.AWS_SECRET_ACCESS_KEY_EE,
+
+    // 1903
+    s3Url1903: process.env.AWS_S3_BASE_URL_1903,
+    bucketName1903: process.env.AWS_BUCKET_NAME_1903,
+    accessKey1903: process.env.AWS_ACCESS_KEY_ID_1903,
+    secretKey1903: process.env.AWS_SECRET_ACCESS_KEY_1903,
+
   },
   rollbar: {
     rollbarEnvironment: process.env.APP_ENV,
