@@ -9,6 +9,7 @@ import { FaqModule } from './faq/faq.module';
 import { UsersModule } from './users/users.module';
 import { EmailModule } from './email/email.module';
 import { S3Module } from './s3/s3.module';
+import { LandingPageModule } from './landing-page/landing-page.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { S3Module } from './s3/s3.module';
     UsersModule,
     EmailModule,
     S3Module,
+    LandingPageModule,
   ],
   controllers: [AppController],
   providers: [AppService],
