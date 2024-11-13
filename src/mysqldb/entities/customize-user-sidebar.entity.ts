@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity('customize_user_sidebar')
-export class navigationMenu {
+export class NavigationMenu {
   @PrimaryGeneratedColumn()
   id: number;
 
