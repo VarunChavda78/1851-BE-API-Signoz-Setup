@@ -25,13 +25,33 @@ export class S3Service {
   }
 
   async init(siteId: string) {
-    if(siteId == 'SC') { 
+    if(siteId.trim() == 'Stachecow') { 
       this.bucketName = this.configservice.get('aws.bucketNameSc');
       this.s3Client = new S3Client({
         region: this.configservice.get('aws.region'),
         credentials: {
           accessKeyId: this.configservice.get('aws.accessKeySc'),
           secretAccessKey: this.configservice.get('aws.secretKeySc'),
+        },
+      });
+    }
+    else if(siteId.trim() == 'ROOM-1903') { 
+      this.bucketName = this.configservice.get('aws.bucketName1903');
+      this.s3Client = new S3Client({
+        region: this.configservice.get('aws.region'),
+        credentials: {
+          accessKeyId: this.configservice.get('aws.accessKey1903'),
+          secretAccessKey: this.configservice.get('aws.secretKey1903'),
+        },
+      });
+    }
+    else if(siteId.trim() == 'EE') { 
+      this.bucketName = this.configservice.get('aws.bucketNameEe');
+      this.s3Client = new S3Client({
+        region: this.configservice.get('aws.region'),
+        credentials: {
+          accessKeyId: this.configservice.get('aws.accessKeyEe'),
+          secretAccessKey: this.configservice.get('aws.secretKeyEe'),
         },
       });
     }
@@ -49,8 +69,14 @@ export class S3Service {
   }
 
   getBaseUrl(siteId: string){
-    if(siteId == 'SC') {
+    if(siteId.trim() == 'Stachecow') {
       return this.configservice.get('aws.s3UrlSc');
+    }
+    else if(siteId.trim() == 'ROOM-1903') {
+      return this.configservice.get('aws.s3Url1903');
+    }
+    else if(siteId.trim() == 'EE') {
+      return this.configservice.get('aws.s3UrlEe');
     }
     else {
       return this.configservice.get('s3.imageUrl');
