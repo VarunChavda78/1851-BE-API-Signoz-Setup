@@ -13,7 +13,7 @@ export class NavigationCreateDto {
   @IsString()
   website: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   info_title: string;
 

@@ -14,7 +14,7 @@ export class NavigationMenu {
   @Column({ type: 'text', nullable: false })
   website: string;
 
-  @Column({ type: 'varchar', length: 100, nullable: false })
+  @Column({ type: 'varchar', length: 100, nullable: false , default: 'FRANCHISE INFORMATION' })
   info_title: string;
 
   @Column({ type: 'varchar', length: 100, nullable: false })
