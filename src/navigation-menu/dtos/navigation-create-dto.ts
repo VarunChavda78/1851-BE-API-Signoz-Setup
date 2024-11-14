@@ -15,7 +15,7 @@ export class NavigationCreateDto {
 
   @IsOptional()
   @IsString()
-  info_title: string;
+  info_title?: string;
 
   @IsNotEmpty()
   @IsString()
@@ -31,11 +31,11 @@ export class NavigationCreateDto {
 
   @IsOptional()
   @IsNumber()
-  isExternalLink1: number;
+  isExternalLink1?: number;
 
   @IsOptional()
   @IsString()
-  linkImage1: string;
+  linkImage1?: string;
 
 
   @IsNotEmpty()
@@ -48,11 +48,11 @@ export class NavigationCreateDto {
 
   @IsOptional()
   @IsNumber()
-  isExternalLink2: number;
+  isExternalLink2?: number;
 
   @IsOptional()
   @IsString()
-  linkImage2: string;
+  linkImage2?: string;
 
 
   @IsNotEmpty()
@@ -65,11 +65,11 @@ export class NavigationCreateDto {
 
   @IsOptional()
   @IsNumber()
-  isExternalLink3: number;
+  isExternalLink3?: number;
 
   @IsOptional()
   @IsString()
-  linkImage3: string;
+  linkImage3?: string;
 
   @IsNotEmpty()
   @IsString()
@@ -81,11 +81,11 @@ export class NavigationCreateDto {
 
   @IsOptional()
   @IsNumber()
-  isExternalLink4: number;
+  isExternalLink4?: number;
 
   @IsOptional()
   @IsString()
-  linkImage4: string;
+  linkImage4?: string;
 
   @IsNotEmpty()
   @IsString()
@@ -97,11 +97,11 @@ export class NavigationCreateDto {
 
   @IsOptional()
   @IsNumber()
-  isExternalLink5: number;
+  isExternalLink5?: number;
 
   @IsOptional()
   @IsString()
-  linkImage5: string;
+  linkImage5?: string;
 
   @IsNotEmpty()
   @IsString()
@@ -113,11 +113,11 @@ export class NavigationCreateDto {
 
   @IsOptional()
   @IsNumber()
-  isExternalLink6: number;
+  isExternalLink6?: number;
 
   @IsOptional()
   @IsString()
-  linkImage6: string;
+  linkImage6?: string;
 
   @IsNotEmpty()
   @IsString()
@@ -129,11 +129,11 @@ export class NavigationCreateDto {
 
   @IsOptional()
   @IsNumber()
-  isExternalLink7: number;
+  isExternalLink7?: number;
 
   @IsOptional()
   @IsString()
-  linkImage7: string;
+  linkImage7?: string;
 
   @IsNotEmpty()
   @IsString()
@@ -145,11 +145,11 @@ export class NavigationCreateDto {
 
   @IsOptional()
   @IsNumber()
-  isExternalLink8: number;
+  isExternalLink8?: number;
 
   @IsOptional()
   @IsString()
-  linkImage8: string;
+  linkImage8?: string;
 
   @IsNotEmpty()
   @IsString()
@@ -161,11 +161,11 @@ export class NavigationCreateDto {
 
   @IsOptional()
   @IsNumber()
-  isExternalLink9: number;
+  isExternalLink9?: number;
 
   @IsOptional()
   @IsString()
-  linkImage9: string;
+  linkImage9?: string;
 
   @IsNotEmpty()
   @IsString()
@@ -177,11 +177,11 @@ export class NavigationCreateDto {
 
   @IsOptional()
   @IsNumber()
-  isExternalLink10: number;
+  isExternalLink10?: number;
 
   @IsOptional()
   @IsString()
-  linkImage10: string;
+  linkImage10?: string;
 
   @IsNotEmpty()
   @IsString()
@@ -193,11 +193,11 @@ export class NavigationCreateDto {
 
   @IsOptional()
   @IsNumber()
-  isExternalLink11: number;
+  isExternalLink11?: number;
 
   @IsOptional()
   @IsString()
-  linkImage11: string;
+  linkImage11?: string;
 
   @IsNotEmpty()
   @IsString()
@@ -209,11 +209,11 @@ export class NavigationCreateDto {
 
   @IsOptional()
   @IsNumber()
-  isExternalLink12: number;
+  isExternalLink12?: number;
 
   @IsOptional()
   @IsString()
-  linkImage12: string;
+  linkImage12?: string;
 
   @IsNotEmpty()
   @IsString()
@@ -241,5 +241,5 @@ export class NavigationCreateDto {
 
   @IsOptional()
   @IsString()
-  brand_feature_image: string;
+  brand_feature_image?: string;
 }
