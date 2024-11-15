@@ -10,7 +10,6 @@ import { UsersModule } from './users/users.module';
 import { EmailModule } from './email/email.module';
 import { S3Module } from './s3/s3.module';
 import { LandingPageModule } from './landing-page/landing-page.module';
-import { NavigationMenuModule } from './navigation-menu/navigation-menu.module';
 
 @Module({
   imports: [
@@ -32,7 +31,6 @@ import { NavigationMenuModule } from './navigation-menu/navigation-menu.module';
     EmailModule,
     S3Module,
     LandingPageModule,
-    NavigationMenuModule,
   ],
   controllers: [AppController],
   providers: [AppService],
