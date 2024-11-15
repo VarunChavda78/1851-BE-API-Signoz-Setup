@@ -49,11 +49,11 @@ export class S3Controller {
   }
 
   @Delete('remove')
-  async removeFile(@Query('key') key: string) {
+  async removeFile(@Query('key') key: string, @Query('siteId') siteId: string) {
     try {
       this.rollbar.info('removing file..');
 
-      const result = await this.s3Service.deleteFile(key);
+      const result = await this.s3Service.deleteFile(key, siteId);
       return {
         message: 'File successfully deleted',
         data: {
