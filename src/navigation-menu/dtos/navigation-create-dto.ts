@@ -243,3 +243,6 @@ export class NavigationCreateDto {
   @IsString()
   brand_feature_image?: string;
 }
+
+export class NavigationUpdateDto extends NavigationCreateDto {}
+
