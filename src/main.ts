@@ -11,6 +11,14 @@ async function bootstrap() {
     type: VersioningType.URI,
   });
 
+  // This is just to enable the FE interns to integrate the APIs. SHOULD BE REMOVED BEFORE DEPLOYMENT
+  const corsOptions = {
+    origin: '*',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  }
+
+  app.enableCors(corsOptions);
+
   // Increase payload size limit
   app.use(bodyParser.json({ limit: '50mb' }));
   app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
