@@ -1,6 +1,5 @@
 import { Controller, Get, Post, Param, Body } from '@nestjs/common';
 import { LandingPageService } from './landing-page.service';
-// import { CreateLandingPageDto } from './dto/create-landing-page.dto';
 
 @Controller({
   version: '1',
@@ -33,6 +32,47 @@ export class LandingPageController {
     try {
       const data = await this.landingPageService.createOrUpdate(
         brandId,
+        createLandingPageDto,
+      );
+      return {
+        status: true,
+        message: data?.message,
+        content: data?.page?.content,
+      };
+    } catch (err) {
+      return { status: false, message: err?.message };
+    }
+  }
+
+  @Get(':brandId/:sectionSlug')
+  async findSection(
+    @Param('brandId') brandId: number,
+    @Param('sectionSlug') sectionSlug: string
+  ) {
+    try {
+      const page = await this.landingPageService.findSection(brandId, sectionSlug);
+      if (!page) {
+        throw new Error(`Content not found for brand id ${brandId} and section slug ${sectionSlug}.`);
+      }
+      return {
+        status: true,
+        content: page?.content || '',
+      };
+    } catch (err) {
+      return { status: false, message: err?.message, content: '' };
+    }
+  }
+
+  @Post(':brandId/:sectionSlug')
+  async createOrUpdateSection(
+    @Param('brandId') brandId: number,
+    @Param('sectionSlug') sectionSlug: string,
+    @Body() createLandingPageDto: any,
+  ) {
+    try {
+      const data = await this.landingPageService.createOrUpdateSection(
+        brandId,
+        sectionSlug,
         createLandingPageDto,
       );
       return {
