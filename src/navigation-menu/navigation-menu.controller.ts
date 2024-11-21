@@ -1,13 +1,22 @@
 import { Controller,Post,Body,Get,Put,Delete,Param,NotFoundException,
     HttpStatus,
-    HttpException } from '@nestjs/common';
+    HttpException,Query } from '@nestjs/common';
 import {NavigationCreateDto,NavigationUpdateDto} from './dtos/navigation-create-dto'
 import  {NavigationMenuService} from './navigation-menu.service'
 
 @Controller('navigation-menu')
 export class NavigationMenuController {
     constructor(private readonly NavigationMenuService: NavigationMenuService) {}
-
+    @Get()
+    async getNavigationMenus(
+      @Query('search') search?: string,
+      @Query('sortBy') sortBy?: string,
+      @Query('order') order: 'ASC' | 'DESC' = 'ASC',
+      @Query('page') page: number = 1,
+      @Query('limit') limit: number = 10,
+    ) {
+      return this.NavigationMenuService.getNavigationMenus(search, sortBy, order, page, limit);
+    }
   @Post('create')
   async create(@Body() NavigationCreateDto: NavigationCreateDto) {
     try {
