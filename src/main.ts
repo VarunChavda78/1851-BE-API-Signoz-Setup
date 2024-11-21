@@ -2,8 +2,11 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { VersioningType } from '@nestjs/common';
 import * as bodyParser from 'body-parser';
+import  tracer   from './tracer';
 
 async function bootstrap() {
+
+  await tracer.start();
   const app = await NestFactory.create(AppModule);
 
   // Enable versioning
