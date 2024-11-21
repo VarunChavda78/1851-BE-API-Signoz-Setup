@@ -14,5 +14,6 @@ import { BrandCategory } from 'src/mysqldb/entities/brand-category.entity';
   imports: [TypeOrmModule.forFeature([Registration, Admin, Brand, BrandFranchise, BrandCategory], 'mysqldb')],
   controllers: [UsersController],
   providers: [UsersService, CommonService, ConfigService],
+  exports: [UsersService, CommonService, ConfigService],
 })
 export class UsersModule {}

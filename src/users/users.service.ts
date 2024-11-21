@@ -684,4 +684,13 @@ export class UsersService {
       throw error;
     }
   }
+
+  async getBrandIdBySlug(slug: string){
+    try {
+      const user = await this.usersRepository.findOne({ where: { brand_url: slug }, select: ["id"] });
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
