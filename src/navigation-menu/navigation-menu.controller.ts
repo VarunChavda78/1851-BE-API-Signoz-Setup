@@ -4,7 +4,10 @@ import { Controller,Post,Body,Get,Put,Delete,Param,NotFoundException,
 import {NavigationCreateDto,NavigationUpdateDto} from './dtos/navigation-create-dto'
 import  {NavigationMenuService} from './navigation-menu.service'
 
-@Controller('navigation-menu')
+@Controller({
+  path: 'navigation-menu',
+  version: '1',
+})
 export class NavigationMenuController {
     constructor(private readonly NavigationMenuService: NavigationMenuService) {}
     @Get()
