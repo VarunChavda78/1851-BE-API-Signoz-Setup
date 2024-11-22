@@ -3,13 +3,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { NavigationMenu } from 'src/mysqldb/entities/customize-user-sidebar.entity';
 import { Repository } from 'typeorm';
 import {NavigationCreateDto,NavigationUpdateDto} from './dtos/navigation-create-dto'
+import { CommonService } from '../shared/services/common.service';
+
 
 
 @Injectable()
 export class NavigationMenuService{
     constructor(
         @InjectRepository(NavigationMenu, 'mysqldb')
-        private navigationmenuRepository: Repository<NavigationMenu>
+        private navigationmenuRepository: Repository<NavigationMenu>,
+        private commonService: CommonService,
     ){}
 
     async create(NavigationCreateDto: NavigationCreateDto): Promise<NavigationMenu> {
@@ -45,5 +48,41 @@ export class NavigationMenuService{
         
         const result = await this.navigationmenuRepository.delete(id);
         return result.affected > 0;
+      }
+      async getNavigationMenus(
+        search?: string,
+        sortBy: string = 'section_title',
+        order: 'ASC' | 'DESC' = 'ASC',
+        page: number = 1,
+        limit: number = 10,
+      ) {
+        const queryBuilder = this.navigationmenuRepository.createQueryBuilder('menu');
+      
+        // Apply search filter (search by section_title)
+        if (search) {
+          queryBuilder.andWhere('LOWER(menu.section_title) LIKE LOWER(:search)',
+             { search: `%${search}%` });
+        }
+        // Apply sorting (default sorting by section_title)
+        if (sortBy === 'section_title') {
+          queryBuilder.orderBy(`menu.${sortBy}`, order);
+        } 
+      
+        // Execute query
+        const totalRecords = await queryBuilder.getCount()
+
+        queryBuilder.skip((page - 1) * limit).take(limit);
+      
+        const data = await queryBuilder.getMany();
+      
+        // Prepare pagination response
+        const pagination = this.commonService.getPagination(totalRecords, limit, page);
+        
+        const transformedData = data.map((menu) => ({
+          id: menu.id,
+          title: menu.section_title,
+        }));
+
+        return { transformedData, pagination };
       }
 }
