@@ -83,6 +83,6 @@ export class NavigationMenuService{
           title: menu.section_title,
         }));
 
-        return { transformedData, pagination };
+        return { data:transformedData, pagination };
       }
 }
