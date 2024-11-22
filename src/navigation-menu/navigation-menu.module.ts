@@ -6,7 +6,7 @@ import { NavigationMenu } from '../mysqldb/entities/customize-user-sidebar.entit
 import { CommonService } from 'src/shared/services/common.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([NavigationMenu,CommonService],'mysqldb')],
+  imports: [TypeOrmModule.forFeature([NavigationMenu],'mysqldb')],
   providers: [NavigationMenuService,CommonService],
   controllers: [NavigationMenuController],
 })
