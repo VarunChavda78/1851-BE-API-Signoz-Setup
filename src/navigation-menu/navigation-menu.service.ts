@@ -61,7 +61,7 @@ export class NavigationMenuService{
         // Apply search filter (search by section_title)
         if (search) {
           queryBuilder.andWhere('LOWER(menu.section_title) LIKE LOWER(:search)',
-             { search: `%${search.toLowerCase()}%` });
+             { search: `%${search}%` });
         }
         // Apply sorting (default sorting by section_title)
         if (sortBy === 'section_title') {
