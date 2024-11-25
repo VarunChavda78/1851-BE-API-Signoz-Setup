@@ -1,4 +1,8 @@
-import { IsEnum, IsOptional, IsISO8601 } from 'class-validator';
+
+import { Type } from 'class-transformer';
+import { IsEnum, IsOptional, IsISO8601, IsNumber,IsString } from 'class-validator';
+import { Pagination } from '../../shared/dtos/pagination.dto';
+
 
 export class GetSiteLogDto {
   @IsEnum(['user', 'author', 'admin', 'user_author'], {
@@ -14,6 +18,24 @@ export class GetSiteLogDto {
 
   @IsOptional()
   search?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  page?: number = 1;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  limit?: number = 10;
+
+  @IsOptional()
+  @IsString()
+  sortBy?: string; 
+
+  @IsOptional()
+  @IsEnum(['ASC', 'DESC'])
+  sortOrder?: 'ASC' | 'DESC'; 
 }
 
 export interface SiteLogResponse {
@@ -24,4 +46,9 @@ export interface SiteLogResponse {
   loginTime: string;
   logoutTime: string;
   totalLogTime: string;
+}
+
+export interface PaginatedSiteLogResponse {
+  data: SiteLogResponse[];
+  pagination: Pagination;
 }

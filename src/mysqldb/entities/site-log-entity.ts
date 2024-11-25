@@ -30,8 +30,4 @@ export class SiteLog {
   @Column({ type: 'tinyint' })
   is_impersonate: boolean;
 
-  @ManyToOne(() => Registration)
-  @JoinColumn({ name: 'brandId' })
-  registration: Registration;
-
 }
