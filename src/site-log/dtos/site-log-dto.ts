@@ -18,6 +18,10 @@ export class GetSiteLogDto {
 
   @IsOptional()
   search?: string;
+  
+  @IsOptional()
+  @IsString()
+  keywordSearch?: string;
 
   @IsOptional()
   @IsNumber()
