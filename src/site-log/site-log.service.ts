@@ -25,8 +25,8 @@ export class SiteLogService {
       .leftJoin('registration', 'reg', 'sitelog.brandId = reg.id')
       .select([
         `CASE 
-          WHEN sitelog.type = 'user' THEN CONCAT(:imageUrl, reg.brandLogo)
-          ELSE CONCAT(:imageUrl, reg.photo)
+          WHEN sitelog.type = 'user' THEN CONCAT(:imageUrl,'brand/logo/', reg.brandLogo)
+          ELSE CONCAT(:imageUrl,sitelog.type,'/', reg.photo)
          END as image`,
          `CASE 
          WHEN sitelog.type = 'user' THEN reg.company
@@ -67,9 +67,8 @@ export class SiteLogService {
       );
     }
     
-
-  
     const totalRecords = await query.getCount();
+
     const validSortFields = ['date', 'username', 'type', 'loginTime', 'logoutTime', 'totalLogTime'];
   
 
@@ -80,32 +79,34 @@ export class SiteLogService {
           break;
         case 'username':
           query.orderBy(
-            'CASE WHEN reg.user_type = "user" THEN reg.user_name ELSE reg.company END',
+            'CASE WHEN sitelog.type = "user" THEN reg.company ELSE reg.user_name END',
             sortOrder
           );
           break;
         case 'loginTime':
-          if (sortOrder === 'ASC') {
-            // For ascending, sort from earliest date to latest, then earliest time to latest
-            query.orderBy('sitelog.loginDate', 'ASC')
-                 .addOrderBy('sitelog.loginTime', 'ASC');
-          } else {
-            // For descending, sort from latest date to earliest, then latest time to earliest
-            query.orderBy('sitelog.loginDate', 'DESC')
-                 .addOrderBy('sitelog.loginTime', 'DESC');
-          }
+          query.orderBy(
+            `DATE(sitelog.loginTime)`, // Sort by date first
+            sortOrder
+          ).addOrderBy(
+            `TIME(sitelog.loginTime)`, // Then sort by time if dates are the same
+            sortOrder
+          );
           break;
         case 'logoutTime':
-          query.orderBy('sitelog.loginDate', sortOrder)
-              .addOrderBy('sitelog.logoutTime', sortOrder);
+          query.orderBy('DATE(sitelog.logoutTime)',
+             sortOrder
+          ). addOrderBy(
+              'TIME(sitelog.logoutTime)',
+               sortOrder
+              );
           break;
         case 'totalLogTime':
           query.orderBy('TIMEDIFF(sitelog.logoutTime, sitelog.loginTime)', sortOrder);
           break;
         case 'type':
-          query.orderBy('reg.user_type', sortOrder);
+          query.orderBy('LOWER(sitelog.type)', sortOrder);
           break;
-      }
+              }
     } else {
       // Default sorting
       query.orderBy('sitelog.loginDate', 'ASC');
