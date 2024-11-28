@@ -32,6 +32,7 @@ resource "aws_ecs_service" "main" {
     container_name   = "nginx"
     container_port   = var.nginx_container_port
   }
+   enable_ecs_managed_tags = true
 }
 
 resource "aws_security_group" "ecs-task" {
