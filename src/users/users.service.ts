@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { FilterDto } from './dtos/filter-dto';
 import { CommonService } from 'src/shared/services/common.service';
 import { Registration } from 'src/mysqldb/entities/registration.entity';
@@ -12,9 +12,11 @@ import { UpdateUserDto } from './dtos/edit-dto';
 import { BrandCreateDto, BrandUpdateDto } from './dtos/brand-create-dto';
 import { BrandFranchise } from 'src/mysqldb/entities/brand-franchise.entity';
 import { BrandCategory } from 'src/mysqldb/entities/brand-category.entity';
+import { RollbarLogger } from 'nestjs-rollbar';
 
 @Injectable()
 export class UsersService {
+  private logger = new Logger('UsersService');
   constructor(
     @InjectRepository(Registration, 'mysqldb')
     private usersRepository: Repository<Registration>,
@@ -28,6 +30,7 @@ export class UsersService {
     private brandCategoryRepository: Repository<BrandCategory>,
     private commonService: CommonService,
     private configservice: ConfigService,
+    private rollbarLogger: RollbarLogger,
   ) {}
 
   async findAll(filterDto?: FilterDto) {
@@ -208,7 +211,11 @@ export class UsersService {
         return { data: formattedData, pagination };
       }
     } catch (error) {
-      console.log(error);
+      this.logger.error('Error fetching users', error);
+      this.rollbarLogger.error(
+        `${this.constructor.name}.${this.findAll.name} - ${error.message}`,
+        error,
+      );
       throw error;
     }
   }
@@ -498,7 +505,11 @@ export class UsersService {
         throw new BadRequestException('Invalid request');
       }
     } catch (error) {
-      console.log(error);
+      this.logger.error('Error updating user', error);
+      this.rollbarLogger.error(
+        `${this.constructor.name}.${this.updateUser.name} - ${error.message}`,
+        error,
+      );
       throw error;
     }
   }
@@ -576,7 +587,11 @@ export class UsersService {
         };
       }
     } catch (error) {
-      console.log(error);
+      this.logger.error('Error creating brand', error);
+      this.rollbarLogger.error(
+        `${this.constructor.name}.${this.createBrand.name} - ${error.message}`,
+        error,
+      );
       throw error;
     }
   }
@@ -631,7 +646,11 @@ export class UsersService {
         message: 'Brand updated successfully',
       };
     } catch (error) {
-      console.log(error);
+      this.logger.error('Error updating brand', error);
+      this.rollbarLogger.error(
+        `${this.constructor.name}.${this.updateBrand.name} - ${error.message}`,
+        error,
+      );
       throw error;
     }
   }
@@ -668,7 +687,11 @@ export class UsersService {
       }
       return formattedData;
     } catch (error) {
-      console.log(error);
+      this.logger.error('Error fetching brand details', error);
+      this.rollbarLogger.error(
+        `${this.constructor.name}.${this.getBrandDetails.name} - ${error.message}`,
+        error,
+      );
       throw error;
     }
   }
@@ -681,6 +704,11 @@ export class UsersService {
         message: 'Brand categories fetched successfully',
       };
     } catch (error) {
+      this.logger.error('Error fetching brand categories', error);
+      this.rollbarLogger.error(
+        `${this.constructor.name}.${this.getBrandCategories.name} - ${error.message}`,
+        error,
+      );
       throw error;
     }
   }
@@ -690,6 +718,11 @@ export class UsersService {
       const user = await this.usersRepository.findOne({ where: { brand_url: slug }, select: ["id"] });
       return user;
     } catch (error) {
+      this.logger.error('Error fetching brand by slug', error);
+      this.rollbarLogger.error(
+        `${this.constructor.name}.${this.getBrandIdBySlug.name} - ${error.message}`,
+        error,
+      );
       throw error;
     }
   }
