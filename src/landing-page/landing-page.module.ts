@@ -9,6 +9,8 @@ import { LandingPageRepository } from './landing-page.repository';
 import { LandingPageCustomisationRepository } from './landing-page-customisation.repository';
 import { LandingPageSectionRepository } from './landing-page-section.repository'; // Import new repository
 import { UsersModule } from 'src/users/users.module';
+import { LandingPagePublish } from './landing-page-publish.entity';
+import { LandingPagePublishRepository } from './landing-page-publish.repository';
 
 @Module({
   imports: [
@@ -16,6 +18,7 @@ import { UsersModule } from 'src/users/users.module';
       LandingPage,
       LandingPageCustomisation,
       LandingPageSection,
+      LandingPagePublish,
     ]),
     UsersModule,
   ],
@@ -25,6 +28,7 @@ import { UsersModule } from 'src/users/users.module';
     LandingPageRepository,
     LandingPageCustomisationRepository,
     LandingPageSectionRepository,
+    LandingPagePublishRepository
   ],
 })
 export class LandingPageModule {}
