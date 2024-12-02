@@ -26,7 +26,10 @@ export class NavigationMenuService {
   ): Promise<NavigationMenu> {
    try {
      const franchiseInfo =
-       this.navigationmenuRepository.create(NavigationCreateDto);
+       this.navigationmenuRepository.create({
+         ...NavigationCreateDto,
+         user_id: '0',
+       });
      return await this.navigationmenuRepository.save(franchiseInfo);
    } catch (error) {
     this.logger.error('Error creating navigation menu', error);
@@ -83,7 +86,10 @@ export class NavigationMenuService {
       }
   
       Object.assign(franchiseInfo, NavigationUpdateDto);
-      return await this.navigationmenuRepository.save(franchiseInfo);
+      return await this.navigationmenuRepository.save({
+        ...franchiseInfo,
+        user_id: '0',
+      });
     } catch (error) {
       this.logger.error('Error updating navigation menu item', error);
       this.rollbarLogger.error(
@@ -120,8 +126,9 @@ export class NavigationMenuService {
     limit: number = 10,
   ) {
     try {
-      const queryBuilder =
-        this.navigationmenuRepository.createQueryBuilder('menu');
+      const queryBuilder = this.navigationmenuRepository
+        .createQueryBuilder('menu')
+        .where('menu.user_id = :id', { id: '0' });
   
       // Apply search filter (search by section_title)
       if (search) {
