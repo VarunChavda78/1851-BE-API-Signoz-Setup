@@ -48,6 +48,47 @@ export class LandingPageController {
     }
   }
 
+  @Post('publish/:slug')
+  async createOrUpdatePublish(
+    @Param('slug') slug: string,
+    @Body() publishDto: { publishStatus: boolean; domainType: string; domain?: string },
+  ) {
+    try {
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
+      }
+      const data = await this.landingPageService.createOrUpdatePublish(
+        brand?.id,
+        publishDto,
+      );
+      return {
+        status: true,
+        message: 'Publish data saved successfully',
+        data,
+      };
+    } catch (err) {
+      return { status: false, message: err?.message };
+    }
+  }
+
+  @Get('publish/:slug')
+  async getPublishData(@Param('slug') slug: string) {
+    try {
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
+      }
+      const publishData = await this.landingPageService.getPublishData(brand?.id);
+      return {
+        status: true,
+        data: publishData,
+      };
+    } catch (err) {
+      return { status: false, message: err?.message };
+    }
+  }
+
   @Get(':slug/:sectionSlug')
   async findSection(
     @Param('slug') slug: string,

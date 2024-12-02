@@ -4,6 +4,7 @@ import { LandingPage } from './landing-page.entity'; // Ensure correct path
 import { LandingPageSectionRepository } from './landing-page-section.repository';
 import { LandingPageCustomisationRepository } from './landing-page-customisation.repository';
 import { RollbarLogger } from 'nestjs-rollbar';
+import { LandingPagePublishRepository } from './landing-page-publish.repository';
 
 @Injectable()
 export class LandingPageService {
@@ -13,6 +14,7 @@ export class LandingPageService {
     private readonly landingPageCustomisationRepository: LandingPageCustomisationRepository,
     private readonly landingPageSectionRepository: LandingPageSectionRepository,
     private readonly rollbarLogger: RollbarLogger,
+    private readonly landingPagePublishRepository: LandingPagePublishRepository
   ) {}
 
   async findOne(brandId: number) {
@@ -136,6 +138,48 @@ export class LandingPageService {
         `${this.constructor.name}.${this.createOrUpdateSection.name} - ${error.message}`,
         error,
       );
+      throw error;
+    }
+  }
+
+  async createOrUpdatePublish(brandId: number, publishDto: any) {
+    try {
+      const existingPublish = await this.landingPagePublishRepository.findOne({
+        where: { brandId },
+      });
+
+      if (existingPublish) {
+        // Update existing publish record
+        existingPublish.status = publishDto.publishStatus;
+        existingPublish.domainType = publishDto.publishStatus ? publishDto.domainType === 'sub-domain' ? 1 : 2 : null; // Map to integer
+        existingPublish.domain = publishDto.domain || null;
+        existingPublish.updatedBy = 1; // Assuming constant value for now
+        return await this.landingPagePublishRepository.save(existingPublish);
+      } else {
+        // Create new publish record
+        const newPublish = this.landingPagePublishRepository.create({
+          brandId,
+          status: publishDto.publishStatus,
+          domainType: publishDto.domainType === 'sub-domain' ? 1 : 2, // Map to integer
+          domain: publishDto.domain || null,
+          createdBy: 1, // Assuming constant value for now
+          updatedBy: 1, // Assuming constant value for now
+        });
+        return await this.landingPagePublishRepository.save(newPublish);
+      }
+    } catch (error) {
+      this.logger.error('Error creating or updating publish data', error);
+      throw error;
+    }
+  }
+
+  async getPublishData(brandId: number) {
+    try {
+      return await this.landingPagePublishRepository.findOne({
+        where: { brandId },
+      });
+    } catch (error) {
+      this.logger.error('Error retrieving publish data', error);
       throw error;
     }
   }
