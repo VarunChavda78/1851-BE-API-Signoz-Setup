@@ -3,7 +3,10 @@ import { SiteLogService } from './site-log.service';
 import { GetSiteLogDto, SiteLogResponse ,PaginatedSiteLogResponse} from './dtos/site-log-dto';
 import { SiteLog } from '../mysqldb/entities/site-log-entity';
 
-@Controller('site-log')
+@Controller({
+  path: 'site-log',
+  version: '1',
+})
 export class SiteLogController {
   constructor(private readonly siteLogService: SiteLogService) {}
 

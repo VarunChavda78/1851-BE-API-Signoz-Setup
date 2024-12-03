@@ -5,10 +5,11 @@ import {SiteLog} from '../mysqldb/entities/site-log-entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CommonService } from '../shared/services/common.service';
 import { ConfigService } from '@nestjs/config';
+import { Registration } from 'src/mysqldb/entities/registration.entity';
 
 
 @Module({
-  imports: [TypeOrmModule.forFeature([SiteLog], 'mysqldb')],
+  imports: [TypeOrmModule.forFeature([SiteLog,Registration], 'mysqldb')],
   providers: [SiteLogService,CommonService,ConfigService],
   controllers: [SiteLogController]
 })

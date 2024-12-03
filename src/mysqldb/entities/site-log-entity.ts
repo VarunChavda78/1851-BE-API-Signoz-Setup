@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column,ManyToOne ,JoinColumn} from 'typeorm';
 import {Registration} from './registration.entity'
 
-@Entity('sitelog') 
+@Entity('site_log') 
 export class SiteLog {
   @PrimaryGeneratedColumn()
   id: number;
