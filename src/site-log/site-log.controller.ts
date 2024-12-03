@@ -1,7 +1,6 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query,HttpException,HttpStatus} from '@nestjs/common';
 import { SiteLogService } from './site-log.service';
-import { GetSiteLogDto, SiteLogResponse ,PaginatedSiteLogResponse} from './dtos/site-log-dto';
-import { SiteLog } from '../mysqldb/entities/site-log-entity';
+import { GetSiteLogDto ,PaginatedSiteLogResponse} from './dtos/site-log-dto';
 
 @Controller({
   path: 'site-log',
@@ -12,6 +11,13 @@ export class SiteLogController {
 
   @Get()
   async getSiteLogs(@Query() filter: GetSiteLogDto): Promise<PaginatedSiteLogResponse> {
-    return this.siteLogService.getSiteLogs(filter);
+    try{
+      return await this.siteLogService.getSiteLogs(filter);
+      }catch (error) {
+    throw new HttpException({
+      status: HttpStatus.NOT_FOUND,
+      error: 'Sitelog information not found',
+    }, HttpStatus.NOT_FOUND);
   }
+}
 }
