@@ -52,7 +52,7 @@ export class NavigationMenuService {
       }
       const baseImageUrl = `${this.configService.get(
         's3.imageUrl',
-      )}/home-navigation-menu/`;
+      )}/navigationItem/`;
   
       const keys = Object.keys(franchiseInfo);
   
