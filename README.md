@@ -21,9 +21,10 @@ $ copy .env.example to .env file
   3. Open [http://apiadmin2.localhost/v1] with your browser to see the result.
 
   4. For a visual guide on the setup process, watch this Loom video:
-   ```https://www.loom.com/share/989df5f45efd4c1c9e5266c1c301411f?sid=ef9ee336-99fd-42e8-b772-1e5e91f95f72
+   ```bash
+    https://www.loom.com/share/989df5f45efd4c1c9e5266c1c301411f?sid=ef9ee336-99fd-42e8-b772-1e5e91f95f72
    ```
-   
+
   5. You can start editing the page by modifying `src/app.service.ts`. The page auto-updates as you edit the file.
 
 
