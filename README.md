@@ -10,17 +10,24 @@ $ copy .env.example to .env file
  # Access the app http://localhost:3000/v1
 ```
 
-## Docker
+## LOCAL SETUP (Docker)
 
-```bash
-$ cp .env.example .env
-$ docker-compose up -d --build
- # Access the app http://localhost:3000/v1
+  1. First, add a `.env` file manually in the root folder.
 
-```
+  2. Then run the command:
+  ```bash
+    docker-compose up -d --build
+  ```
+  3. Open [http://apiadmin2.localhost/v1] with your browser to see the result.
+
+  4. For a visual guide on the setup process, watch this Loom video:
+   ```bash
+    https://www.loom.com/share/989df5f45efd4c1c9e5266c1c301411f?sid=ef9ee336-99fd-42e8-b772-1e5e91f95f72
+   ```
+
+  5. You can start editing the page by modifying `src/app.service.ts`. The page auto-updates as you edit the file.
 
 
-```
   for PD ADMIN
   access url: localhost:8888
   PGADMIN_DEFAULT_EMAIL: admin@gmail.com
