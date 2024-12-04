@@ -8,6 +8,9 @@ export class LandingPagePublish {
   @Column()
   brandId: number;
 
+  @Column({ nullable: true })
+  brandSlug: string;
+
   @Column()
   status: boolean;
 

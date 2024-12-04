@@ -1,16 +1,41 @@
-import { Controller, Get, Post, Param, Body } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Logger } from '@nestjs/common';
 import { LandingPageService } from './landing-page.service';
 import { UsersService } from 'src/users/users.service';
+import { LandingPagePublishRepository } from './landing-page-publish.repository';
 
 @Controller({
   version: '1',
   path: 'landing-page',
 })
 export class LandingPageController {
+  private logger = new Logger('LandingPageController');
+
   constructor(
     private readonly landingPageService: LandingPageService,
+    private readonly landingPagePublishRepository: LandingPagePublishRepository,
     private readonly usersService: UsersService,
   ) {}
+
+  @Get('mapped-domain')
+  async getMappedDomains() {
+    try {
+      const mappedDomains = await this.landingPagePublishRepository.find({
+        where: { domainType: 2 },
+      });
+
+      const result: { [domain: string]: string } = {};
+      mappedDomains.forEach((item) => {
+        if (item.domain && item.brandSlug) {
+          result[item.domain] = item.brandSlug;
+        }
+      });
+
+      return {status: true, data: result};
+    } catch (error) {
+      this.logger.error('Error retrieving mapped domains', error); 
+      return {status: false, error}; 
+    }
+  }
 
   @Get(':brandId')
   async getSection(@Param('brandId') brandId: number) {
@@ -61,6 +86,7 @@ export class LandingPageController {
       const data = await this.landingPageService.createOrUpdatePublish(
         brand?.id,
         publishDto,
+        slug
       );
       return {
         status: true,
