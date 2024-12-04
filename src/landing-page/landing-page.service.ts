@@ -142,7 +142,7 @@ export class LandingPageService {
     }
   }
 
-  async createOrUpdatePublish(brandId: number, publishDto: any) {
+  async createOrUpdatePublish(brandId: number, publishDto: any, slug: string) {
     try {
       const existingPublish = await this.landingPagePublishRepository.findOne({
         where: { brandId },
@@ -153,6 +153,7 @@ export class LandingPageService {
         existingPublish.status = publishDto.publishStatus;
         existingPublish.domainType = publishDto.publishStatus ? publishDto.domainType === 'sub-domain' ? 1 : 2 : null; // Map to integer
         existingPublish.domain = publishDto.domain || null;
+        existingPublish.brandSlug = slug || null,
         existingPublish.updatedBy = 1; // Assuming constant value for now
         return await this.landingPagePublishRepository.save(existingPublish);
       } else {
@@ -162,6 +163,7 @@ export class LandingPageService {
           status: publishDto.publishStatus,
           domainType: publishDto.domainType === 'sub-domain' ? 1 : 2, // Map to integer
           domain: publishDto.domain || null,
+          brandSlug: slug || null,
           createdBy: 1, // Assuming constant value for now
           updatedBy: 1, // Assuming constant value for now
         });
