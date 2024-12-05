@@ -37,39 +37,20 @@ export class LandingPageController {
     }
   }
 
-  @Get(':brandId')
-  async getSection(@Param('brandId') brandId: number) {
+  @Get('domain/list')
+  async getDomainsList() {
     try {
-      const page = await this.landingPageService.findOne(brandId);
-      if (!page) {
-        throw new Error(`Content not found for this brand id ${brandId}.`);
-      }
-      return {
-        status: true,
-        content: page?.content || '',
-      };
-    } catch (err) {
-      return { status: false, message: err?.message, content: '' };
-    }
-  }
+      const landingPageData = await this.landingPagePublishRepository.find({
+        select: ['domain'],
+        where: { domainType: 2 },
+      });
 
-  @Post(':brandId')
-  async createOrUpdate(
-    @Param('brandId') brandId: number,
-    @Body() createLandingPageDto: any,
-  ) {
-    try {
-      const data = await this.landingPageService.createOrUpdate(
-        brandId,
-        createLandingPageDto,
-      );
-      return {
-        status: true,
-        message: data?.message,
-        content: data?.page?.content,
-      };
-    } catch (err) {
-      return { status: false, message: err?.message };
+      const data = landingPageData?.map(item => item.domain)
+
+      return {status: true, data: data || []};
+    } catch (error) {
+      this.logger.error('Error retrieving domain list', error); 
+      return {status: false, error}; 
     }
   }
 
@@ -109,6 +90,42 @@ export class LandingPageController {
       return {
         status: true,
         data: publishData,
+      };
+    } catch (err) {
+      return { status: false, message: err?.message };
+    }
+  }
+
+  @Get(':brandId')
+  async getSection(@Param('brandId') brandId: number) {
+    try {
+      const page = await this.landingPageService.findOne(brandId);
+      if (!page) {
+        throw new Error(`Content not found for this brand id ${brandId}.`);
+      }
+      return {
+        status: true,
+        content: page?.content || '',
+      };
+    } catch (err) {
+      return { status: false, message: err?.message, content: '' };
+    }
+  }
+
+  @Post(':brandId')
+  async createOrUpdate(
+    @Param('brandId') brandId: number,
+    @Body() createLandingPageDto: any,
+  ) {
+    try {
+      const data = await this.landingPageService.createOrUpdate(
+        brandId,
+        createLandingPageDto,
+      );
+      return {
+        status: true,
+        message: data?.message,
+        content: data?.page?.content,
       };
     } catch (err) {
       return { status: false, message: err?.message };
