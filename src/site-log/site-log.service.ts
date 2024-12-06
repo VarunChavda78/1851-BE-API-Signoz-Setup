@@ -23,16 +23,18 @@ export class SiteLogService {
 async getSiteLogs(filter: GetSiteLogDto): Promise<PaginatedSiteLogResponse> {
   try {
     const { 
-      type, 
-      loginDate, 
+      type,  
+      loginDate,
       page = 1, 
       limit = 10, 
       search,
       keywordSearch,
       sortBy = 'date', 
-      sortOrder = 'ASC' 
+      sortOrder = 'ASC',
+      startDate='',
+      endDate=''
     } = filter;
-  
+    
     // Helper function to get registration details
     const getRegistrationDetails = async (brandId: number) => {
       try {
@@ -69,7 +71,16 @@ async getSiteLogs(filter: GetSiteLogDto): Promise<PaginatedSiteLogResponse> {
     const query = this.siteLogRepository
       .createQueryBuilder('sitelog')
       .select(['sitelog']);
-  
+
+      if (startDate && endDate) {
+        const startDateTime = new Date(startDate).toISOString(); // Start date
+        const endDateTime = new Date(new Date(endDate).setHours(23, 59, 59, 999)).toISOString(); // End date including full day
+        
+        query.andWhere('sitelog.loginTime BETWEEN :startDate AND :endDate', {
+          startDate:startDateTime,
+          endDate:endDateTime
+        });
+      }
   
     // Apply filters
     if (type && loginDate) {
