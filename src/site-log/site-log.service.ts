@@ -72,29 +72,29 @@ async getSiteLogs(filter: GetSiteLogDto): Promise<PaginatedSiteLogResponse> {
       .createQueryBuilder('sitelog')
       .select(['sitelog']);
 
-      if (startDate && endDate) {
-        const startDateTime = new Date(startDate).toISOString(); // Start date
-        const endDateTime = new Date(new Date(endDate).setHours(23, 59, 59, 999)).toISOString(); // End date including full day
-        
-        query.andWhere('sitelog.loginTime BETWEEN :startDate AND :endDate', {
-          startDate:startDateTime,
-          endDate:endDateTime
-        });
-      }
-  
-    // Apply filters
-    if (type && loginDate) {
+    if (type && startDate && endDate) {
+      const startDateTime = new Date(startDate).toISOString(); // Start date
+      const endDateTime = new Date(new Date(endDate).setHours(23, 59, 59, 999)).toISOString(); // End date including full day
+    
       query.where('sitelog.type = :type', { type })
-           .andWhere('(DATE(sitelog.loginTime) = :loginDate OR DATE(sitelog.logoutTime) = :loginDate)', { loginDate });
+           .andWhere('sitelog.loginTime BETWEEN :startDateTime AND :endDateTime', {
+             startDateTime,
+             endDateTime
+           });
     } else {
       if (type) {
         query.where('sitelog.type = :type', { type });
       }
-      if (loginDate) {
-        query.andWhere('(DATE(sitelog.loginTime) = :loginDate OR DATE(sitelog.logoutTime) = :loginDate)', { loginDate });
+      if (startDate && endDate) {
+        const startDateTime = new Date(startDate).toISOString();
+        const endDateTime = new Date(new Date(endDate).setHours(23, 59, 59, 999)).toISOString();
+        
+        query.andWhere('sitelog.loginTime  BETWEEN :startDateTime AND :endDateTime', {
+          startDateTime,
+          endDateTime
+        });
       }
     }
-  
     // Sorting logic
     const validSortFields = ['date', 'type', 'loginTime', 'logoutTime'];
     
@@ -131,7 +131,7 @@ async getSiteLogs(filter: GetSiteLogDto): Promise<PaginatedSiteLogResponse> {
         totalLogTime: result.totalTime? result.totalTime.toString():''
     }}));
   
-  const filteredData = keywordSearch||search
+  const filteredData = keywordSearch
     ? dataWithRegistration.filter((item) => {
         const searchTerm = (keywordSearch||search).toLowerCase();
         return (
@@ -143,7 +143,12 @@ async getSiteLogs(filter: GetSiteLogDto): Promise<PaginatedSiteLogResponse> {
           item.totalLogTime?.toLowerCase().includes(searchTerm)
         );
       })
-    : dataWithRegistration;
+      : (search
+        ? dataWithRegistration.filter((item) => {
+            const searchTerm = search.toLowerCase();
+            return item.username?.toLowerCase().includes(searchTerm);
+          })
+        : dataWithRegistration);
   
     // Sort based on username
     if (sortBy === 'username') {
