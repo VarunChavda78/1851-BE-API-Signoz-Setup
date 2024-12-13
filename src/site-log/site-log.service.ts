@@ -23,18 +23,16 @@ export class SiteLogService {
 async getSiteLogs(filter: GetSiteLogDto): Promise<PaginatedSiteLogResponse> {
   try {
     const { 
-      type,  
-      loginDate,
+      type, 
+      loginDate, 
       page = 1, 
       limit = 10, 
       search,
       keywordSearch,
       sortBy = 'date', 
-      sortOrder = 'ASC',
-      startDate='',
-      endDate=''
+      sortOrder = 'ASC' 
     } = filter;
-    
+  
     // Helper function to get registration details
     const getRegistrationDetails = async (brandId: number) => {
       try {
@@ -71,30 +69,21 @@ async getSiteLogs(filter: GetSiteLogDto): Promise<PaginatedSiteLogResponse> {
     const query = this.siteLogRepository
       .createQueryBuilder('sitelog')
       .select(['sitelog']);
-
-    if (type && startDate && endDate) {
-      const startDateTime = new Date(startDate).toISOString(); // Start date
-      const endDateTime = new Date(new Date(endDate).setHours(23, 59, 59, 999)).toISOString(); // End date including full day
-    
+  
+  
+    // Apply filters
+    if (type && loginDate) {
       query.where('sitelog.type = :type', { type })
-           .andWhere('sitelog.loginTime BETWEEN :startDateTime AND :endDateTime', {
-             startDateTime,
-             endDateTime
-           });
+           .andWhere('(DATE(sitelog.loginTime) = :loginDate OR DATE(sitelog.logoutTime) = :loginDate)', { loginDate });
     } else {
       if (type) {
         query.where('sitelog.type = :type', { type });
       }
-      if (startDate && endDate) {
-        const startDateTime = new Date(startDate).toISOString();
-        const endDateTime = new Date(new Date(endDate).setHours(23, 59, 59, 999)).toISOString();
-        
-        query.andWhere('sitelog.loginTime  BETWEEN :startDateTime AND :endDateTime', {
-          startDateTime,
-          endDateTime
-        });
+      if (loginDate) {
+        query.andWhere('(DATE(sitelog.loginTime) = :loginDate OR DATE(sitelog.logoutTime) = :loginDate)', { loginDate });
       }
     }
+  
     // Sorting logic
     const validSortFields = ['date', 'type', 'loginTime', 'logoutTime'];
     
@@ -131,7 +120,7 @@ async getSiteLogs(filter: GetSiteLogDto): Promise<PaginatedSiteLogResponse> {
         totalLogTime: result.totalTime? result.totalTime.toString():''
     }}));
   
-  const filteredData = keywordSearch
+  const filteredData = keywordSearch||search
     ? dataWithRegistration.filter((item) => {
         const searchTerm = (keywordSearch||search).toLowerCase();
         return (
@@ -143,12 +132,7 @@ async getSiteLogs(filter: GetSiteLogDto): Promise<PaginatedSiteLogResponse> {
           item.totalLogTime?.toLowerCase().includes(searchTerm)
         );
       })
-      : (search
-        ? dataWithRegistration.filter((item) => {
-            const searchTerm = search.toLowerCase();
-            return item.username?.toLowerCase().includes(searchTerm);
-          })
-        : dataWithRegistration);
+    : dataWithRegistration;
   
     // Sort based on username
     if (sortBy === 'username') {

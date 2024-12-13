@@ -14,14 +14,7 @@ export class GetSiteLogDto {
   @IsISO8601({}, { 
     message: 'Date must be in YYYY-MM-DD format' 
   })
-  loginDate?:string;
-  @IsOptional()
-  @IsISO8601()
-  startDate?: string;
-
-  @IsOptional()
-  @IsISO8601()
-  endDate?: string;
+  loginDate?: string;
 
   @IsOptional()
   search?: string;
