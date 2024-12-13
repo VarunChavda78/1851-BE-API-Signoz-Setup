@@ -182,13 +182,11 @@ async getSiteLogs(filter: GetSiteLogDto): Promise<PaginatedSiteLogResponse> {
     // Final Pagination
    
    const totalRecords = filteredData.length;
-   const limitNum=Number(limit);
-   const pageNum=Number(page);
-   const totalPages = Math.max(1, Math.ceil(totalRecords /limitNum));
-   const paginatedData = filteredData.slice((pageNum - 1) *limitNum, pageNum * limitNum);
+   const totalPages = Math.max(1, Math.ceil(totalRecords / limit));
+   const paginatedData = filteredData.slice((page - 1) * limit, page * limit);
   
    // Final Pagination
-   const pagination = this.commonService.getPagination(totalRecords, limitNum, pageNum);
+   const pagination = this.commonService.getPagination(totalRecords, limit, page);
   
    return {
      data: paginatedData,
