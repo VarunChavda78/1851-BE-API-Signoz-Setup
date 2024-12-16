@@ -11,7 +11,6 @@ import { EmailModule } from './email/email.module';
 import { S3Module } from './s3/s3.module';
 import { LandingPageModule } from './landing-page/landing-page.module';
 import { NavigationMenuModule } from './navigation-menu/navigation-menu.module';
-import { SiteLogModule } from './site-log/site-log.module';
 
 @Module({
   imports: [
@@ -34,7 +33,6 @@ import { SiteLogModule } from './site-log/site-log.module';
     S3Module,
     LandingPageModule,
     NavigationMenuModule,
-    SiteLogModule
   ],
   controllers: [AppController],
   providers: [AppService],
