@@ -9,4 +9,5 @@ RUN yarn install --frozen-lockfile
 
 RUN yarn run build 
 
-CMD yarn run start:prod
+CMD /bin/sh -c "yarn run deploy:prod || exit 1"
+
