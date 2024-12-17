@@ -12,7 +12,7 @@ const typeOrmConfig = new DataSource({
   username: process.env.DB_USER,
   password: process.env.DB_PASS,
   entities: [__dirname + '/src/**/*.entity{.ts,.js}'],
-  migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
+  migrations: [__dirname + '/src/migrations/**/*{.ts,.js}'],
   migrationsRun: false,
   synchronize: false,
 });
