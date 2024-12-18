@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Body, Logger } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Logger,Query } from '@nestjs/common';
 import { LandingPageService } from './landing-page.service';
 import { UsersService } from 'src/users/users.service';
 import { LandingPagePublishRepository } from './landing-page-publish.repository';
@@ -36,7 +36,29 @@ export class LandingPageController {
       return {status: false, error}; 
     }
   }
+  @Post('leads')
+  async createLead(@Param('slug') slug: string,
+   @Body() leadDataDto:{  firstName: string; lastName: string; email: string; phone?: string;
+    city?: string;state?: string;zip?: string;interest?: string;} ) {
+    try {
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
+      }
 
+      const lead = await this.landingPageService.createLead(brand.id, leadDataDto);
+
+      return {
+        status: true,
+        message: 'Lead has been added successfully',
+      };
+    } catch (err) {
+      return {
+        status: false,
+        message: err?.message,
+      };
+    }
+  }
   @Get(':brandId')
   async getSection(@Param('brandId') brandId: number) {
     try {

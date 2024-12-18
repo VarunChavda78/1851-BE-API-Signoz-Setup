@@ -5,6 +5,7 @@ import { LandingPageSectionRepository } from './landing-page-section.repository'
 import { LandingPageCustomisationRepository } from './landing-page-customisation.repository';
 import { RollbarLogger } from 'nestjs-rollbar';
 import { LandingPagePublishRepository } from './landing-page-publish.repository';
+import { LandingPageLeadsRepository } from './landing-page-leads.repository';
 
 @Injectable()
 export class LandingPageService {
@@ -14,7 +15,8 @@ export class LandingPageService {
     private readonly landingPageCustomisationRepository: LandingPageCustomisationRepository,
     private readonly landingPageSectionRepository: LandingPageSectionRepository,
     private readonly rollbarLogger: RollbarLogger,
-    private readonly landingPagePublishRepository: LandingPagePublishRepository
+    private readonly landingPagePublishRepository: LandingPagePublishRepository,
+    private readonly landingPageLeadsRepository: LandingPageLeadsRepository,
   ) {}
 
   async findOne(brandId: number) {
@@ -184,5 +186,28 @@ export class LandingPageService {
       this.logger.error('Error retrieving publish data', error);
       throw error;
     }
+  }
+
+  async createLead(brandId: number, leadDataDto: any): Promise<any> {
+    try{
+      const newLead = this.landingPageLeadsRepository.create({
+        brandId,
+        firstName: leadDataDto.firstName,
+        lastName: leadDataDto.lastName,
+        email: leadDataDto.email,
+        phone: leadDataDto.phone,
+        city: leadDataDto.city,
+        state: leadDataDto.state,
+        zip: leadDataDto.zip,
+        interest: leadDataDto.interest,
+      });
+  
+      return this.landingPageLeadsRepository.save(newLead);
+    }
+    catch (error) {
+      this.logger.error('Error creating lead', error);
+      throw error;
+    }
+    
   }
 }
