@@ -94,8 +94,8 @@ jobs:
 
       - name: Upload Trivy Report to S3
         run: |
-          web_report_url="https://s3.amazonaws.com/1851-growth-club-image-reports/Admin-Be-Api-report.html"
-          aws s3 cp Admin-Be-Api-report.html s3://1851-growth-club-image-reports/Admin-Be-Api-report.html
+          web_report_url="https://s3.amazonaws.com/1851-trivi-reports/Admin-Be-Api-report.html"
+          aws s3 cp Admin-Be-Api-report.html s3://1851-trivi-reports/Admin-Be-Api-report.html
           echo "Web scan report uploaded: $web_report_url"
 
       - name: Fail Pipeline if Critical Vulnerabilities Found
