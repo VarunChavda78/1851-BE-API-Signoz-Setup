@@ -59,11 +59,59 @@ jobs:
                 docker push $ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG
                 echo "nginx=$ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
+  Scan:
+    name: "Scan"
+    runs-on: "ubuntu-latest"
+    needs: Build
+    steps:
+      - name: "Checkout Code"
+        uses: "actions/checkout@v2"
+
+      - name: Configure AWS credential
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
+          aws-region: us-east-1
+    
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Install Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+          export PATH=$PATH:./bin
+
+      - name: Download HTML Template for Trivy
+        run: curl -o html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
+
+      - name: Scan WEB Image with Trivy and Generate HTML Report
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          ./bin/trivy image --timeout 10m --format template --template "@html.tpl" -o Admin-Be-Api-report.html --scanners vuln "$ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG"
+
+      - name: Upload Trivy Report to S3
+        run: |
+          web_report_url="https://s3.amazonaws.com/1851-growth-club-image-reports/Admin-Be-Api-report.html"
+          aws s3 cp Admin-Be-Api-report.html s3://1851-growth-club-image-reports/Admin-Be-Api-report.html
+          echo "Web scan report uploaded: $web_report_url"
+
+      - name: Fail Pipeline if Critical Vulnerabilities Found
+        run: |
+          if grep '<tr class="severity-CRITICAL">' web-report.html; then
+            echo "CRITICAL vulnerabilities found in WEB image. Failing the pipeline.";
+            exit 1;
+          else
+            echo "No CRITICAL vulnerabilities found in WEB image.";
+          fi              
+
   
   Deployment:
     name: "Deployment"
     runs-on: "ubuntu-latest"
-    needs: Build
+    needs: Scan
     if: ${{ github.event_name == 'push' || (github.event.inputs.deploy == 'deploy') }}
     timeout-minutes: 5
     
@@ -124,7 +172,7 @@ jobs:
   Infra-Change:
     name: "Infra-change"
     runs-on: ubuntu-latest
-    needs: Build
+    needs: Scan
     if: ${{ github.event.inputs.deploy == 'infra-change' }}
     steps:
         - name: "Checkout Code"
