@@ -75,21 +75,6 @@ export class LandingPageController {
       return { status: false, message: err?.message, content: '' };
     }
   }
-  @Get(':brandSlug')
-  async getBrandIdBySlug(@Param('brandSlug') brandSlug:string) {
-    try {
-      const brand = await this.landingPageService.getBrandIdBySlug(brandSlug);
-      if (!brand) {
-        throw new Error(` Error fetching brand by slug.`);
-      }
-      return {
-        status: true,
-        brandId: brand.brandId, 
-      };
-    } catch (err) {
-      return { status: false, message: err?.message };
-    }
-  }
 
   @Post(':brandId')
   async createOrUpdate(
