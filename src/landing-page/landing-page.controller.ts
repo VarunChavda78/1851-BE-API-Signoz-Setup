@@ -42,7 +42,7 @@ export class LandingPageController {
     city?: string;state?: string;zip?: string;interest?: string;} ) {
     try {
       const brand = await this.landingPageService.getBrandIdBySlug(slug);
-      console.log(brand);
+      
       if (!brand) {
         throw new Error(`Brand not found for slug: ${slug}`);
       }
