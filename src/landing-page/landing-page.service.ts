@@ -188,6 +188,23 @@ export class LandingPageService {
     }
   }
 
+  async getBrandIdBySlug(brandSlug: string) {
+    try {
+      const brand = await this.landingPagePublishRepository.findOne({
+        where: { brandSlug },
+        select: ['brandId'],
+      });
+      return brand;
+    } catch (error) {
+      this.logger.error('Error fetching brand details', error);
+      this.rollbarLogger.error(
+        `${this.constructor.name}.${this.findOne.name} - ${error.message}`,
+        error,
+      );
+      throw error;
+    }
+  }
+
   async createLead(brandId: number, leadDataDto: any): Promise<any> {
     try{
       const newLead = this.landingPageLeadsRepository.create({

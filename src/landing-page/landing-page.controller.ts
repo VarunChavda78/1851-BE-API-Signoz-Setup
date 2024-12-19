@@ -37,16 +37,17 @@ export class LandingPageController {
     }
   }
   @Post('leads')
-  async createLead(@Param('slug') slug: string,
+  async createLead(@Query('slug') slug: string,
    @Body() leadDataDto:{  firstName: string; lastName: string; email: string; phone?: string;
     city?: string;state?: string;zip?: string;interest?: string;} ) {
     try {
-      const brand = await this.usersService.getBrandIdBySlug(slug);
+      const brand = await this.landingPageService.getBrandIdBySlug(slug);
+      console.log(brand);
       if (!brand) {
         throw new Error(`Brand not found for slug: ${slug}`);
       }
 
-      const lead = await this.landingPageService.createLead(brand.id, leadDataDto);
+      const lead = await this.landingPageService.createLead(brand.brandId, leadDataDto);
 
       return {
         status: true,
@@ -72,6 +73,21 @@ export class LandingPageController {
       };
     } catch (err) {
       return { status: false, message: err?.message, content: '' };
+    }
+  }
+  @Get(':brandSlug')
+  async getBrandIdBySlug(@Param('brandSlug') brandSlug:string) {
+    try {
+      const brand = await this.landingPageService.getBrandIdBySlug(brandSlug);
+      if (!brand) {
+        throw new Error(` Error fetching brand by slug.`);
+      }
+      return {
+        status: true,
+        brandId: brand.brandId, 
+      };
+    } catch (err) {
+      return { status: false, message: err?.message };
     }
   }
 
