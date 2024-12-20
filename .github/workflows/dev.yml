@@ -98,14 +98,18 @@ jobs:
           aws s3 cp Admin-Be-Api-report.html s3://1851-trivi-reports/Admin-Be-Api-report.html
           echo "Web scan report uploaded: $web_report_url"
 
-      - name: Fail Pipeline if Critical Vulnerabilities Found
+      - name: Fail Pipeline if Critical Vulnerabilities with Available Fixes Found
         run: |
-          if grep '<tr class="severity-CRITICAL">' web-report.html; then
-            echo "CRITICAL vulnerabilities found in WEB image. Failing the pipeline.";
-            exit 1;
+          if grep -A 5 '<tr class="severity-CRITICAL">' Admin-Be-Api-report.html | grep -B 5 '<td class="fixed-version">[^<]'; then
+            echo "CRITICAL vulnerabilities with available fixes found in WEB image. Failing the pipeline."
+            exit 1
+          elif grep '<tr class="severity-CRITICAL">' Admin-Be-Api-report.html; then
+            echo "CRITICAL vulnerabilities found but no fixes available. Continuing pipeline."
           else
-            echo "No CRITICAL vulnerabilities found in WEB image.";
-          fi              
+            echo "No CRITICAL vulnerabilities found in WEB image."
+          fi    
+          
+                    
 
   
   Deployment:
