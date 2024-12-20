@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Param, Body, Logger,Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Param,
+  Body,
+  Logger,
+  Query,
+} from '@nestjs/common';
 import { LandingPageService } from './landing-page.service';
 import { UsersService } from 'src/users/users.service';
 import { LandingPagePublishRepository } from './landing-page-publish.repository';
@@ -30,27 +38,42 @@ export class LandingPageController {
         }
       });
 
-      return {status: true, data: result};
+      return { status: true, data: result };
     } catch (error) {
-      this.logger.error('Error retrieving mapped domains', error); 
-      return {status: false, error}; 
+      this.logger.error('Error retrieving mapped domains', error);
+      return { status: false, error };
     }
   }
   @Post('leads')
-  async createLead(@Query('slug') slug: string,
-   @Body() leadDataDto:{  firstName: string; lastName: string; email: string; phone?: string;
-    city?: string;state?: string;zip?: string;interest?: string;} ) {
+  async createLead(
+    @Query('slug') slug: string,
+    @Body()
+    leadDataDto: {
+      firstName: string;
+      lastName: string;
+      email: string;
+      phone?: string;
+      city?: string;
+      state?: string;
+      zip?: string;
+      interest?: string;
+    },
+  ) {
     try {
-      const brand = await this.landingPageService.getBrandIdBySlug(slug);
-      
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+
       if (!brand) {
         throw new Error(`Brand not found for slug: ${slug}`);
       }
 
-      const lead = await this.landingPageService.createLead(brand.brandId, leadDataDto);
+      const lead = await this.landingPageService.createLead(
+        brand.id,
+        leadDataDto,
+      );
 
       return {
         status: true,
+        id: lead.id,
         message: 'Lead has been added successfully',
       };
     } catch (err) {
@@ -99,7 +122,8 @@ export class LandingPageController {
   @Post('publish/:slug')
   async createOrUpdatePublish(
     @Param('slug') slug: string,
-    @Body() publishDto: { publishStatus: boolean; domainType: string; domain?: string },
+    @Body()
+    publishDto: { publishStatus: boolean; domainType: string; domain?: string },
   ) {
     try {
       const brand = await this.usersService.getBrandIdBySlug(slug);
@@ -109,7 +133,7 @@ export class LandingPageController {
       const data = await this.landingPageService.createOrUpdatePublish(
         brand?.id,
         publishDto,
-        slug
+        slug,
       );
       return {
         status: true,
@@ -128,7 +152,9 @@ export class LandingPageController {
       if (!brand) {
         throw new Error(`Brand not found for slug: ${slug}`);
       }
-      const publishData = await this.landingPageService.getPublishData(brand?.id);
+      const publishData = await this.landingPageService.getPublishData(
+        brand?.id,
+      );
       return {
         status: true,
         data: publishData,

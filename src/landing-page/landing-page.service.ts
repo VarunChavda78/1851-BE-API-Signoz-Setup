@@ -38,7 +38,7 @@ export class LandingPageService {
   async createOrUpdate(brandId: number, createLandingPageDto: any) {
     try {
       const existingPage = await this.findOne(brandId);
-  
+
       if (existingPage) {
         // Update existing landing page
         existingPage.content = createLandingPageDto?.content || '';
@@ -75,16 +75,15 @@ export class LandingPageService {
       const section = await this.landingPageSectionRepository.findOne({
         where: { slug: sectionSlug },
       });
-  
+
       if (!section) {
         throw new Error(`Section not found for slug: ${sectionSlug}`);
       }
-  
-      const customization = await this.landingPageCustomisationRepository.findOne(
-        {
+
+      const customization =
+        await this.landingPageCustomisationRepository.findOne({
           where: { brandId, section: { id: section.id } },
-        },
-      );
+        });
       return customization;
     } catch (error) {
       this.logger.error('Error fetching landing page section', error);
@@ -105,19 +104,21 @@ export class LandingPageService {
       const section = await this.landingPageSectionRepository.findOne({
         where: { slug: sectionSlug },
       });
-  
+
       if (!section) {
         throw new Error(`Section not found for slug: ${sectionSlug}`);
       }
-  
+
       const existingPage = await this.findSection(brandId, sectionSlug);
-  
+
       if (existingPage) {
         // Update existing customization
         existingPage.content = createLandingPageDto?.data || '';
         existingPage.updatedAt = new Date();
         return {
-          page: await this.landingPageCustomisationRepository.save(existingPage),
+          page: await this.landingPageCustomisationRepository.save(
+            existingPage,
+          ),
           message: 'Customization content updated successfully',
         };
       } else {
@@ -153,10 +154,14 @@ export class LandingPageService {
       if (existingPublish) {
         // Update existing publish record
         existingPublish.status = publishDto.publishStatus;
-        existingPublish.domainType = publishDto.publishStatus ? publishDto.domainType === 'sub-domain' ? 1 : 2 : null; // Map to integer
+        existingPublish.domainType = publishDto.publishStatus
+          ? publishDto.domainType === 'sub-domain'
+            ? 1
+            : 2
+          : null; // Map to integer
         existingPublish.domain = publishDto.domain || null;
-        existingPublish.brandSlug = slug || null,
-        existingPublish.updatedBy = 1; // Assuming constant value for now
+        (existingPublish.brandSlug = slug || null),
+          (existingPublish.updatedBy = 1); // Assuming constant value for now
         return await this.landingPagePublishRepository.save(existingPublish);
       } else {
         // Create new publish record
@@ -188,25 +193,8 @@ export class LandingPageService {
     }
   }
 
-  async getBrandIdBySlug(brandSlug: string) {
-    try {
-      const brand = await this.landingPagePublishRepository.findOne({
-        where: { brandSlug },
-        select: ['brandId'],
-      });
-      return brand;
-    } catch (error) {
-      this.logger.error('Error fetching brand details', error);
-      this.rollbarLogger.error(
-        `${this.constructor.name}.${this.findOne.name} - ${error.message}`,
-        error,
-      );
-      throw error;
-    }
-  }
-
   async createLead(brandId: number, leadDataDto: any): Promise<any> {
-    try{
+    try {
       const newLead = this.landingPageLeadsRepository.create({
         brandId,
         firstName: leadDataDto.firstName,
@@ -218,13 +206,11 @@ export class LandingPageService {
         zip: leadDataDto.zip,
         interest: leadDataDto.interest,
       });
-  
+
       return this.landingPageLeadsRepository.save(newLead);
-    }
-    catch (error) {
+    } catch (error) {
       this.logger.error('Error creating lead', error);
       throw error;
     }
-    
   }
 }
