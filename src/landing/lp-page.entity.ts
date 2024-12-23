@@ -49,6 +49,9 @@ export class LpPage {
   @UpdateDateColumn()
   updatedAt: Date;
 
+  @Column({ type: 'timestamp', nullable: true })
+  deletedAt: Date; 
+
   @ManyToOne(() => LpTemplate, (template) => template.id)
   template: LpTemplate; 
 }
