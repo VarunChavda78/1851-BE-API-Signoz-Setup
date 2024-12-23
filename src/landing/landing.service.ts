@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { LpPageRepository } from './lp-page.repository';
 import { UsersService } from 'src/users/users.service';
 import { PageStatus, PageStatusName } from './landing.constant';
@@ -19,6 +19,7 @@ export class LandingService {
       .createQueryBuilder('lp_page')
       .leftJoinAndSelect('lp_page.template', 'template')
       .where('lp_page.brandId = :brandId', { brandId: brand?.id })
+      .andWhere('lp_page.deletedAt IS NULL')
       .select([
         'lp_page.id',
         'lp_page.name',
@@ -26,11 +27,10 @@ export class LandingService {
         'lp_page.status',
         'lp_page.brandSlug',
         'lp_page.domain',
+        'lp_page.deletedAt',
         'template.name AS template_name', 
       ])
       .getRawMany();
-
-      console.log('mmm pages', pages)
 
     return pages.map((page) => ({
       id: page.lp_page_id,
@@ -66,5 +66,24 @@ export class LandingService {
     });
 
     return await this.lpPageRepository.save(newPage);
+  }
+
+  async deletePage(slug: string, lpId: number) {
+    const brand = await this.usersService.getBrandIdBySlug(slug);
+    if (!brand) {
+      throw new Error(`Brand not found for slug: ${slug}`);
+    }
+    const page = await this.lpPageRepository.findOne({
+      where: { id: lpId, brandId: brand?.id }, 
+    });
+
+    if (!page) {
+      throw new NotFoundException(`Page not found with ID: ${lpId}`);
+    }
+
+    // Soft delete - set the deletedAt field to the current timestamp
+    page.deletedAt = new Date();
+    
+    await this.lpPageRepository.save(page);
   }
 }
