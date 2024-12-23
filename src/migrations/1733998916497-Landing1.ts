@@ -1,37 +1,47 @@
-import { MigrationInterface, QueryRunner ,Table,TableForeignKey} from "typeorm";
+import {
+  MigrationInterface,
+  QueryRunner,
+  Table,
+  TableForeignKey,
+} from 'typeorm';
 
 export class Landing11733998916497 implements MigrationInterface {
-    name = 'Landing11733998916497'
+  name = 'Landing11733998916497';
 
-    public async up(queryRunner: QueryRunner): Promise<void> {
-         // ==== landing_page_section ====
-         const landingPageSectionExists = await queryRunner.hasTable('landing_page_section');
-         if (!landingPageSectionExists) {
-             await queryRunner.createTable(new Table({
-                 name: 'landing_page_section',
-                 columns: [
-                     {
-                         name: 'id',
-                         type: "serial", 
-                         isPrimary: true,
-                     },
-                     {
-                         name: 'name',
-                         type: 'varchar',
-                         length: '255',
-                         isNullable: false,
-                     },
-                     {
-                         name: 'slug',
-                         type: 'varchar',
-                         length: '255',
-                         isNullable: false,
-                         isUnique: true,
-                     },
-                 ],
-             }), true);
- 
-             await queryRunner.query(`
+  public async up(queryRunner: QueryRunner): Promise<void> {
+    // ==== landing_page_section ====
+    const landingPageSectionExists = await queryRunner.hasTable(
+      'landing_page_section',
+    );
+    if (!landingPageSectionExists) {
+      await queryRunner.createTable(
+        new Table({
+          name: 'landing_page_section',
+          columns: [
+            {
+              name: 'id',
+              type: 'serial',
+              isPrimary: true,
+            },
+            {
+              name: 'name',
+              type: 'varchar',
+              length: '255',
+              isNullable: false,
+            },
+            {
+              name: 'slug',
+              type: 'varchar',
+              length: '255',
+              isNullable: false,
+              isUnique: true,
+            },
+          ],
+        }),
+        true,
+      );
+
+      await queryRunner.query(`
                  INSERT INTO landing_page_section (id,name, slug)
                  VALUES 
                  (1,'Header', 'header'),
@@ -84,114 +94,120 @@ export class Landing11733998916497 implements MigrationInterface {
                  (49, 'T2 Footer', 't2-footer')
                  ON CONFLICT (slug) DO NOTHING;
              `);
-         }
- 
-         // ==== landing_templates ====
-         const landingPageTemplatesExists = await queryRunner.hasTable('landing_templates');
-         if (!landingPageTemplatesExists) {
-             await queryRunner.createTable(new Table({
-                 name: "landing_templates",
-                 columns: [
-                     {
-                         name: "id",
-                         type: 'serial',
-                         isPrimary: true,
-                     },
-                     {
-                         name: "name",
-                         type: "varchar",
-                         length: "255",
-                         isNullable: false,
-                     },
-                     {
-                         name: "createdBy",
-                         type: "int",
-                         isNullable: false
-                     },
-                     {
-                         name: "updatedBy",
-                         type: "int",
-                         isNullable: false
-                     },
-                     {
-                         name: "createdAt",
-                         type: "timestamp",
-                         default: "CURRENT_TIMESTAMP"
-                     },
-                     {
-                         name: "updatedAt",
-                         type: "timestamp",
-                         default: "CURRENT_TIMESTAMP"
-                     }
-                 ]
-             }), true);
- 
-             await queryRunner.query(`
+    }
+
+    // ==== landing_templates ====
+    const landingPageTemplatesExists =
+      await queryRunner.hasTable('landing_templates');
+    if (!landingPageTemplatesExists) {
+      await queryRunner.createTable(
+        new Table({
+          name: 'landing_templates',
+          columns: [
+            {
+              name: 'id',
+              type: 'serial',
+              isPrimary: true,
+            },
+            {
+              name: 'name',
+              type: 'varchar',
+              length: '255',
+              isNullable: false,
+            },
+            {
+              name: 'createdBy',
+              type: 'int',
+              isNullable: false,
+            },
+            {
+              name: 'updatedBy',
+              type: 'int',
+              isNullable: false,
+            },
+            {
+              name: 'createdAt',
+              type: 'timestamp',
+              default: 'CURRENT_TIMESTAMP',
+            },
+            {
+              name: 'updatedAt',
+              type: 'timestamp',
+              default: 'CURRENT_TIMESTAMP',
+            },
+          ],
+        }),
+        true,
+      );
+
+      await queryRunner.query(`
                 INSERT INTO landing_templates ("name", "createdBy", "updatedBy")
                  VALUES ('template1', 1, 1), ('template2', 1, 1), ('template3', 1, 1)
              `);
-         }
- 
-         // ==== landing_pages ====
-         const landingPagesExists = await queryRunner.hasTable('landing_pages');
-         if (!landingPagesExists) {
-             await queryRunner.createTable(new Table({
-                 name: "landing_pages",
-                 columns: [
-                     {
-                         name: "id",
-                         type: "serial", 
-                         isPrimary: true,
-                     },
-                     {
-                         name: "templateId",
-                         type: "int",
-                         isNullable: false
-                     },
-                     {
-                         name: "name",
-                         type: "varchar",
-                         length: "255",
-                         isNullable: false,
-                         
-                     },
-                     {
-                         name: "sequence",
-                         type: "int",
-                         isNullable: false
-                     },
-                     {
-                         name: "createdBy",
-                         type: "int",
-                         isNullable: false
-                     },
-                     {
-                         name: "updatedBy",
-                         type: "int",
-                         isNullable: false
-                     },
-                     {
-                         name: "createdAt",
-                         type: "timestamp",
-                         default: "CURRENT_TIMESTAMP"
-                     },
-                     {
-                         name: "updatedAt",
-                         type: "timestamp",
-                         default: "CURRENT_TIMESTAMP"
-                     }
-                 ],
-                 foreignKeys: [
-                     new TableForeignKey({
-                         columnNames: ["templateId"],
-                         referencedColumnNames: ["id"],
-                         referencedTableName: "landing_templates",
-                         onDelete: "CASCADE"
-                     })
-                 ],
-             }), true);
- 
-             await queryRunner.query(`
+    }
+
+    // ==== landing_pages ====
+    const landingPagesExists = await queryRunner.hasTable('landing_pages');
+    if (!landingPagesExists) {
+      await queryRunner.createTable(
+        new Table({
+          name: 'landing_pages',
+          columns: [
+            {
+              name: 'id',
+              type: 'serial',
+              isPrimary: true,
+            },
+            {
+              name: 'templateId',
+              type: 'int',
+              isNullable: false,
+            },
+            {
+              name: 'name',
+              type: 'varchar',
+              length: '255',
+              isNullable: false,
+            },
+            {
+              name: 'sequence',
+              type: 'int',
+              isNullable: false,
+            },
+            {
+              name: 'createdBy',
+              type: 'int',
+              isNullable: false,
+            },
+            {
+              name: 'updatedBy',
+              type: 'int',
+              isNullable: false,
+            },
+            {
+              name: 'createdAt',
+              type: 'timestamp',
+              default: 'CURRENT_TIMESTAMP',
+            },
+            {
+              name: 'updatedAt',
+              type: 'timestamp',
+              default: 'CURRENT_TIMESTAMP',
+            },
+          ],
+          foreignKeys: [
+            new TableForeignKey({
+              columnNames: ['templateId'],
+              referencedColumnNames: ['id'],
+              referencedTableName: 'landing_templates',
+              onDelete: 'CASCADE',
+            }),
+          ],
+        }),
+        true,
+      );
+
+      await queryRunner.query(`
                  INSERT INTO landing_pages ("templateId", "name", "sequence", "createdBy", "updatedBy")
                  VALUES 
                  (1, 'home', 1, 1, 1),
@@ -201,13 +217,12 @@ export class Landing11733998916497 implements MigrationInterface {
                  (2, 'home', 1, 1, 1),
                  (3, 'home', 1, 1, 1)
              `);
-         }
     }
+  }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.dropTable('landing_pages', true);
-        await queryRunner.dropTable('landing_templates', true);
-        await queryRunner.dropTable('landing_page_section', true);
-    }
-
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.dropTable('landing_pages', true);
+    await queryRunner.dropTable('landing_templates', true);
+    await queryRunner.dropTable('landing_page_section', true);
+  }
 }
