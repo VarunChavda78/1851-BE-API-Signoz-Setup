@@ -2,6 +2,9 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { LpPageRepository } from './lp-page.repository';
 import { UsersService } from 'src/users/users.service';
 import { PageStatus, PageStatusName } from './landing.constant';
+import { LpTemplate } from './lp-template.entity';
+import { LpSectionRepository } from './lp-section.repository';
+import { LpCustomisationRepository } from './lp-customisation.repository';
 import { PageOptionsDto } from './dtos/pageOptionsDto';
 import { PageMetaDto } from 'src/shared/dtos/pageMetaDto';
 import { PageDto } from 'src/shared/dtos/pageDto';
@@ -13,6 +16,8 @@ export class LandingService {
   constructor(
     private readonly lpPageRepository: LpPageRepository,
     private readonly usersService: UsersService,
+    private readonly lpSectionRepository: LpSectionRepository,
+    private readonly lpCustomisationRepository: LpCustomisationRepository,
     private readonly config: EnvironmentConfigService,
   ) {}
 
@@ -122,5 +127,77 @@ export class LandingService {
     page.deletedAt = new Date();
 
     await this.lpPageRepository.save(page);
+  }
+
+  async findSection(lpId: number, sectionSlug: string) {
+    try {
+      const section = await this.lpSectionRepository.findOne({
+        where: { slug: sectionSlug },
+      });
+
+      if (!section) {
+        throw new Error(`Section not found for slug: ${sectionSlug}`);
+      }
+
+      const customization = await this.lpCustomisationRepository.findOne({
+        where: { landingPageId: lpId, section: { id: section.id } },
+      });
+      return customization;
+    } catch (error) {
+      console.log('error', error);
+      throw error;
+    }
+  }
+
+  async createOrUpdateSection(
+    slug: string,
+    lpId: number,
+    sectionSlug: string,
+    createLandingPageDto: any,
+  ) {
+    try {
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
+      }
+      const section = await this.lpSectionRepository.findOne({
+        where: { slug: sectionSlug },
+      });
+
+      if (!section) {
+        throw new Error(`Section not found for slug: ${sectionSlug}`);
+      }
+
+      const existingPage = await this.findSection(lpId, sectionSlug);
+      const timestamp = new Date();
+
+      if (existingPage) {
+        // Update existing customization
+        existingPage.content = createLandingPageDto?.data || '';
+        existingPage.updatedAt = timestamp;
+        return {
+          page: await this.lpCustomisationRepository.save(existingPage),
+          message: 'Customization content updated successfully',
+        };
+      } else {
+        // Create new customization
+        const newPage = this.lpCustomisationRepository.create({
+          landingPageId: lpId,
+          section: section,
+          content: createLandingPageDto?.data || '',
+          createdBy: 1,
+          updatedBy: 1,
+          createdAt: timestamp,
+          updatedAt: timestamp,
+        });
+        return {
+          page: await this.lpCustomisationRepository.save(newPage),
+          message: 'Customization content created successfully',
+        };
+      }
+    } catch (error) {
+      console.log('error', error);
+      throw error;
+    }
   }
 }

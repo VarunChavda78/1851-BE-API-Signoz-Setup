@@ -4,7 +4,9 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
 } from 'typeorm';
+import { LpSection } from './lp-section.entity';
 
 @Entity('lp_customisation')
 export class LpCustomisation {
@@ -14,8 +16,8 @@ export class LpCustomisation {
   @Column()
   landingPageId: number;
 
-  @Column()
-  sectionId: number;
+  @ManyToOne(() => LpSection, section => section.customisations)
+  section: LpSection;
 
   @Column('json')
   content: any;

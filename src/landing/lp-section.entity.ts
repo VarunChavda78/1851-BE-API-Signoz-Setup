@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { LpCustomisation } from './lp-customisation.entity';
 
 @Entity('lp_sections')
 export class LpSection {
@@ -13,4 +14,7 @@ export class LpSection {
 
   @Column({ length: 255, unique: true })
   slug: string;
+
+  @OneToMany(() => LpCustomisation, customisation => customisation.section)
+  customisations: LpCustomisation[];  
 }
