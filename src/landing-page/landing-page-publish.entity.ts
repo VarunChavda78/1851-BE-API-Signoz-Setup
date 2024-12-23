@@ -20,6 +20,9 @@ export class LandingPagePublish {
   @Column({ nullable: true })
   domain: string;
 
+  @Column({ nullable: true })
+  customDomainStatus: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

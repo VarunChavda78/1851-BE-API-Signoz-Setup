@@ -154,6 +154,7 @@ export class LandingPageService {
       if (existingPublish) {
         // Update existing publish record
         existingPublish.status = publishDto.publishStatus;
+        existingPublish.customDomainStatus = publishDto.domainType === 'sub-domain' ? null : publishDto.customDomainStatus;
         existingPublish.domainType = publishDto.publishStatus
           ? publishDto.domainType === 'sub-domain'
             ? 1
@@ -168,6 +169,7 @@ export class LandingPageService {
         const newPublish = this.landingPagePublishRepository.create({
           brandId,
           status: publishDto.publishStatus,
+          customDomainStatus: publishDto.domainType === 'sub-domain' ? null : publishDto.customDomainStatus,
           domainType: publishDto.domainType === 'sub-domain' ? 1 : 2, // Map to integer
           domain: publishDto.domain || null,
           brandSlug: slug || null,
