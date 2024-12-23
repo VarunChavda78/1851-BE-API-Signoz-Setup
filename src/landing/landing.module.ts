@@ -9,9 +9,10 @@ import { LpStatusRepository } from './lp-status.repository';
 import { LpDomainHistoryRepository } from './lp-domain-history.repository';
 import { LpCustomisationRepository } from './lp-customisation.repository';
 import { UsersModule } from 'src/users/users.module';
+import { SharedModule } from 'src/shared/shared.module';
 
 @Module({
-  imports: [UsersModule],
+  imports: [UsersModule, SharedModule],
   controllers: [LandingController],
   providers: [
     LandingService,

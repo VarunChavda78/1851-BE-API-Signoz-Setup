@@ -46,7 +46,6 @@ export default (): any => ({
     bucketName1903: process.env.AWS_BUCKET_NAME_1903,
     accessKey1903: process.env.AWS_ACCESS_KEY_ID_1903,
     secretKey1903: process.env.AWS_SECRET_ACCESS_KEY_1903,
-
   },
   rollbar: {
     rollbarEnvironment: process.env.APP_ENV,
@@ -65,5 +64,8 @@ export default (): any => ({
   },
   gip: {
     tenantId: process.env.GIP_TENANT_ID,
+  },
+  url: {
+    fe: process.env.FRANCHISE_1851_URL,
   },
 });

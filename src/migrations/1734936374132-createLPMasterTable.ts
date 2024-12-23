@@ -287,10 +287,12 @@ export class CreateLPMasterTable1734936374132 implements MigrationInterface {
             {
               name: 'updatedAt',
               type: 'timestamp',
+              default: 'CURRENT_TIMESTAMP',
             },
             {
               name: 'deletedAt',
               type: 'timestamp',
+              isNullable: true,
             },
           ],
         }),
@@ -413,6 +415,7 @@ export class CreateLPMasterTable1734936374132 implements MigrationInterface {
             {
               name: 'updatedAt',
               type: 'timestamp',
+              default: 'CURRENT_TIMESTAMP',
             },
             {
               name: 'createdBy',

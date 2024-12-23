@@ -5,6 +5,11 @@ import { PageStatus, PageStatusName } from './landing.constant';
 import { LpTemplate } from './lp-template.entity';
 import { LpSectionRepository } from './lp-section.repository';
 import { LpCustomisationRepository } from './lp-customisation.repository';
+import { PageOptionsDto } from './dtos/pageOptionsDto';
+import { PageMetaDto } from 'src/shared/dtos/pageMetaDto';
+import { PageDto } from 'src/shared/dtos/pageDto';
+import { DomainType } from 'src/shared/constants/constants';
+import { EnvironmentConfigService } from 'src/shared/config/environment-config.service';
 
 @Injectable()
 export class LandingService {
@@ -13,56 +18,71 @@ export class LandingService {
     private readonly usersService: UsersService,
     private readonly lpSectionRepository: LpSectionRepository,
     private readonly lpCustomisationRepository: LpCustomisationRepository,
+    private readonly config: EnvironmentConfigService,
   ) {}
 
-  async getPagesBySlug(
-    slug: string,
-    options: {
-      sort?: string;
-      order?: 'ASC' | 'DESC';
-      limit?: number;
-      page?: number;
-    },
-  ) {
-    const { sort = 'id', order = 'ASC', limit = 20, page = 1 } = options;
+  async getPagesBySlug(slug: string, pageOptions: PageOptionsDto) {
+    const {
+      page = 1,
+      limit = 10,
+      order = 'DESC',
+      sort = 'id',
+    }: any = pageOptions;
+    const skip = (page - 1) * limit;
 
     const brand = await this.usersService.getBrandIdBySlug(slug);
     if (!brand) {
       throw new Error(`Brand not found for slug: ${slug}`);
     }
-
-    const query = this.lpPageRepository
+    const queryBuilder = await this.lpPageRepository
       .createQueryBuilder('lp_page')
-      .leftJoinAndMapOne(
-        'lp_page.template',
-        LpTemplate,
-        'template',
-        'template.id = lp_page.templateId',
-      )
-      .where('lp_page.brandId = :brandId', { brandId: brand.id })
-      .andWhere('lp_page.deletedAt IS NULL');
-
-    const totalRecords = await query.getCount();
-    const pages = await query
-      .orderBy(`lp_page.${sort}`, order)
-      .skip((page - 1) * limit)
+      .leftJoinAndSelect('lp_page.template', 'template')
+      .where('lp_page.brandId = :brandId', { brandId: brand?.id })
+      .andWhere('lp_page.deletedAt IS NULL')
+      .select([
+        'lp_page.id',
+        'lp_page.name',
+        'lp_page.templateId',
+        'lp_page.status',
+        'lp_page.brandSlug',
+        'lp_page.domain',
+        'lp_page.deletedAt',
+        'template.name AS template_name',
+      ]);
+    const itemCount = await queryBuilder.getCount();
+    const validOrder = order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+    const lpPages = await queryBuilder
+      .orderBy(`lp_page.${sort}`, validOrder)
+      .skip(skip)
       .take(limit)
       .getMany();
+    const details = [];
+    if (lpPages.length) {
+      for (const data of lpPages) {
+        details.push(await this.getDetails(data));
+      }
+    }
 
-    const formattedPages = pages.map((page) => ({
+    const pageOptionsDto = {
+      page,
+      limit,
+    };
+    const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+
+    return new PageDto(details, pageMetaDto);
+  }
+  async getDetails(page) {
+    return {
       id: page.id,
       name: page.name,
-      templateType: page?.template?.name,
-      status: PageStatus[page.status],
-      url: page.domain || '',
-    }));
-
-    return {
-      data: formattedPages,
-      totalRecords,
+      templateType: page.template_name,
+      status: PageStatusName[page.status],
+      url:
+        page.domainType == DomainType.SUBDOMAIN
+          ? this.config.getFEUrl()
+          : page.domain,
     };
   }
-
   async createPage(
     slug: string,
     createPageDto: { name: string; templateId: number },
