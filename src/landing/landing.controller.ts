@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Get,
+  Delete,
 } from '@nestjs/common';
 import { LandingService } from './landing.service';
 
@@ -28,7 +29,7 @@ export class LandingController {
     } catch (error) {
       return {
         status: false,
-        data: error.message,
+        message: error.message,
       };
     }
   }
@@ -48,7 +49,24 @@ export class LandingController {
     } catch (error) {
       return {
         status: false,
-        data: error.message,
+        message: error.message,
+      };
+    }
+  }
+
+  @Delete(':slug/:lpId')
+  @HttpCode(HttpStatus.OK)
+  async deletePage(@Param('slug') slug: string, @Param('lpId') lpId: number) {
+    try {
+      await this.landingService.deletePage(slug, lpId);
+      return {
+        status: true,
+        message: 'Page deleted successfully',
+      };
+    } catch (error) {
+      return {
+        status: false,
+        message: error.message,
       };
     }
   }
