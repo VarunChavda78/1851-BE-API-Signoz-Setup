@@ -4,6 +4,6 @@ export enum PageStatus {
 }
 
 export const PageStatusName = {
-  1: 'draft',
-  2: 'publish',
+  1: 'Draft',
+  2: 'Publish',
 };

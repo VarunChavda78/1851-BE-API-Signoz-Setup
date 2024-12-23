@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { LpPageRepository } from './lp-page.repository';
 import { UsersService } from 'src/users/users.service';
 import { PageStatus, PageStatusName } from './landing.constant';
+import { LpTemplate } from './lp-template.entity';
 
 @Injectable()
 export class LandingService {
@@ -10,35 +11,52 @@ export class LandingService {
     private readonly usersService: UsersService,
   ) {}
 
-  async getPagesBySlug(slug: string) {
+  async getPagesBySlug(
+    slug: string,
+    options: {
+      sort?: string;
+      order?: 'ASC' | 'DESC';
+      limit?: number;
+      page?: number;
+    },
+  ) {
+    const { sort = 'id', order = 'ASC', limit = 20, page = 1 } = options;
+
     const brand = await this.usersService.getBrandIdBySlug(slug);
     if (!brand) {
       throw new Error(`Brand not found for slug: ${slug}`);
     }
-    const pages = await this.lpPageRepository
-      .createQueryBuilder('lp_page')
-      .leftJoinAndSelect('lp_page.template', 'template')
-      .where('lp_page.brandId = :brandId', { brandId: brand?.id })
-      .andWhere('lp_page.deletedAt IS NULL')
-      .select([
-        'lp_page.id',
-        'lp_page.name',
-        'lp_page.templateId',
-        'lp_page.status',
-        'lp_page.brandSlug',
-        'lp_page.domain',
-        'lp_page.deletedAt',
-        'template.name AS template_name', 
-      ])
-      .getRawMany();
 
-    return pages.map((page) => ({
-      id: page.lp_page_id,
-      name: page.lp_page_name,
-      templateType: page.template_name, 
-      status: PageStatusName[page.lp_page_status],
-      url: page.lp_page_domain,
+    const query = this.lpPageRepository
+      .createQueryBuilder('lp_page')
+      .leftJoinAndMapOne(
+        'lp_page.template',
+        LpTemplate,
+        'template',
+        'template.id = lp_page.templateId',
+      )
+      .where('lp_page.brandId = :brandId', { brandId: brand.id })
+      .andWhere('lp_page.deletedAt IS NULL');
+
+    const totalRecords = await query.getCount();
+    const pages = await query
+      .orderBy(`lp_page.${sort}`, order)
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
+
+    const formattedPages = pages.map((page) => ({
+      id: page.id,
+      name: page.name,
+      templateType: page?.template?.name,
+      status: PageStatus[page.status],
+      url: page.domain || '',
     }));
+
+    return {
+      data: formattedPages,
+      totalRecords,
+    };
   }
 
   async createPage(
@@ -74,7 +92,7 @@ export class LandingService {
       throw new Error(`Brand not found for slug: ${slug}`);
     }
     const page = await this.lpPageRepository.findOne({
-      where: { id: lpId, brandId: brand?.id }, 
+      where: { id: lpId, brandId: brand?.id },
     });
 
     if (!page) {
@@ -83,7 +101,7 @@ export class LandingService {
 
     // Soft delete - set the deletedAt field to the current timestamp
     page.deletedAt = new Date();
-    
+
     await this.lpPageRepository.save(page);
   }
 }

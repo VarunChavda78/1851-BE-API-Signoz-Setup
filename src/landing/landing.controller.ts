@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Get,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { LandingService } from './landing.service';
 
@@ -19,12 +20,28 @@ export class LandingController {
 
   @Get(':slug/pages')
   @HttpCode(HttpStatus.OK) // Sets the response code to 200
-  async getPages(@Param('slug') slug: string) {
+  async getPages(
+    @Param('slug') slug: string,
+    @Query('sort') sort?: string,
+    @Query('order') order: 'ASC' | 'DESC' = 'ASC',
+    @Query('limit') limit: number = 20,
+    @Query('page') page: number = 1,
+  ) {
     try {
-      const pages = await this.landingService.getPagesBySlug(slug);
+      const pages = await this.landingService.getPagesBySlug(slug, {
+        sort,
+        order,
+        limit,
+        page,
+      });
       return {
         status: true,
-        data: pages,
+        data: pages.data,
+        pagination: {
+          limit,
+          page,
+          totalRecords: pages.totalRecords,
+        },
       };
     } catch (error) {
       return {
