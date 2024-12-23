@@ -18,6 +18,9 @@ export class EnvironmentConfigService extends ConfigService {
   getAwsS3Url(): string {
     return this.get<string>('aws.s3Url');
   }
+  getFEUrl(): string {
+    return this.get<string>('url.fe');
+  }
   getSmtpHost(): string {
     return this.get<string>('smtp.host');
   }
