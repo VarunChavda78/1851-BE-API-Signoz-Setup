@@ -123,7 +123,7 @@ export class LandingPageController {
   async createOrUpdatePublish(
     @Param('slug') slug: string,
     @Body()
-    publishDto: { publishStatus: boolean; domainType: string; domain?: string },
+    publishDto: { publishStatus: boolean; domainType: string; domain?: string; customDomainStatus?: string; },
   ) {
     try {
       const brand = await this.usersService.getBrandIdBySlug(slug);
