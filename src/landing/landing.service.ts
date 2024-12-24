@@ -76,12 +76,19 @@ export class LandingService {
       id: page.id,
       name: page.name,
       templateId: page.templateId,
-      templateType: page.template_name,
+      templateType:
+        page.templateId == 1
+          ? 'Template 1'
+          : page.templateId == 2
+            ? 'Template 2'
+            : 'Template 3',
       status: PageStatusName[page.status],
       url:
         page.domainType == DomainType.SUBDOMAIN
           ? this.config.getFEUrl()
-          : page.domain,
+          : page.domainType == DomainType.CUSTOM_DOMAIN
+            ? `https://${page.domain}`
+            : '-',
     };
   }
   async createPage(
