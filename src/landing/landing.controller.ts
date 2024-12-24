@@ -12,6 +12,7 @@ import {
 import { LandingService } from './landing.service';
 import { UsersService } from 'src/users/users.service';
 import { PageOptionsDto } from './dtos/pageOptionsDto';
+import { LpPageRepository } from './lp-page.repository';
 
 @Controller({
   version: '1',
@@ -21,7 +22,98 @@ export class LandingController {
   constructor(
     private readonly landingService: LandingService,
     private readonly usersService: UsersService,
+    private readonly lpPageRepository: LpPageRepository,
   ) {}
+
+  @Get('mapped-domain')
+  async getMappedDomains() {
+    try {
+      const mappedDomains = await this.lpPageRepository.find({
+        where: { domainType: 2 },
+      });
+
+      const result: { [domain: string]: string } = {};
+      mappedDomains.forEach((item) => {
+        if (item.domain && item.brandSlug) {
+          result[item.domain] = item.brandSlug;
+        }
+      });
+
+      return { status: true, data: result };
+    } catch (error) {
+      return { status: false, error };
+    }
+  }
+
+  @Post('publish/:slug/:lpId')
+  async createOrUpdatePublish(
+    @Param('slug') slug: string,
+    @Param('lpId') lpId: number,
+    @Body()
+    publishDto: {
+      publishStatus: boolean;
+      domainType: string;
+      domain?: string;
+      customDomainStatus?: string;
+    },
+  ) {
+    try {
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
+      }
+      const data = await this.landingService.UpdatePublishData(
+        lpId,
+        brand?.id,
+        publishDto,
+        slug,
+      );
+      return {
+        status: true,
+        message: 'Publish data saved successfully',
+        data,
+      };
+    } catch (err) {
+      return { status: false, message: err?.message };
+    }
+  }
+
+  @Get('publish/:slug/:lpId')
+  async getPublishData(
+    @Param('slug') slug: string,
+    @Param('lpId') lpId: number,
+  ) {
+    try {
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
+      }
+      const publishData = await this.landingService.getPublishData(lpId);
+      return {
+        status: true,
+        data: publishData,
+      };
+    } catch (err) {
+      return { status: false, message: err?.message };
+    }
+  }
+
+  @Get('publish-status/:slug')
+  async publishStatus(@Param('slug') slug: string) {
+    try {
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
+      }
+      const publishData = await this.landingService.publishStatus(slug);
+      return {
+        status: true,
+        data: publishData,
+      };
+    } catch (err) {
+      return { status: false, message: err?.message };
+    }
+  }
 
   @Get(':slug/pages')
   @HttpCode(HttpStatus.OK) // Sets the response code to 200
