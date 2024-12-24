@@ -86,7 +86,7 @@ export class LandingService {
       status: PageStatusName[page.status],
       url:
         page.domainType == DomainType.SUBDOMAIN
-          ? `${page.brandSlug}.${this.config.getFEUrl()}`
+          ? `https://${page.brandSlug}.${this.config.getFEUrl()?.replace('https://', '')}`
           : page.domainType == DomainType.CUSTOM_DOMAIN
             ? `https://${page.domain}`
             : '-',
