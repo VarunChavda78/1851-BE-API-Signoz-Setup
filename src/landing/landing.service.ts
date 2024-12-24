@@ -75,6 +75,7 @@ export class LandingService {
     return {
       id: page.id,
       name: page.name,
+      templateId: page.templateId,
       templateType: page.template_name,
       status: PageStatusName[page.status],
       url:
