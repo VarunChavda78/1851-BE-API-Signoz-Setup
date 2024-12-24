@@ -726,4 +726,20 @@ export class UsersService {
       throw error;
     }
   }
+  async getBrandBySlug(slug: string){
+    try {
+      const user = await this.usersRepository.findOne({ where: { brand_url: slug }, select: ['company', 'brandLogo'] });
+      return {
+        name: user.company,
+        logo: user.brandLogo && `${this.configservice.get('s3.imageUrl')}/brand/logo/${user.brandLogo}`
+      };
+    } catch (error) {
+      this.logger.error('Error fetching brand by slug', error);
+      this.rollbarLogger.error(
+        `${this.constructor.name}.${this.getBrandBySlug.name} - ${error.message}`,
+        error,
+      );
+      throw error;
+    }
+  }
 }
