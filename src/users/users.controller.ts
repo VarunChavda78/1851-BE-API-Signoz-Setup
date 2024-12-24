@@ -101,4 +101,17 @@ export class UsersController {
       );
     }
   }
+
+  @Get('brand/:slug')
+  async getBrandBySlug(@Param('slug') slug: string) {
+    try {
+      const response = await this.user.getBrandBySlug(slug);
+      return response;
+    } catch (error) {
+      throw new HttpException(
+        'Failed to retrieve brand',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }
