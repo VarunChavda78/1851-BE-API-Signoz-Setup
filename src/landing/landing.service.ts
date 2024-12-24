@@ -263,6 +263,7 @@ export class LandingService {
         page: {
           id: res[0]?.id,
           name: res[0]?.name,
+          templateId: res[0]?.templateId,          
         },
       };
     return {
