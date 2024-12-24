@@ -201,4 +201,73 @@ export class LandingService {
       throw error;
     }
   }
+
+  async UpdatePublishData(
+    lpId: number,
+    brandId: number,
+    publishDto: any,
+    slug: string,
+  ) {
+    try {
+      const existingPublish = await this.lpPageRepository.findOne({
+        where: { id: lpId, brandId },
+      });
+
+      if (existingPublish) {
+        existingPublish.status = publishDto.publishStatus ? 2 : 1;
+        existingPublish.customDomainStatus =
+          publishDto.domainType === 'sub-domain'
+            ? null
+            : publishDto.customDomainStatus;
+        existingPublish.domainType = publishDto.publishStatus
+          ? publishDto.domainType === 'sub-domain'
+            ? 1
+            : 2
+          : null; // Map to integer
+        existingPublish.domain = publishDto.domain || null;
+        (existingPublish.brandSlug = slug || null),
+          (existingPublish.updatedBy = 1); // Assuming constant value for now
+        const data = await this.lpPageRepository.save(existingPublish);
+        return { ...data, status: data.status == 2 };
+      } else {
+        return existingPublish;
+      }
+    } catch (error) {
+      console.log('error', error);
+      throw error;
+    }
+  }
+
+  async getPublishData(lpId: number) {
+    try {
+      const data = await this.lpPageRepository.findOne({
+        where: { id: lpId },
+      });
+      return { ...data, status: data.status == 2 };
+    } catch (error) {
+      console.log('error', error);
+      throw error;
+    }
+  }
+
+  async publishStatus(slug: string) {
+    const data = await this.lpPageRepository.find({
+      where: { brandSlug: slug, status: PageStatus.PUBLISH },
+    });
+    const res = data?.filter((item) => {
+      return !item.deletedAt;
+    });
+    if (res[0])
+      return {
+        publishStatus: true,
+        page: {
+          id: res[0]?.id,
+          name: res[0]?.name,
+        },
+      };
+    return {
+      publishStatus: false,
+      page: null,
+    };
+  }
 }
