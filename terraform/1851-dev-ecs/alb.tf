@@ -9,7 +9,7 @@ resource "aws_lb_listener_certificate" "example" {
 }
 
 resource "aws_lb_target_group" "ecs" {
-  name                 = "${local.common_name}-${var.Sandbox}"
+  name                 = "${local.common_name}-${var.Sandbox}-v1"
   port                 = 80
   protocol             = "HTTP"
   target_type          = "ip"
