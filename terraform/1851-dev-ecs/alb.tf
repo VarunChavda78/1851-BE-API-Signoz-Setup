@@ -15,6 +15,9 @@ resource "aws_lb_target_group" "ecs" {
   target_type          = "ip"
   vpc_id               = data.aws_vpc.vpc.id
   deregistration_delay = 60
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_lb_listener_rule" "static" {
