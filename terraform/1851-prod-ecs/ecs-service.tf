@@ -36,7 +36,6 @@ resource "aws_ecs_service" "main" {
   }
    enable_ecs_managed_tags = true
 }
-}
 
 resource "aws_security_group" "ecs-task" {
   name        = "${local.common_name}-ecs-task-s-${var.Product}"
