@@ -6,7 +6,7 @@ variable "ProjectName" {
 }
 
 variable "vpc_name"{
-  default = "1851-development-API-vpc"
+  default = "1851-development-vpc"
 }
 
 variable "tf_backend_bucket_name" {

@@ -23,14 +23,16 @@ resource "aws_ecs_service" "main" {
   }
 
   network_configuration {
-    subnets          = data.aws_subnets.public_subnets_id.ids
-    assign_public_ip = true
+    subnets          = data.aws_subnets.private_subnets_id.ids
     security_groups  = [aws_security_group.ecs-task.id]
   }
   load_balancer {
     target_group_arn = aws_lb_target_group.ecs.arn
     container_name   = "nginx"
     container_port   = var.nginx_container_port
+  }
+  lifecycle {
+    create_before_destroy = true
   }
    enable_ecs_managed_tags = true
 }
@@ -118,6 +120,9 @@ resource "aws_ecs_task_definition" "service" {
      }
 
   ])
+  lifecycle {
+    create_before_destroy = true
+  }
 
 }
   
