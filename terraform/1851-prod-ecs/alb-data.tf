@@ -1,8 +1,7 @@
 data "aws_lb" "backend" {
    tags = {
      ManagedBy   = "terraform"
-     Type        = "Api"
-     Usage =   "Backend"
+     Type        = "Frontend"
    }
 }
 

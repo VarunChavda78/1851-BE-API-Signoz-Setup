@@ -9,12 +9,24 @@ resource "aws_lb_listener_certificate" "example" {
 }
 
 resource "aws_lb_target_group" "ecs" {
-  name                 = "${local.common_name}-${var.Product}"
+  name                 = "${local.common_name}-${var.Product}-v1"
   port                 = 80
   protocol             = "HTTP"
   target_type          = "ip"
   vpc_id               = data.aws_vpc.vpc.id
   deregistration_delay = 60
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  health_check {
+    path                 = "/v1"
+    healthy_threshold    = 5
+    unhealthy_threshold  = 2
+    timeout              = 5
+    interval             = 30
+    matcher              = "200"  # has to be HTTP 200 or fails
+  }
 }
 
 resource "aws_lb_listener_rule" "static" {

@@ -41,8 +41,7 @@ variable "nginx_container_port" {
   default = 80
 }
 variable "vpc_name"{
-
-  default = "VPC_API_PROD"
+  default = "1851-prod-vpc"
 }
 
 variable "Product"{
