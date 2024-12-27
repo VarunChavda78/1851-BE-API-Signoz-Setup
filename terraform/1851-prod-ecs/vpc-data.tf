@@ -12,7 +12,7 @@ data "aws_subnets" "private_subnets_id" {
 
   filter {
     name   = "tag:Type"
-    values = ["private-API"]
+    values = ["private"]
   }
 
 
@@ -21,7 +21,7 @@ data "aws_subnets" "public_subnets_id" {
 
   filter {
     name   = "tag:Type"
-    values = ["public-API"]
+    values = ["public"]
   }
 
 }
