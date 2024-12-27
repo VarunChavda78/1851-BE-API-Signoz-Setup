@@ -5,9 +5,9 @@ export class PdfSection1735281701669 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-            INSERT INTO landing_page_section (id,name, slug)
+        INSERT INTO lp_sections (id,"lpTemplatePageId", name, slug)
             VALUES 
-            (55,'Download PDF', 't2-download-pdf')
+            (55,4,'Download PDF', 't2-download-pdf')
             ON CONFLICT (slug) DO NOTHING;
         `);
   }
