@@ -14,7 +14,7 @@ export class LeadsFilterDto {
     order?: string;
 
     @IsString()
-    search?: string;
+    q?: string;
 
     @IsString()
     startDate?: string;

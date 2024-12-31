@@ -271,10 +271,10 @@ export class LandingPageService {
       }
 
       // Add search functionality if search parameter is provided
-      if (filterDto.search) {
+      if (filterDto.q) {
         query = query.andWhere(
           '(LOWER(leads.firstName) LIKE :search OR LOWER(leads.lastName) LIKE :search OR LOWER(leads.email) LIKE :search)',
-          { search: `%${filterDto.search?.toLowerCase()}%` },
+          { search: `%${filterDto.q?.toLowerCase()}%` },
         );
       }
 
