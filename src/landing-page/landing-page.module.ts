@@ -13,6 +13,7 @@ import { LandingPagePublish } from './landing-page-publish.entity';
 import { LandingPagePublishRepository } from './landing-page-publish.repository';
 import { LandingPageLeads } from './landing-page-leads.entity';
 import { LandingPageLeadsRepository } from './landing-page-leads.repository';
+import { CommonService } from 'src/shared/services/common.service';
 
 @Module({
   imports: [
@@ -32,7 +33,8 @@ import { LandingPageLeadsRepository } from './landing-page-leads.repository';
     LandingPageCustomisationRepository,
     LandingPageSectionRepository,
     LandingPagePublishRepository,
-    LandingPageLeadsRepository
+    LandingPageLeadsRepository,
+    CommonService
   ],
 })
 export class LandingPageModule {}

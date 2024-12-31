@@ -1,0 +1,24 @@
+import { IsNumber, IsString } from "class-validator";
+
+export class LeadsFilterDto {
+    @IsNumber()
+    page?: number;
+
+    @IsNumber()
+    limit?: number;
+
+    @IsString()
+    sort?: string;
+
+    @IsString()
+    order?: string;
+
+    @IsString()
+    search?: string;
+
+    @IsString()
+    startDate?: string;
+
+    @IsString()
+    endDate?: string;
+}
