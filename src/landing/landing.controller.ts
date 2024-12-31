@@ -217,4 +217,33 @@ export class LandingController {
       return { status: false, message: err?.message, content: '' };
     }
   }
+  @Post('pdf')
+  async createPdf(
+    @Query('slug') slug: string,
+    @Body()
+    pdfDto: {
+      email: string;
+    },
+  ) {
+    try {
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
+      }
+
+      const pdf = await this.landingService.createPdf(brand.id, pdfDto);
+
+      return {
+        status: true,
+        id: pdf.id,
+        message: 'Pdf has been added successfully',
+      };
+    } catch (err) {
+      return {
+        status: false,
+        message: err?.message,
+      };
+    }
+  }
 }

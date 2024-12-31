@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { LpPageRepository } from './lp-page.repository';
 import { UsersService } from 'src/users/users.service';
 import { PageStatus, PageStatusName } from './landing.constant';
-import { LpTemplate } from './lp-template.entity';
 import { LpSectionRepository } from './lp-section.repository';
 import { LpCustomisationRepository } from './lp-customisation.repository';
 import { PageOptionsDto } from './dtos/pageOptionsDto';
@@ -10,6 +9,7 @@ import { PageMetaDto } from 'src/shared/dtos/pageMetaDto';
 import { PageDto } from 'src/shared/dtos/pageDto';
 import { DomainType } from 'src/shared/constants/constants';
 import { EnvironmentConfigService } from 'src/shared/config/environment-config.service';
+import { LpPdfRepository } from './lp-pdf.repository';
 
 @Injectable()
 export class LandingService {
@@ -19,6 +19,7 @@ export class LandingService {
     private readonly lpSectionRepository: LpSectionRepository,
     private readonly lpCustomisationRepository: LpCustomisationRepository,
     private readonly config: EnvironmentConfigService,
+    private readonly lpPdfRepository: LpPdfRepository,
   ) {}
 
   async getPagesBySlug(slug: string, pageOptions: PageOptionsDto) {
@@ -86,7 +87,9 @@ export class LandingService {
       status: PageStatusName[page.status],
       url:
         page.domainType == DomainType.SUBDOMAIN
-          ? `https://${page.brandSlug}.${this.config.getFEUrl()?.replace('https://', '')}`
+          ? `https://${page.brandSlug}.${this.config
+              .getFEUrl()
+              ?.replace('https://', '')}`
           : page.domainType == DomainType.CUSTOM_DOMAIN
             ? `https://${page.domain}`
             : '-',
@@ -271,12 +274,24 @@ export class LandingService {
         page: {
           id: res[0]?.id,
           name: res[0]?.name,
-          templateId: res[0]?.templateId,          
+          templateId: res[0]?.templateId,
         },
       };
     return {
       publishStatus: false,
       page: null,
     };
+  }
+  async createPdf(brandId: number, pdfDto: any): Promise<any> {
+    try {
+      const newLead = this.lpPdfRepository.create({
+        brandId,
+        email: pdfDto.email,
+      });
+
+      return this.lpPdfRepository.save(newLead);
+    } catch (error) {
+      throw error;
+    }
   }
 }
