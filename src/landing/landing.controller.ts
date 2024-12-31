@@ -232,11 +232,11 @@ export class LandingController {
         throw new Error(`Brand not found for slug: ${slug}`);
       }
 
-      const pdf = await this.landingService.createPdf(brand.id, pdfDto);
+      const pdf = await this.landingService.createPdf(slug, brand.id, pdfDto);
 
       return {
         status: true,
-        id: pdf.id,
+        pdf: pdf,
         message: 'Pdf has been added successfully',
       };
     } catch (err) {

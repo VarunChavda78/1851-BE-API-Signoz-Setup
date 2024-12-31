@@ -282,14 +282,23 @@ export class LandingService {
       page: null,
     };
   }
-  async createPdf(brandId: number, pdfDto: any): Promise<any> {
+  async createPdf(slug: string, brandId: number, pdfDto: any): Promise<any> {
     try {
       const newLead = this.lpPdfRepository.create({
         brandId,
         email: pdfDto.email,
       });
-
-      return this.lpPdfRepository.save(newLead);
+      this.lpPdfRepository.save(newLead);
+      const data = await this.lpPageRepository.find({
+        where: { brandSlug: slug, status: PageStatus.PUBLISH },
+      });
+      const res = data?.filter((item) => {
+        return !item.deletedAt;
+      });
+      if (res[0]) {
+        const page = await this.findSection(res[0].id, 't2-download-pdf');
+        return page?.content?.pdf;
+      }
     } catch (error) {
       throw error;
     }
