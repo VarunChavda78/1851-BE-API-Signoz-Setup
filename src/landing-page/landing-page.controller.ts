@@ -10,6 +10,7 @@ import {
 import { LandingPageService } from './landing-page.service';
 import { UsersService } from 'src/users/users.service';
 import { LandingPagePublishRepository } from './landing-page-publish.repository';
+import { LeadsFilterDto } from './dto/leads-dto';
 
 @Controller({
   version: '1',
@@ -81,6 +82,22 @@ export class LandingPageController {
         status: false,
         message: err?.message,
       };
+    }
+  }
+  @Get('leads')
+  async getLeads(@Query('slug') slug: string, @Query() filterDto: LeadsFilterDto) {
+    try {
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
+      }
+      const leads = await this.landingPageService.getLeads(brand.id, filterDto);
+      return {
+        status: true,
+        leads,
+      };
+    } catch (err) {
+      return { status: false, message: err?.message, leads: [] };
     }
   }
   @Get(':brandId')

@@ -6,6 +6,9 @@ import { LandingPageCustomisationRepository } from './landing-page-customisation
 import { RollbarLogger } from 'nestjs-rollbar';
 import { LandingPagePublishRepository } from './landing-page-publish.repository';
 import { LandingPageLeadsRepository } from './landing-page-leads.repository';
+import { CommonService } from 'src/shared/services/common.service';
+import { LeadsFilterDto } from './dto/leads-dto';
+import { filter } from 'rxjs';
 
 @Injectable()
 export class LandingPageService {
@@ -17,6 +20,7 @@ export class LandingPageService {
     private readonly rollbarLogger: RollbarLogger,
     private readonly landingPagePublishRepository: LandingPagePublishRepository,
     private readonly landingPageLeadsRepository: LandingPageLeadsRepository,
+    private commonService: CommonService,
   ) {}
 
   async findOne(brandId: number) {
@@ -154,7 +158,10 @@ export class LandingPageService {
       if (existingPublish) {
         // Update existing publish record
         existingPublish.status = publishDto.publishStatus;
-        existingPublish.customDomainStatus = publishDto.domainType === 'sub-domain' ? null : publishDto.customDomainStatus;
+        existingPublish.customDomainStatus =
+          publishDto.domainType === 'sub-domain'
+            ? null
+            : publishDto.customDomainStatus;
         existingPublish.domainType = publishDto.publishStatus
           ? publishDto.domainType === 'sub-domain'
             ? 1
@@ -169,7 +176,10 @@ export class LandingPageService {
         const newPublish = this.landingPagePublishRepository.create({
           brandId,
           status: publishDto.publishStatus,
-          customDomainStatus: publishDto.domainType === 'sub-domain' ? null : publishDto.customDomainStatus,
+          customDomainStatus:
+            publishDto.domainType === 'sub-domain'
+              ? null
+              : publishDto.customDomainStatus,
           domainType: publishDto.domainType === 'sub-domain' ? 1 : 2, // Map to integer
           domain: publishDto.domain || null,
           brandSlug: slug || null,
@@ -212,6 +222,48 @@ export class LandingPageService {
       return this.landingPageLeadsRepository.save(newLead);
     } catch (error) {
       this.logger.error('Error creating lead', error);
+      throw error;
+    }
+  }
+
+  async getLeads(brandId: number, filterDto: LeadsFilterDto) {
+    try {
+      const limit =
+        filterDto?.limit && filterDto.limit > 0 ? Number(filterDto.limit) : 10;
+      const page =
+        filterDto?.page && filterDto.page > 0 ? Number(filterDto.page) : 1;
+      const orderBy = filterDto?.sort || 'createdAt';
+      const order: 'ASC' | 'DESC' =
+        filterDto?.order?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
+
+      
+
+      let query = this.landingPageLeadsRepository
+        .createQueryBuilder('landing_page_leads')
+        .where('landing_page_leads.brandId = :brandId', { brandId });
+
+
+      if (filterDto.q) {
+        query = query.andWhere(
+          '(LOWER(landing_page_leads.firstName) LIKE :search OR LOWER(landing_page_leads.lastName) LIKE :search OR LOWER(landing_page_leads.email) LIKE :search)',
+          { search: `%${filterDto.q?.toLowerCase()}%` },
+        );
+      }
+
+      const [response, totalRecords] = await query
+        .skip((page - 1) * limit)
+        .take(limit)
+        .orderBy(`landing_page_leads.${orderBy}`, order)
+        .getManyAndCount();
+
+      const pagination = this.commonService.getPagination(
+        totalRecords,
+        limit,
+        page,
+      );
+      return { data: response, pagination };
+    } catch (error) {
+      this.logger.error('Error retrieving leads', error);
       throw error;
     }
   }
