@@ -45,4 +45,7 @@ export class EnvironmentConfigService extends ConfigService {
   getTenantId(): string {
     return this.get<string>('gip.tenantId');
   }
+  getGoogleRecaptchaSecretKey(): string {
+    return this.get<string>('recaptcha.googleRecaptchaSecretKey');
+  }
 }

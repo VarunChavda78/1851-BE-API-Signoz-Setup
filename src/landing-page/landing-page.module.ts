@@ -14,6 +14,8 @@ import { LandingPagePublishRepository } from './landing-page-publish.repository'
 import { LandingPageLeads } from './landing-page-leads.entity';
 import { LandingPageLeadsRepository } from './landing-page-leads.repository';
 import { CommonService } from 'src/shared/services/common.service';
+import { SharedModule } from 'src/shared/shared.module';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
@@ -22,9 +24,12 @@ import { CommonService } from 'src/shared/services/common.service';
       LandingPageCustomisation,
       LandingPageSection,
       LandingPagePublish,
-      LandingPageLeads
+      LandingPageLeads,
     ]),
     UsersModule,
+    HttpModule,
+    SharedModule,
+
   ],
   controllers: [LandingPageController],
   providers: [
@@ -34,7 +39,7 @@ import { CommonService } from 'src/shared/services/common.service';
     LandingPageSectionRepository,
     LandingPagePublishRepository,
     LandingPageLeadsRepository,
-    CommonService
+    CommonService,
   ],
 })
 export class LandingPageModule {}

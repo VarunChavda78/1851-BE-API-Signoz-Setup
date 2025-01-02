@@ -1,18 +1,21 @@
-import { IsNumber, IsString } from "class-validator";
+import { IsNumber, IsString } from 'class-validator';
 
 export class LeadsFilterDto {
-    @IsNumber()
-    page?: number;
+  @IsNumber()
+  page?: number;
 
-    @IsNumber()
-    limit?: number;
+  @IsNumber()
+  limit?: number;
 
-    @IsString()
-    sort?: string;
+  @IsString()
+  sort?: string;
 
-    @IsString()
-    order?: string;
+  @IsString()
+  order?: string;
 
-    @IsString()
-    q?: string;
+  @IsString()
+  q?: string;
+
+  @IsString()
+  gReCaptchaToken: string;
 }

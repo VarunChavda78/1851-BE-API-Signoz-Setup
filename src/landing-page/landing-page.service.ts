@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { LandingPageRepository } from './landing-page.repository';
-import { LandingPage } from './landing-page.entity'; // Ensure correct path
 import { LandingPageSectionRepository } from './landing-page-section.repository';
 import { LandingPageCustomisationRepository } from './landing-page-customisation.repository';
 import { RollbarLogger } from 'nestjs-rollbar';
@@ -8,7 +7,7 @@ import { LandingPagePublishRepository } from './landing-page-publish.repository'
 import { LandingPageLeadsRepository } from './landing-page-leads.repository';
 import { CommonService } from 'src/shared/services/common.service';
 import { LeadsFilterDto } from './dto/leads-dto';
-import { filter } from 'rxjs';
+import { VerifyCaptchaService } from 'src/shared/services/verify-captcha.service';
 
 @Injectable()
 export class LandingPageService {
@@ -21,6 +20,7 @@ export class LandingPageService {
     private readonly landingPagePublishRepository: LandingPagePublishRepository,
     private readonly landingPageLeadsRepository: LandingPageLeadsRepository,
     private commonService: CommonService,
+    private verifyCaptchaService: VerifyCaptchaService,
   ) {}
 
   async findOne(brandId: number) {
@@ -207,6 +207,18 @@ export class LandingPageService {
 
   async createLead(brandId: number, leadDataDto: any): Promise<any> {
     try {
+      const recaptcha = await this.verifyCaptchaService.verifyCaptcha(
+        leadDataDto?.gReCaptchaToken,
+      );
+      if (!recaptcha) {
+        const data = {
+          status: false,
+          message: 'Invalid Captcha response',
+        };
+        return { data };
+      }
+      delete leadDataDto?.gReCaptchaToken;
+
       const newLead = this.landingPageLeadsRepository.create({
         brandId,
         firstName: leadDataDto.firstName,
@@ -236,12 +248,9 @@ export class LandingPageService {
       const order: 'ASC' | 'DESC' =
         filterDto?.order?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
 
-      
-
       let query = this.landingPageLeadsRepository
         .createQueryBuilder('landing_page_leads')
         .where('landing_page_leads.brandId = :brandId', { brandId });
-
 
       if (filterDto.q) {
         query = query.andWhere(

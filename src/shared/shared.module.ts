@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { configModuleOptions } from './config/module-options';
 import { HttpModule } from '@nestjs/axios';
 import { EnvironmentConfigService } from './config/environment-config.service';
+import { VerifyCaptchaService } from './services/verify-captcha.service';
 
 @Module({
   imports: [
@@ -58,7 +59,7 @@ import { EnvironmentConfigService } from './config/environment-config.service';
     }),
     HttpModule,
   ],
-  exports: [ConfigModule, EnvironmentConfigService],
-  providers: [ConfigService, EnvironmentConfigService],
+  exports: [ConfigModule, EnvironmentConfigService, VerifyCaptchaService],
+  providers: [ConfigService, EnvironmentConfigService, VerifyCaptchaService],
 })
 export class SharedModule {}

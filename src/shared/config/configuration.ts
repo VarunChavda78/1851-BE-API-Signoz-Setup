@@ -68,4 +68,7 @@ export default (): any => ({
   url: {
     fe: process.env.FRANCHISE_1851_URL,
   },
+  recaptcha: {
+    googleRecaptchaSecretKey: process.env.GOOGLE_RECAPTCHA_SECRET_KEY,
+  },
 });
