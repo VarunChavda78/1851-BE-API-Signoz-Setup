@@ -15,10 +15,4 @@ export class LeadsFilterDto {
 
     @IsString()
     q?: string;
-
-    @IsString()
-    startDate?: string;
-
-    @IsString()
-    endDate?: string;
 }

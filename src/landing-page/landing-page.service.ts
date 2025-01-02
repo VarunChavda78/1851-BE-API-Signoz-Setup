@@ -236,44 +236,16 @@ export class LandingPageService {
       const order: 'ASC' | 'DESC' =
         filterDto?.order?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
 
-      let startDate: Date | null = null;
-      let endDate: Date | null = null;
-
-      if (filterDto.startDate && filterDto.endDate) {
-        startDate = new Date(filterDto.startDate);
-        startDate.setHours(0, 0, 0, 0);
-        endDate = new Date(filterDto.endDate);
-        endDate.setHours(23, 59, 59, 999);
-      } else if (filterDto.startDate) {
-        startDate = new Date(filterDto.startDate);
-        startDate.setHours(0, 0, 0, 0);
-        endDate = new Date(startDate);
-        endDate.setHours(23, 59, 59, 999);
-      } else if (filterDto.endDate) {
-        endDate = new Date(filterDto.endDate);
-        endDate.setHours(23, 59, 59, 999);
-        startDate = new Date();
-        startDate.setHours(0, 0, 0, 0);
-      }
+      
 
       let query = this.landingPageLeadsRepository
-        .createQueryBuilder('leads')
-        .where('leads.brandId = :brandId', { brandId });
+        .createQueryBuilder('landing_page_leads')
+        .where('landing_page_leads.brandId = :brandId', { brandId });
 
-      if (startDate && endDate) {
-        query = query.andWhere(
-          'leads.createdAt BETWEEN :startDate AND :endDate',
-          {
-            startDate,
-            endDate,
-          },
-        );
-      }
 
-      // Add search functionality if search parameter is provided
       if (filterDto.q) {
         query = query.andWhere(
-          '(LOWER(leads.firstName) LIKE :search OR LOWER(leads.lastName) LIKE :search OR LOWER(leads.email) LIKE :search)',
+          '(LOWER(landing_page_leads.firstName) LIKE :search OR LOWER(landing_page_leads.lastName) LIKE :search OR LOWER(landing_page_leads.email) LIKE :search)',
           { search: `%${filterDto.q?.toLowerCase()}%` },
         );
       }
@@ -281,7 +253,7 @@ export class LandingPageService {
       const [response, totalRecords] = await query
         .skip((page - 1) * limit)
         .take(limit)
-        .orderBy(`leads.${orderBy}`, order)
+        .orderBy(`landing_page_leads.${orderBy}`, order)
         .getManyAndCount();
 
       const pagination = this.commonService.getPagination(
