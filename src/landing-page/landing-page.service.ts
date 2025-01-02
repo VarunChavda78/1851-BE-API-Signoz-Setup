@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { LandingPageRepository } from './landing-page.repository';
 import { LandingPage } from './landing-page.entity'; // Ensure correct path
 import { LandingPageSectionRepository } from './landing-page-section.repository';
@@ -8,7 +8,6 @@ import { LandingPagePublishRepository } from './landing-page-publish.repository'
 import { LandingPageLeadsRepository } from './landing-page-leads.repository';
 import { CommonService } from 'src/shared/services/common.service';
 import { LeadsFilterDto } from './dto/leads-dto';
-import { filter } from 'rxjs';
 
 @Injectable()
 export class LandingPageService {
@@ -240,7 +239,7 @@ export class LandingPageService {
 
       let query = this.landingPageLeadsRepository
         .createQueryBuilder('landing_page_leads')
-        .where('landing_page_leads.brandId = :brandId', { brandId });
+        .where('landing_page_leads.brandId = :brandId', { brandId }).andWhere('landing_page_leads.deletedAt IS NULL');
 
 
       if (filterDto.q) {
@@ -264,6 +263,19 @@ export class LandingPageService {
       return { data: response, pagination };
     } catch (error) {
       this.logger.error('Error retrieving leads', error);
+      throw error;
+    }
+  }
+
+  async deleteLead(id: number, brandId: number) {
+    try {
+      const response = await this.landingPageLeadsRepository.softDelete({ id, brandId });
+      if (!response.affected) {
+        throw new NotFoundException('Lead not found');
+      }
+      return { status: true, message: 'Lead deleted successfully' };
+    } catch (error) {
+      this.logger.error('Error deleting lead', error);
       throw error;
     }
   }

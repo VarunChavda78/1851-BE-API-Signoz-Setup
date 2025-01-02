@@ -6,6 +6,7 @@ import {
   Body,
   Logger,
   Query,
+  Delete,
 } from '@nestjs/common';
 import { LandingPageService } from './landing-page.service';
 import { UsersService } from 'src/users/users.service';
@@ -98,6 +99,20 @@ export class LandingPageController {
       };
     } catch (err) {
       return { status: false, message: err?.message, leads: [] };
+    }
+  }
+  @Delete('leads/:id')
+  async deleteLead(@Param('id') id: number, @Query('slug') slug: string) {
+    try {
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
+      }
+      const response = await this.landingPageService.deleteLead(id, brand.id);
+
+      return response;
+    } catch (error) {
+      return { status: false, message: error?.message || 'Error deleting lead' };
     }
   }
   @Get(':brandId')

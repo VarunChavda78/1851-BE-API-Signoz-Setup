@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, DeleteDateColumn } from 'typeorm';
 
 @Entity('landing_page_leads')
 export class LandingPageLeads {
@@ -34,4 +34,7 @@ export class LandingPageLeads {
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
+  
+  @DeleteDateColumn({ type: 'timestamp with time zone', nullable: true })
+  deletedAt?: Date;
 }
