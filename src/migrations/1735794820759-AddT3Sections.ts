@@ -15,14 +15,15 @@ export class AddT3Sections1704185600001 implements MigrationInterface {
       (61, 6, 'T3 What Client Are Saying', 't3-whatClientAreSaying'),
       (62, 6, 'T3 Why Us', 't3-why-us'),
       (63, 6, 'T3 Footer', 't3-footer'),
-      (64, 6, 'T3 Meta', 't3-meta')
+      (64, 6, 'T3 Meta', 't3-meta'),
+      (65, 6, 'T3 Download PDF', 't3-download-pdf')
       ON CONFLICT (id) DO NOTHING;
     `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-      DELETE FROM lp_sections WHERE id IN (56, 57, 58, 59, 60, 61, 62, 63, 64);
+      DELETE FROM lp_sections WHERE id IN (56, 57, 58, 59, 60, 61, 62, 63, 64, 65);
     `);
   }
 }
