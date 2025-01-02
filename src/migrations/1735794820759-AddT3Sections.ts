@@ -7,7 +7,7 @@ export class AddT3Sections1704185600001 implements MigrationInterface {
     await queryRunner.query(`
       INSERT INTO lp_sections (id, "lpTemplatePageId", name, slug)
       VALUES 
-      (56, 6, 'T3 Form', 't3-form') 
+      (56, 6, 'T3 Form', 't3-form'), 
       (57, 6, 'T3 Header', 't3-header'),
       (58, 6, 'T3 Hero', 't3-hero'),
       (59, 6, 'T3 Quick Facts', 't3-quickFacts'),
