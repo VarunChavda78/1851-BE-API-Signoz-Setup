@@ -10,6 +10,7 @@ import { PageDto } from 'src/shared/dtos/pageDto';
 import { DomainType } from 'src/shared/constants/constants';
 import { EnvironmentConfigService } from 'src/shared/config/environment-config.service';
 import { LpPdfRepository } from './lp-pdf.repository';
+import { LpSettingsRepository } from './lp-settings.repository';
 
 @Injectable()
 export class LandingService {
@@ -20,6 +21,7 @@ export class LandingService {
     private readonly lpCustomisationRepository: LpCustomisationRepository,
     private readonly config: EnvironmentConfigService,
     private readonly lpPdfRepository: LpPdfRepository,
+    private readonly lpSettingsRepository: LpSettingsRepository,
   ) {}
 
   async getPagesBySlug(slug: string, pageOptions: PageOptionsDto) {
@@ -302,5 +304,44 @@ export class LandingService {
     } catch (error) {
       throw error;
     }
+  }
+
+  async getLandingPageStatus(slug: string) {
+    const brand = await this.usersService.getBrandIdBySlug(slug);
+    if (!brand) {
+      throw new Error(`Brand not found for slug: ${slug}`);
+    }
+
+    const settings = await this.lpSettingsRepository.findOne({ where: { brandId: brand.id } });
+    return {
+      isEnabled: settings ? settings.status : false
+    };
+  }
+
+  async updateLandingPageStatus(slug: string, status: boolean, userId: number) {
+    const brand = await this.usersService.getBrandIdBySlug(slug);
+    if (!brand) {
+      throw new Error(`Brand not found for slug: ${slug}`);
+    }
+
+    let settings = await this.lpSettingsRepository.findOne({ where: { brandId: brand.id } });
+    
+    if (settings) {
+      settings.status = status;
+      settings.updatedBy = userId;
+    } else {
+      settings = this.lpSettingsRepository.create({
+        brandId: brand.id,
+        status,
+        createdBy: userId,
+        updatedBy: userId,
+      });
+    }
+
+    await this.lpSettingsRepository.save(settings);
+
+    return {
+      message: status ? "Landing page enabled successfully" : "Landing page disabled successfully"
+    };
   }
 }
