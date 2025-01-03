@@ -1,9 +1,15 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, DeleteDateColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  DeleteDateColumn,
+} from 'typeorm';
 
 @Entity('landing_page_leads')
 export class LandingPageLeads {
   @PrimaryGeneratedColumn()
-  id: number; 
+  id: number;
 
   @Column({ type: 'int', nullable: false })
   brandId: number;
@@ -32,9 +38,15 @@ export class LandingPageLeads {
   @Column({ type: 'text', nullable: true })
   interest?: string;
 
+  @Column({ type: 'varchar', nullable: true })
+  lookingFor?: string;
+
+  @Column({ type: 'int', nullable: false })
+  type?: number;
+
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
-  
+
   @DeleteDateColumn({ type: 'timestamp with time zone', nullable: true })
   deletedAt?: Date;
 }

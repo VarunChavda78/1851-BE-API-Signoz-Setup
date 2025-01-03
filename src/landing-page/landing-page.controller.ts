@@ -59,25 +59,23 @@ export class LandingPageController {
       state?: string;
       zip?: string;
       interest?: string;
+      gReCaptchaToken: string;
+      lookingFor?: string;
+      type?: any;
     },
   ) {
     try {
       const brand = await this.usersService.getBrandIdBySlug(slug);
-
       if (!brand) {
         throw new Error(`Brand not found for slug: ${slug}`);
       }
 
-      const lead = await this.landingPageService.createLead(
+      const result = await this.landingPageService.createLead(
         brand.id,
         leadDataDto,
       );
 
-      return {
-        status: true,
-        id: lead.id,
-        message: 'Lead has been added successfully',
-      };
+      return result;
     } catch (err) {
       return {
         status: false,
@@ -86,7 +84,10 @@ export class LandingPageController {
     }
   }
   @Get('leads')
-  async getLeads(@Query('slug') slug: string, @Query() filterDto: LeadsFilterDto) {
+  async getLeads(
+    @Query('slug') slug: string,
+    @Query() filterDto: LeadsFilterDto,
+  ) {
     try {
       const brand = await this.usersService.getBrandIdBySlug(slug);
       if (!brand) {
@@ -112,7 +113,10 @@ export class LandingPageController {
 
       return response;
     } catch (error) {
-      return { status: false, message: error?.message || 'Error deleting lead' };
+      return {
+        status: false,
+        message: error?.message || 'Error deleting lead',
+      };
     }
   }
   @Get(':brandId')
@@ -155,7 +159,12 @@ export class LandingPageController {
   async createOrUpdatePublish(
     @Param('slug') slug: string,
     @Body()
-    publishDto: { publishStatus: boolean; domainType: string; domain?: string; customDomainStatus?: string; },
+    publishDto: {
+      publishStatus: boolean;
+      domainType: string;
+      domain?: string;
+      customDomainStatus?: string;
+    },
   ) {
     try {
       const brand = await this.usersService.getBrandIdBySlug(slug);

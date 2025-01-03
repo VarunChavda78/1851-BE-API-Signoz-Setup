@@ -210,12 +210,12 @@ export class LandingPageService {
       const recaptcha = await this.verifyCaptchaService.verifyCaptcha(
         leadDataDto?.gReCaptchaToken,
       );
+
       if (!recaptcha) {
-        const data = {
+        return {
           status: false,
           message: 'Invalid Captcha response',
         };
-        return { data };
       }
       delete leadDataDto?.gReCaptchaToken;
 
@@ -229,9 +229,16 @@ export class LandingPageService {
         state: leadDataDto.state,
         zip: leadDataDto.zip,
         interest: leadDataDto.interest,
+        type: leadDataDto.type,
+        lookingFor: leadDataDto.lookingFor,
       });
 
-      return this.landingPageLeadsRepository.save(newLead);
+      const lead = await this.landingPageLeadsRepository.save(newLead);
+      return {
+        status: true,
+        id: lead.id,
+        message: 'Lead has been added successfully',
+      };
     } catch (error) {
       this.logger.error('Error creating lead', error);
       throw error;
