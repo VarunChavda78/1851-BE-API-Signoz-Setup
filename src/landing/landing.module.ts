@@ -11,6 +11,7 @@ import { LpCustomisationRepository } from './lp-customisation.repository';
 import { UsersModule } from 'src/users/users.module';
 import { SharedModule } from 'src/shared/shared.module';
 import { LpPdfRepository } from './lp-pdf.repository';
+import { LpSettingsRepository } from './lp-settings.repository';
 
 @Module({
   imports: [UsersModule, SharedModule],
@@ -25,6 +26,7 @@ import { LpPdfRepository } from './lp-pdf.repository';
     LpDomainHistoryRepository,
     LpCustomisationRepository,
     LpPdfRepository,
+    LpSettingsRepository,
   ],
 })
 export class LandingModule {}

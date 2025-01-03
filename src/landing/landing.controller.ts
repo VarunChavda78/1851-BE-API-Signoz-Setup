@@ -151,6 +151,44 @@ export class LandingController {
     }
   }
 
+  @Get(':slug/status')
+  @HttpCode(HttpStatus.OK)
+  async getLandingPageStatus(@Param('slug') slug: string) {
+    try {
+      const data = await this.landingService.getLandingPageStatus(slug);
+      return {
+        status: true,
+        data,
+      };
+    } catch (error) {
+      return {
+        status: false,
+        message: error.message,
+      };
+    }
+  }
+
+  @Post(':slug/status')
+  @HttpCode(HttpStatus.OK)
+  async updateLandingPageStatus(
+    @Param('slug') slug: string,
+    @Body() body: { status: boolean },
+  ) {
+    try {
+      const userId = 1; // Replace this with actual user ID from auth context
+      const data = await this.landingService.updateLandingPageStatus(slug, body.status, userId);
+      return {
+        status: true,
+        data,
+      };
+    } catch (error) {
+      return {
+        status: false,
+        message: error.message,
+      };
+    }
+  }
+
   @Delete(':slug/:lpId')
   @HttpCode(HttpStatus.OK)
   async deletePage(@Param('slug') slug: string, @Param('lpId') lpId: number) {
