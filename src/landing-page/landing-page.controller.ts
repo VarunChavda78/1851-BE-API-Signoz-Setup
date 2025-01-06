@@ -7,6 +7,7 @@ import {
   Logger,
   Query,
   Delete,
+  HttpException,
 } from '@nestjs/common';
 import { LandingPageService } from './landing-page.service';
 import { UsersService } from 'src/users/users.service';
@@ -99,7 +100,7 @@ export class LandingPageController {
         leads,
       };
     } catch (err) {
-      return { status: false, message: err?.message, leads: [] };
+      throw new HttpException('Failed to get leads', err?.status || 500);
     }
   }
   @Delete('leads/:id')
@@ -113,10 +114,7 @@ export class LandingPageController {
 
       return response;
     } catch (error) {
-      return {
-        status: false,
-        message: error?.message || 'Error deleting lead',
-      };
+     throw new HttpException('Failed to delete lead', error?.status || 500);
     }
   }
   @Get(':brandId')
