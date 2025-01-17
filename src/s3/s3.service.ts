@@ -167,8 +167,10 @@ export class S3Service {
         .toBuffer();
   
       // Upload to S3
-      const fileNameWithPath = `${path?.split('.')[0]}.png`;
-      const fileUrl = `${this.getBaseUrl(siteId)}${fileNameWithPath}`;
+      // Remove leading slash if present and ensure proper path construction
+      const normalizedPath = path.startsWith('/') ? path.substring(1) : path;
+      const fileNameWithPath = `${normalizedPath?.split('.')[0]}.png`;
+      const fileUrl = `${this.getBaseUrl(siteId)}/${fileNameWithPath}`;
       const uploadParams = {
         Bucket: this.bucketName,
         Key: fileNameWithPath,
