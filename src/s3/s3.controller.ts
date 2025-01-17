@@ -66,4 +66,25 @@ export class S3Controller {
       throw new HttpException(msg, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
+  @Post('convert')
+  async convertImage(@Body() body: { url: string; path: string; siteId?: string }) {
+    try {
+      this.rollbar.info('Uploading file..');
+      const siteId = body?.siteId || '1851';
+
+      // Handle file uploads
+      const result = await this.s3Service.convertSvgToPngAndUpload(body.url, body.path, siteId);
+      return {
+        message: 'Image successfully uploaded',
+        data: {
+          url: result,
+        },
+      };
+    } catch (error) {
+      this.rollbar.error('Error in upload File method', error);
+      const msg = error?.message || 'Failed to upload image or thumbnail';
+      throw new HttpException(msg, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 }
