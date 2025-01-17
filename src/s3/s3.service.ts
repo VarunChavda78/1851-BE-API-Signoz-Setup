@@ -10,6 +10,9 @@ import {
 } from '@aws-sdk/client-s3';
 import { ConfigService } from '@nestjs/config';
 import { RollbarLogger } from 'nestjs-rollbar';
+import { lastValueFrom } from 'rxjs';
+import * as sharp from 'sharp';
+import { HttpService } from '@nestjs/axios';
 
 @Injectable()
 export class S3Service {
@@ -20,6 +23,7 @@ export class S3Service {
   constructor(
     private configservice: ConfigService,
     private readonly rollbar: RollbarLogger,
+    private httpService: HttpService
   ) {
     
   }
@@ -140,6 +144,43 @@ export class S3Service {
       throw new InternalServerErrorException(
         `Could not delete file: ${error.message}`,
       );
+    }
+  }
+  async convertSvgToPngAndUpload(url: string, path = '', siteId: string = '1851',): Promise<string> {
+    // Fetch the SVG image
+    try {
+      this.init(siteId);
+      const svgResponse = await lastValueFrom(
+        this.httpService.get(url, { responseType: 'arraybuffer' }),
+      );
+      const svgBuffer = Buffer.from(svgResponse.data);
+  
+      // Convert and resize SVG to PNG ensuring the minimum size of 200x200 pixels
+      const pngBuffer = await sharp(svgBuffer)
+        .resize({
+          width: 200,
+          height: 200,
+          fit: 'contain',
+          background: { r: 255, g: 255, b: 255, alpha: 0 },
+        })
+        .png()
+        .toBuffer();
+  
+      // Upload to S3
+      const fileNameWithPath = `${path?.split('.')[0]}.png`;
+      const fileUrl = `${this.getBaseUrl(siteId)}${fileNameWithPath}`;
+      const uploadParams = {
+        Bucket: this.bucketName,
+        Key: fileNameWithPath,
+        Body: pngBuffer,
+        ContentType: 'image/png',
+      };
+      await this.s3Client.send(new PutObjectCommand(uploadParams));
+      return fileUrl;
+    } catch (error) {
+      this.logger.error(`Could not upload file: ${error.message}`, error.stack);
+      this.rollbar.warning('Error in convert File method', error);
+      return `Could not upload file: ${error.message}`
     }
   }
 }
