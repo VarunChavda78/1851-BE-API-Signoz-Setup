@@ -149,6 +149,7 @@ export class S3Service {
   async convertSvgToPngAndUpload(url: string, path = '', siteId: string = '1851',): Promise<string> {
     // Fetch the SVG image
     try {
+      this.init(siteId);
       const svgResponse = await lastValueFrom(
         this.httpService.get(url, { responseType: 'arraybuffer' }),
       );
