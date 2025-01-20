@@ -1,18 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { EnvironmentConfigService } from '../shared/config/environment-config.service';
-import { AxiosResponse } from 'axios';
 import { RollbarLogger } from 'nestjs-rollbar';
 import * as nodemailer from 'nodemailer';
 import { Options } from 'nodemailer/lib/json-transport';
-import { firstValueFrom } from 'rxjs';
-import { HttpService } from '@nestjs/axios';
 
 @Injectable()
 export class LeadsUtilService {
   constructor(
     private config: EnvironmentConfigService,
     private logger: RollbarLogger,
-    private httpService: HttpService,
   ) {}
   async sendEmailToBrand(request, slug: string, brand) {
     const fromEmail = this.config.getFromEmail();
@@ -81,16 +77,6 @@ export class LeadsUtilService {
       content,
       noreplyEmail,
     );
-  }
-
-  async sendEmail(data: any) {
-    try {
-      const transporter = this.initTransporter();
-      await transporter.sendMail(data);
-      return true;
-    } catch (error) {
-      return false;
-    }
   }
 
   async sendSingleEmail(
@@ -185,25 +171,6 @@ export class LeadsUtilService {
       data,
     )}</p><p>Thanks,</p><p>${brand?.company}</p>`;
     return content;
-  }
-
-  async sendRequest(body: any, endpointUrl: string): Promise<string> {
-    const headers = { 'Content-Type': 'application/json' };
-
-    try {
-      const response: AxiosResponse = await firstValueFrom(
-        this.httpService.post(endpointUrl, body, { headers }),
-      );
-
-      if (response.status === 200) {
-        return response.data.html;
-      }
-    } catch (error) {
-      console.error('Failed to send request:', error);
-      throw error;
-    }
-
-    return '';
   }
 
   getEmailSign(): string {
