@@ -169,21 +169,21 @@ export class LeadsUtilService {
 
   private getContent(data, brand, sign): string {
     let content = `Hi ${brand?.company},<br><br>
-    You've received a new lead from your ${sign} landing page. The information is below.<br><br>`;
+    You've received a new lead from your landing page. The information is below.<br><br>`;
 
     content += this.getPlainContent(data);
-    content += `<br><br>Thanks,<br>${sign} Support Team<br>`;
-    content += `<i>211 W Wacker Dr, Ste 100, Chicago, IL 60606</i>`;
+    content += `<br><br>Thanks,<br>${sign} Support Team`;
     return content;
   }
 
   private addLeadsDetails(brand, data): string {
     let content =
-      `<strong>Hi ${data[0] && data[0].value}</strong>,` +
+      `<strong>HI ${data[0] && data[0].value?.toUpperCase()}</strong>,` +
+      `<p>Thank you for expressing interest in ${brand?.company?.toUpperCase()}. We have received your information. Someone from the team will be in touch shortly.</p>` +
       '<p>Below is a copy of the information you have submitted:</p>';
     content += `<p>${this.getPlainContent(
       data,
-    )}</p><p>Thanks,</p><p>${brand?.company}</p><br><i>211 W Wacker Dr, Ste 100, Chicago, IL 60606</i>`;
+    )}</p><p>Thanks,</p><p>${brand?.company}</p>`;
     return content;
   }
 
