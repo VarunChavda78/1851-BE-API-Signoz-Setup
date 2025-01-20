@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { LandingPageLeadsRepository } from './landing-page-leads.repository';
 import { EnvironmentConfigService } from '../shared/config/environment-config.service';
-import axios, { AxiosResponse } from 'axios';
+import { AxiosResponse } from 'axios';
 import { RollbarLogger } from 'nestjs-rollbar';
 import * as nodemailer from 'nodemailer';
 import { Options } from 'nodemailer/lib/json-transport';
@@ -11,68 +10,36 @@ import { HttpService } from '@nestjs/axios';
 @Injectable()
 export class LeadsUtilService {
   constructor(
-    private repo: LandingPageLeadsRepository,
     private config: EnvironmentConfigService,
     private logger: RollbarLogger,
     private httpService: HttpService,
   ) {}
   async sendEmailToBrand(request, slug: string, brand) {
-    const subject = '1851 Landing Lead';
-    // const fromEmail = this.config.getAdminEmail();
-    const toEmail = brand?.email[0];
-    // let ccMail = [this.env.getAdminCCEmail()];
-    let data: any = {
-      title: 'Schedule a Call',
-      site: {
-        logo: `${this.config.getImageProxyUrl()}/static/email-header-logo.png`,
-        url: `${this.config.getAppUrl()}`,
-        name: `${this.config.getAppDomain()}`,
-        address: '211 W Wacker Dr, Ste 100, Chicago, IL 60606',
-      },
-      details: [
-        { title: 'First Name', value: request?.firstName || '' },
-        { title: 'Last Name', value: request?.lastName || '' },
-        { title: 'Email', value: request?.email || '' },
-        { title: 'Phone', value: request?.phone || '' },
-        { title: 'City', value: request?.city || '' },
-        { title: 'State', value: request?.state || '' },
-        { title: 'Zip', value: request?.zip || '' },
-        {
-          title: 'Why do you want to buy a franchise?',
-          value: request?.interest || '',
-        },
-      ].filter(
-        (item) =>
-          item.value !== null && item.value !== undefined && item.value !== '',
-      ),
-      images: {
-        topHead: `${this.config.getImageProxyUrl()}/email/thumbsUpHeader.png`,
-      },
-    };
-    if (slug) {
-      data = {
-        ...data,
-        brand: {
-          name: brand?.company,
-          url: `${this.config.getImageProxyUrl()}/${brand?.brandLogo}`,
-          loginUrl: `${this.config.getAppUrl()}/${slug}/login`,
-        },
-      };
-    }
-    const emailUrl = `${this.config.getEmailUrl()}/api`;
-    try {
-      const response = await axios.post(`${emailUrl}/claim-profile`, data);
-      const email = {
-        to: toEmail,
-        from: this.config.getNoReplyEmail(),
-        bcc: this.config.getBccEmail(),
-        subject: subject,
-        html: response?.data?.html,
-      };
-    } catch (error) {
-      console.log('error', error);
-      this.logger.error('Lead Admin Email Error', error?.message);
-    }
+    const fromEmail = this.config.getFromEmail();
+    const toEmail = brand?.email || [];
+    const bccMail = [this.config.getBccEmail()];
+    const sign = this.getEmailSign();
+    const subject = `New Landing Lead from ${sign}`;
+
+    const leadData = [
+      { name: 'First Name', value: request?.firstName || '' },
+      { name: 'Last Name', value: request?.lastName || '' },
+      { name: 'Email', value: request?.email || '' },
+      { name: 'Phone', value: request?.phone || '' },
+      { name: 'City', value: request?.city || '' },
+      { name: 'State', value: request?.state || '' },
+      { name: 'ZIP', value: request?.zip || '' },
+      { name: 'Interest', value: request?.interest || '' },
+      { name: 'Looking For', value: request?.lookingFor || '' },
+    ];
+    const content = this.getContent(leadData, brand, sign);
+    await this.sendMassEmailWithCC(
+      toEmail,
+      bccMail,
+      fromEmail,
+      subject,
+      content,
+    );
   }
   async sendEmailToUser(request, brand) {
     const subject = 'Landing Lead Call!';
@@ -180,15 +147,11 @@ export class LeadsUtilService {
   private initTransporter() {
     return nodemailer.createTransport({
       host: this.config.getSmtpHost(),
-      port: parseInt(this.config.getSmtpPort()),
-      secure: false, // true for 465, false for other ports
+      port: this.config.getSmtpPort(),
+      secure: false,
       auth: {
         user: this.config.getSmtpUserName(),
         pass: this.config.getSmtpPassword(),
-        tls: {
-          ciphers: 'SSLv3',
-          rejectUnauthorized: false,
-        },
       },
     } as Options);
   }
@@ -204,13 +167,23 @@ export class LeadsUtilService {
     return content.join('') || '';
   }
 
+  private getContent(data, brand, sign): string {
+    let content = `Hi ${brand?.company},<br><br>
+    You've received a new lead from your ${sign} landing page. The information is below.<br><br>`;
+
+    content += this.getPlainContent(data);
+    content += `<br><br>Thanks,<br>${sign} Support Team<br>`;
+    content += `<i>211 W Wacker Dr, Ste 100, Chicago, IL 60606</i>`;
+    return content;
+  }
+
   private addLeadsDetails(brand, data): string {
     let content =
       `<strong>Hi ${data[0] && data[0].value}</strong>,` +
       '<p>Below is a copy of the information you have submitted:</p>';
     content += `<p>${this.getPlainContent(
       data,
-    )}</p><p>Thanks,</p><p>${brand?.company}</p><br>211 W Wacker Dr, Ste 100, Chicago, IL 60606`;
+    )}</p><p>Thanks,</p><p>${brand?.company}</p><br><i>211 W Wacker Dr, Ste 100, Chicago, IL 60606</i>`;
     return content;
   }
 
@@ -231,5 +204,23 @@ export class LeadsUtilService {
     }
 
     return '';
+  }
+
+  getEmailSign(): string {
+    const siteId = this.config.getSiteId();
+    let sign = '1851 Franchise';
+
+    switch (siteId) {
+      case 'EE':
+        sign = 'Estatenvy';
+        break;
+      case 'ROOM-1903':
+        sign = 'Room 1903';
+        break;
+      case 'Stachecow':
+        sign = 'Stachecow';
+        break;
+    }
+    return sign;
   }
 }

@@ -73,6 +73,4 @@ export default (): any => ({
   },
   siteId: process.env.SITE_ID,
   appUrl: process.env.APP_URL,
-  appName: process.env.APP_NAME,
-  emailUrl: process.env.EMAIL_URL,
 });
