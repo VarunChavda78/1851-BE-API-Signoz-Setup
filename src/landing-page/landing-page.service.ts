@@ -211,17 +211,17 @@ export class LandingPageService {
 
   async createLead(brandId: number, leadDataDto: any): Promise<any> {
     try {
-      // const recaptcha = await this.verifyCaptchaService.verifyCaptcha(
-      //   leadDataDto?.gReCaptchaToken,
-      // );
+      const recaptcha = await this.verifyCaptchaService.verifyCaptcha(
+        leadDataDto?.gReCaptchaToken,
+      );
 
-      // if (!recaptcha) {
-      //   return {
-      //     status: false,
-      //     message: 'Invalid Captcha response',
-      //   };
-      // }
-      // delete leadDataDto?.gReCaptchaToken;
+      if (!recaptcha) {
+        return {
+          status: false,
+          message: 'Invalid Captcha response',
+        };
+      }
+      delete leadDataDto?.gReCaptchaToken;
 
       const newLead = this.landingPageLeadsRepository.create({
         brandId,
