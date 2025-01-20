@@ -18,7 +18,7 @@ export class LeadsUtilService {
     const fromEmail = this.config.getFromEmail();
     const toEmail = brand?.email || [];
     const bccMail = [this.config.getBccEmail()];
-    const sign = this.getEmailSign();
+    const sign = this.getEmailSign() || '1851';
     const subject = `New Landing Lead from ${sign}`;
 
     const leadData = [
