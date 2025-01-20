@@ -44,7 +44,7 @@ export class LeadsUtilService {
   async sendEmailToUser(request, brand) {
     const subject = 'Landing Lead Call!';
     const fromEmail = this.config.getFromEmail();
-    const toEmail = request?.email;
+    const toEmail = [request?.email];
     const noreplyEmail = this.config.getNoReplyEmail();
     const ccEmail = [this.config.getBccEmail()];
     const firstName = request?.firstName;
