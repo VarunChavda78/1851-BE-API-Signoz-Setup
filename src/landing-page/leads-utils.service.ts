@@ -10,7 +10,7 @@ export class LeadsUtilService {
     private config: EnvironmentConfigService,
     private logger: RollbarLogger,
   ) {}
-  async sendEmailToBrand(request, slug: string, brand) {
+  async sendEmailToBrand(request, brand) {
     const fromEmail = this.config.getFromEmail();
     const toEmail = brand?.email || [];
     const bccMail = [this.config.getBccEmail()];
