@@ -239,7 +239,7 @@ export class LandingPageService {
 
       const lead = await this.landingPageLeadsRepository.save(newLead);
       const brand = await this.usersService.getBrandDetails(brandId);
-      await this.leadsUtilService.sendEmailToUser(lead);
+      await this.leadsUtilService.sendEmailToUser(lead, brand);
       await this.leadsUtilService.sendEmailToBrand(
         lead,
         brand?.brandUrl,

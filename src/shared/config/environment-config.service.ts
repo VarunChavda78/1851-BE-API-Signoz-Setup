@@ -48,7 +48,13 @@ export class EnvironmentConfigService extends ConfigService {
   getGoogleRecaptchaSecretKey(): string {
     return this.get<string>('recaptcha.googleRecaptchaSecretKey');
   }
-  getGCUrl(): string {
-    return this.get<string>('gcUrl');
+  getSiteId(): string {
+    return this.get<string>('siteId');
+  }
+  getAppName(): string {
+    return this.get<string>('appName');
+  }
+  getEmailUrl(): string {
+    return this.get<string>('emailUrl');
   }
 }
