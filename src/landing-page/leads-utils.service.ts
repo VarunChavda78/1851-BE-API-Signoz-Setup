@@ -169,7 +169,7 @@ export class LeadsUtilService {
       '<p>Below is a copy of the information you have submitted:</p>';
     content += `<p>${this.getPlainContent(
       data,
-    )}</p><p>Thanks,</p><p>${brand?.company}</p>`;
+    )}</p>Thanks,<br>${brand?.company}`;
     return content;
   }
 
