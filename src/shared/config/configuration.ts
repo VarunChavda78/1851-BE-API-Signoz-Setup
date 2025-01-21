@@ -71,4 +71,6 @@ export default (): any => ({
   recaptcha: {
     googleRecaptchaSecretKey: process.env.GOOGLE_RECAPTCHA_SECRET_KEY,
   },
+  siteId: process.env.SITE_ID,
+  appUrl: process.env.APP_URL,
 });

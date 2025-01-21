@@ -8,6 +8,8 @@ import { LandingPageLeadsRepository } from './landing-page-leads.repository';
 import { CommonService } from 'src/shared/services/common.service';
 import { LeadsFilterDto } from './dto/leads-dto';
 import { VerifyCaptchaService } from 'src/shared/services/verify-captcha.service';
+import { LeadsUtilService } from './leads-utils.service';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class LandingPageService {
@@ -21,6 +23,8 @@ export class LandingPageService {
     private readonly landingPageLeadsRepository: LandingPageLeadsRepository,
     private commonService: CommonService,
     private verifyCaptchaService: VerifyCaptchaService,
+    private leadsUtilService: LeadsUtilService,
+    private readonly usersService: UsersService,
   ) {}
 
   async findOne(brandId: number) {
@@ -234,6 +238,9 @@ export class LandingPageService {
       });
 
       const lead = await this.landingPageLeadsRepository.save(newLead);
+      const brand = await this.usersService.getBrandDetails(brandId);
+      await this.leadsUtilService.sendEmailToUser(lead, brand);
+      await this.leadsUtilService.sendEmailToBrand(lead, brand);
       return {
         status: true,
         id: lead.id,

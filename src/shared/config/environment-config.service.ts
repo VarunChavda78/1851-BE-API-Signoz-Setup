@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class EnvironmentConfigService extends ConfigService {
   getImageProxyUrl(): string {
-    return this.get<string>('aws.imageProxyUrl');
+    return this.get<string>('s3.imageUrl');
   }
   getAppUrl(): string {
     return this.get<string>('appUrl');
@@ -47,5 +47,8 @@ export class EnvironmentConfigService extends ConfigService {
   }
   getGoogleRecaptchaSecretKey(): string {
     return this.get<string>('recaptcha.googleRecaptchaSecretKey');
+  }
+  getSiteId(): string {
+    return this.get<string>('siteId');
   }
 }
