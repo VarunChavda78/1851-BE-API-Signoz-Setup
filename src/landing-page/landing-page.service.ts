@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { LandingPageRepository } from './landing-page.repository';
 import { LandingPageSectionRepository } from './landing-page-section.repository';
 import { LandingPageCustomisationRepository } from './landing-page-customisation.repository';
@@ -271,7 +271,7 @@ export class LandingPageService {
       let pdfQuery = this.lpPdfRepository
         .createQueryBuilder('lp_pdf')
         .select(['lp_pdf.id', 'lp_pdf.email', 'lp_pdf.createdAt'])
-        .where('lp_pdf.brandId = :brandId', { brandId });
+        .where('lp_pdf.brandId = :brandId', { brandId }).andWhere('lp_pdf.deletedAt IS NULL');
 
       // Apply search if provided
       if (filterDto.q) {
@@ -421,16 +421,33 @@ export class LandingPageService {
   }
   
 
-  async deleteLead(id: number, brandId: number) {
+  async deleteLead(id: number, brandId: number, leadType = 'inquiry'){
     try {
-      const response = await this.landingPageLeadsRepository.softDelete({
-        id,
-        brandId,
-      });
-      if (!response.affected) {
-        throw new NotFoundException('Lead not found');
+      let response;
+      if (leadType === 'inquiry') {
+        response = await this.landingPageLeadsRepository.softDelete({
+          id,
+          brandId,
+        });
+      } else if (leadType === 'download') {
+        response = await this.lpPdfRepository.softDelete({
+          id,
+          brandId,
+        });
+      } else {
+        throw new BadRequestException('Invalid lead type');
       }
-      return { status: true, message: 'Lead deleted successfully' };
+
+      if (!response.affected) {
+        throw new NotFoundException(
+          `${leadType === 'inquiry' ? 'Lead' : 'PDF download'} not found`
+        );
+      }
+
+      return { 
+        status: true, 
+        message: `${leadType === 'inquiry' ? 'Lead' : 'PDF download'} deleted successfully` 
+      };
     } catch (error) {
       this.logger.error('Error deleting lead', error);
       throw error;
