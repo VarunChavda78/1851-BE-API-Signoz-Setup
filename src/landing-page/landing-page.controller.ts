@@ -104,13 +104,13 @@ export class LandingPageController {
     }
   }
   @Delete('leads/:id')
-  async deleteLead(@Param('id') id: number, @Query('slug') slug: string) {
+  async deleteLead(@Param('id') id: number, @Query('slug') slug: string, @Query('leadType') leadType: string) {
     try {
       const brand = await this.usersService.getBrandIdBySlug(slug);
       if (!brand) {
         throw new Error(`Brand not found for slug: ${slug}`);
       }
-      const response = await this.landingPageService.deleteLead(id, brand.id);
+      const response = await this.landingPageService.deleteLead(id, brand.id, leadType);
 
       return response;
     } catch (error) {
