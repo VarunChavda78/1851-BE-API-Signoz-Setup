@@ -11,6 +11,7 @@ import { DomainType } from 'src/shared/constants/constants';
 import { EnvironmentConfigService } from 'src/shared/config/environment-config.service';
 import { LpPdfRepository } from './lp-pdf.repository';
 import { LpSettingsRepository } from './lp-settings.repository';
+import { LeadsUtilService } from './leads-utils.service';
 
 @Injectable()
 export class LandingService {
@@ -22,6 +23,7 @@ export class LandingService {
     private readonly config: EnvironmentConfigService,
     private readonly lpPdfRepository: LpPdfRepository,
     private readonly lpSettingsRepository: LpSettingsRepository,
+    private readonly leadsUtilService: LeadsUtilService,
   ) {}
 
   async getPagesBySlug(slug: string, pageOptions: PageOptionsDto) {
@@ -291,6 +293,10 @@ export class LandingService {
         email: pdfDto.email,
       });
       this.lpPdfRepository.save(newLead);
+      if(pdfDto?.email){
+        const brand = await this.usersService.getBrandDetails(brandId);
+        await this.leadsUtilService.sendEmailToBrand(newLead, brand);
+      }
       const data = await this.lpPageRepository.find({
         where: { brandSlug: slug, status: PageStatus.PUBLISH },
       });
