@@ -28,5 +28,8 @@ import { LpSettingsRepository } from './lp-settings.repository';
     LpPdfRepository,
     LpSettingsRepository,
   ],
+  exports: [
+    LpPdfRepository,
+  ],
 })
 export class LandingModule {}
