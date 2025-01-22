@@ -295,14 +295,14 @@ export class LandingPageService {
 
         const transformedLeads = leads.map(lead => ({
           ...lead,
-          leadType: 'lead' as const
+          leadType: 'inquiry' as const
         }));
 
         const transformedPdfDownloads = pdfDownloads.map(pdf => ({
           id: pdf.id,
           email: pdf.email,
           createdAt: pdf.createdAt,
-          leadType: 'pdf' as const
+          leadType: 'download' as const
         }));
 
         // Combine and sort by leadType
@@ -346,14 +346,14 @@ export class LandingPageService {
 
         const transformedLeads = leads.map(lead => ({
           ...lead,
-          leadType: 'lead' as const
+          leadType: 'inquiry' as const
         }));
 
         const transformedPdfDownloads = pdfDownloads.map(pdf => ({
           id: pdf.id,
           email: pdf.email,
           createdAt: pdf.createdAt,
-          leadType: 'pdf' as const
+          leadType: 'download' as const
         }));
 
         // Combine and sort results
@@ -389,14 +389,14 @@ export class LandingPageService {
 
         const transformedLeads = leads.map(lead => ({
           ...lead,
-          leadType: 'lead' as const
+          leadType: 'inquiry' as const
         }));
 
         const transformedPdfDownloads = pdfDownloads.map(pdf => ({
           id: pdf.id,
           email: pdf.email,
           createdAt: pdf.createdAt,
-          leadType: 'pdf' as const
+          leadType: 'download' as const
         }));
 
         // For other fields, simply append PDF downloads after leads
