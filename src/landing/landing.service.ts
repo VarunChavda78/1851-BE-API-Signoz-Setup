@@ -292,7 +292,7 @@ export class LandingService {
         brandId,
         email: pdfDto.email,
       });
-      this.lpPdfRepository.save(newLead);
+      await this.lpPdfRepository.save(newLead);
       if(pdfDto?.email){
         const brand = await this.usersService.getBrandDetails(brandId);
         await this.leadsUtilService.sendPdfEmailToBrand(pdfDto, brand);
