@@ -5,6 +5,7 @@ import { configModuleOptions } from './config/module-options';
 import { HttpModule } from '@nestjs/axios';
 import { EnvironmentConfigService } from './config/environment-config.service';
 import { VerifyCaptchaService } from './services/verify-captcha.service';
+import { CommonService } from './services/common.service';
 
 @Module({
   imports: [
@@ -59,7 +60,7 @@ import { VerifyCaptchaService } from './services/verify-captcha.service';
     }),
     HttpModule,
   ],
-  exports: [ConfigModule, EnvironmentConfigService, VerifyCaptchaService],
-  providers: [ConfigService, EnvironmentConfigService, VerifyCaptchaService],
+  exports: [ConfigModule, EnvironmentConfigService, VerifyCaptchaService, CommonService],
+  providers: [ConfigService, EnvironmentConfigService, VerifyCaptchaService, CommonService],
 })
 export class SharedModule {}
