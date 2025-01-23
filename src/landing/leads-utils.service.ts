@@ -40,7 +40,7 @@ export class LeadsUtilService {
 
   private getContent(data, brand, sign): string {
     let content = `HI ${brand?.company?.toUpperCase()},<br><br>
-    There's been a Download PDF lead on your 1851 Franchise landing page.<br><br>`;
+    There's been a Download PDF lead on your ${sign} landing page.<br><br>`;
 
     content += this.getPlainContent(data);
     content += `<br>Thanks,<br>${sign} Team`;
