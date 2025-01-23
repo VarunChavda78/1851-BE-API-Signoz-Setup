@@ -275,14 +275,14 @@ export class LandingPageService {
 
       // Apply search if provided
       if (filterDto.q) {
-        const searchTerm = `%${filterDto.q?.toLowerCase()}%`;
+        const searchTerm = `%${filterDto.q}%`;
         leadsQuery = leadsQuery.andWhere(
-          '(LOWER(landing_page_leads.firstName) LIKE :search OR LOWER(landing_page_leads.lastName) LIKE :search OR LOWER(landing_page_leads.email) LIKE :search)',
+          '(LOWER(landing_page_leads.firstName) LIKE LOWER(:search) OR LOWER(landing_page_leads.lastName) LIKE LOWER(:search) OR LOWER(landing_page_leads.email) LIKE LOWER(:search))',
           { search: searchTerm },
         );
 
         pdfQuery = pdfQuery.andWhere(
-          'LOWER(lp_pdf.email) LIKE :search',
+          'LOWER(lp_pdf.email) LIKE LOWER(:search)',
           { search: searchTerm },
         );
       }
