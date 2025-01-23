@@ -331,13 +331,9 @@ export class LandingPageService {
         // For createdAt and email, apply sorting and pagination to both queries
         leadsQuery = leadsQuery
           .orderBy(`landing_page_leads.${orderBy}`, order)
-          .skip(skip)
-          .take(limit);
 
         pdfQuery = pdfQuery
           .orderBy(`lp_pdf.${orderBy}`, order)
-          .skip(skip)
-          .take(limit);
 
         const [leads, pdfDownloads] = await Promise.all([
           leadsQuery.getMany(),
@@ -365,22 +361,22 @@ export class LandingPageService {
               (aValue > bValue ? 1 : -1) : 
               (aValue < bValue ? 1 : -1);
           })
-          .slice(0, limit);
 
-        const totalRecords = await this.getTotalCount(brandId, filterDto.q);
-        const pagination = this.commonService.getPagination(
-          totalRecords,
-          limit,
-          page,
-        );
+          const paginatedResults = combinedResults.slice(skip, skip + limit);
 
-        return { data: combinedResults, pagination };
+          // Calculate total records and pagination
+          const totalRecords = combinedResults.length;
+          const pagination = this.commonService.getPagination(
+            totalRecords,
+            limit,
+            page,
+          );
+          
+          return { data: paginatedResults, pagination };
       } else {
         // For other fields, sort and paginate leads first, then append PDFs
         leadsQuery = leadsQuery
           .orderBy(`landing_page_leads.${orderBy}`, order)
-          .skip(skip)
-          .take(limit);
 
         const [leads, pdfDownloads] = await Promise.all([
           leadsQuery.getMany(),
@@ -403,16 +399,19 @@ export class LandingPageService {
         const combinedResults = [
           ...transformedLeads,
           ...transformedPdfDownloads
-        ].slice(0, limit);
+        ]
 
-        const totalRecords = await this.getTotalCount(brandId, filterDto.q);
-        const pagination = this.commonService.getPagination(
-          totalRecords,
-          limit,
-          page,
-        );
+        const paginatedResults = combinedResults.slice(skip, skip + limit);
 
-        return { data: combinedResults, pagination };
+          // Calculate total records and pagination
+          const totalRecords = combinedResults.length;
+          const pagination = this.commonService.getPagination(
+            totalRecords,
+            limit,
+            page,
+          );
+          
+          return { data: paginatedResults, pagination };
       }
     } catch (error) {
       this.logger.error('Error retrieving leads and PDF downloads', error);
@@ -452,32 +451,5 @@ export class LandingPageService {
       this.logger.error('Error deleting lead', error);
       throw error;
     }
-  }
-
-  private async getTotalCount(brandId: number, searchTerm?: string): Promise<number> {
-    const leadsCount = this.landingPageLeadsRepository
-      .createQueryBuilder('landing_page_leads')
-      .where('landing_page_leads.brandId = :brandId', { brandId })
-      .andWhere('landing_page_leads.deletedAt IS NULL');
-
-    const pdfCount = this.lpPdfRepository
-      .createQueryBuilder('lp_pdf')
-      .where('lp_pdf.brandId = :brandId', { brandId });
-
-    if (searchTerm) {
-      const search = `%${searchTerm.toLowerCase()}%`;
-      leadsCount.andWhere(
-        '(LOWER(landing_page_leads.firstName) LIKE :search OR LOWER(landing_page_leads.lastName) LIKE :search OR LOWER(landing_page_leads.email) LIKE :search)',
-        { search }
-      );
-      pdfCount.andWhere('LOWER(lp_pdf.email) LIKE :search', { search });
-    }
-
-    const [leadsTotal, pdfTotal] = await Promise.all([
-      leadsCount.getCount(),
-      pdfCount.getCount()
-    ]);
-
-    return leadsTotal + pdfTotal;
   }
 }
