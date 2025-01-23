@@ -295,7 +295,7 @@ export class LandingService {
       this.lpPdfRepository.save(newLead);
       if(pdfDto?.email){
         const brand = await this.usersService.getBrandDetails(brandId);
-        await this.leadsUtilService.sendEmailToBrand(newLead, brand);
+        await this.leadsUtilService.sendPdfEmailToBrand(newLead, brand);
       }
       const data = await this.lpPageRepository.find({
         where: { brandSlug: slug, status: PageStatus.PUBLISH },

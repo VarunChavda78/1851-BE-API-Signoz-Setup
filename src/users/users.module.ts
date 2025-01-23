@@ -9,11 +9,12 @@ import { ConfigService } from '@nestjs/config';
 import { Brand } from 'src/mysqldb/entities/brand.entity';
 import { BrandFranchise } from 'src/mysqldb/entities/brand-franchise.entity';
 import { BrandCategory } from 'src/mysqldb/entities/brand-category.entity';
+import { EnvironmentConfigService } from 'src/shared/config/environment-config.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Registration, Admin, Brand, BrandFranchise, BrandCategory], 'mysqldb')],
   controllers: [UsersController],
-  providers: [UsersService, CommonService, ConfigService],
+  providers: [UsersService, CommonService, ConfigService, EnvironmentConfigService],
   exports: [UsersService, CommonService, ConfigService],
 })
 export class UsersModule {}
