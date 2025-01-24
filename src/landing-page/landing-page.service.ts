@@ -13,6 +13,8 @@ import { UsersService } from 'src/users/users.service';
 import { LpPdfRepository } from 'src/landing/lp-pdf.repository';
 import { createObjectCsvStringifier } from 'csv-writer';
 import { S3Service } from 'src/s3/s3.service';
+import { EnvironmentConfigService } from 'src/shared/config/environment-config.service';
+import * as moment from 'moment-timezone';
 
 @Injectable()
 export class LandingPageService {
@@ -29,7 +31,8 @@ export class LandingPageService {
     private leadsUtilService: LeadsUtilService,
     private readonly usersService: UsersService,
     private readonly lpPdfRepository: LpPdfRepository,
-    private s3Service: S3Service
+    private s3Service: S3Service,
+    private envService: EnvironmentConfigService
   ) {}
 
   async findOne(brandId: number) {
@@ -468,6 +471,7 @@ export class LandingPageService {
 
   async exportToCsv(brandId: number) {
     try {
+      const siteId = this.envService.getSiteId() || '1851';
       const leadsQuery = this.landingPageLeadsRepository
         .createQueryBuilder('landing_page_leads')
         .select([
@@ -494,13 +498,14 @@ export class LandingPageService {
 
       const transformedLeads = leads.map((lead) => ({
         ...lead,
-        leadType: 'inquiry' as const,
+        createdAt: moment(lead.createdAt).tz('America/Chicago').format('YYYY-MM-DD HH:mm:ss'),
+        leadType: 'Inquiry Form' as const,
       }));
 
       const transformedPdfDownloads = pdfDownloads.map((pdf) => ({
         email: pdf.email,
-        createdAt: pdf.createdAt,
-        leadType: 'download' as const,
+        createdAt: moment(pdf.createdAt).tz('America/Chicago').format('YYYY-MM-DD HH:mm:ss'),
+        leadType: 'Download Pdf' as const,
       }));
 
       // Combine and sort results
@@ -518,7 +523,7 @@ export class LandingPageService {
           { id: 'firstName', title: 'First Name' },
           { id: 'lastName', title: 'Last Name' },
           { id: 'email', title: 'Email' },
-          { id: 'createdAt', title: 'Created At' },
+          { id: 'createdAt', title: 'Submitted Date' },
           { id: 'leadType', title: 'Lead Type' },
         ],
       });
@@ -527,11 +532,9 @@ export class LandingPageService {
       const csvRecords = csvStringifier.stringifyRecords(combinedResults);
       const csvData = `${csvHeader}${csvRecords}`;
   
-      // Define the filename
       const filename = `landing_leads_${Date.now()}.csv`;
   
-      // Upload CSV to S3 using the new function
-      const uploadResult = await this.s3Service.uploadCsvToS3(csvData, filename);
+      const uploadResult = await this.s3Service.uploadCsvToS3(csvData, filename, 'landing-lead-exports/', siteId);
   
       return {
         message: 'CSV file uploaded successfully',

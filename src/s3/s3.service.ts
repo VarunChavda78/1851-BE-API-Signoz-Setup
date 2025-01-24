@@ -83,7 +83,8 @@ export class S3Service {
       return this.configservice.get('aws.s3UrlEe');
     }
     else {
-      return this.configservice.get('s3.imageUrl');
+      // return this.configservice.get('s3.imageUrl');
+      return this.configservice.get('aws.s3Url');
     }
   }
 
@@ -190,12 +191,13 @@ export class S3Service {
     csvData: string,
     filename: string,
     path: string = 'landing-lead-exports/',
+    siteId: string = '1851',
   ): Promise<{ url: string; message: string }> {
     try {
       if (path && !path.endsWith('/')) {
         path += '/';
       }
-      this.init('1851')
+      this.init(siteId);
   
 
       const key = `${path}${filename}`;
@@ -209,7 +211,7 @@ export class S3Service {
   
       await this.s3Client.send(command);
   
-      const s3BaseUrl = this.getBaseUrl('s3.url');
+      const s3BaseUrl = this.getBaseUrl(siteId);
       const fileUrl = `${s3BaseUrl}/${key}`;
       return {
         message: 'CSV file uploaded successfully',
