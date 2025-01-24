@@ -539,6 +539,7 @@ export class LandingPageService {
       return {
         message: 'CSV file uploaded successfully',
         url: uploadResult.url,
+        name: filename
       };
     } catch (error) {
       this.logger.error('Error exporting leads to CSV', error);
