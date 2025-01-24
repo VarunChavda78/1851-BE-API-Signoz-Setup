@@ -87,6 +87,21 @@ export class S3Service {
     }
   }
 
+  getS3BaseUrl(siteId: string){
+    if(siteId.trim() == 'Stachecow') {
+      return this.configservice.get('aws.s3UrlSc');
+    }
+    else if(siteId.trim() == 'ROOM-1903') {
+      return this.configservice.get('aws.s3Url1903');
+    }
+    else if(siteId.trim() == 'EE') {
+      return this.configservice.get('aws.s3UrlEe');
+    }
+    else {
+      return this.configservice.get('aws.s3Url');
+    }
+  }
+
   async uploadFile(
     file: any,
     path: string = '',
@@ -183,6 +198,42 @@ export class S3Service {
       this.logger.error(`Could not upload file: ${error.message}`, error.stack);
       this.rollbar.warning('Error in convert File method', error);
       return `Could not upload file: ${error.message}`
+    }
+  }
+
+  async uploadCsvToS3(
+    csvData: string,
+    filename: string,
+    path: string = 'landing-lead-exports/',
+    siteId: string = '1851',
+  ): Promise<{ url: string; message: string }> {
+    try {
+      if (path && !path.endsWith('/')) {
+        path += '/';
+      }
+      this.init(siteId);
+  
+
+      const key = `${path}${filename}`;
+
+      const command = new PutObjectCommand({
+        Bucket: this.bucketName,
+        Key: key,
+        Body: csvData,
+        ContentType: 'text/csv',
+      });
+  
+      await this.s3Client.send(command);
+  
+      const s3BaseUrl = this.getS3BaseUrl(siteId);
+      const fileUrl = `${s3BaseUrl}/${key}`;
+      return {
+        message: 'CSV file uploaded successfully',
+        url: fileUrl,
+      };
+    } catch (error) {
+      this.logger.error('Error uploading CSV to S3', error);
+      throw error;
     }
   }
 }

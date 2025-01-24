@@ -19,6 +19,8 @@ import { HttpModule } from '@nestjs/axios';
 import { EnvironmentConfigService } from 'src/shared/config/environment-config.service';
 import { LeadsUtilService } from './leads-utils.service';
 import { LandingModule } from 'src/landing/landing.module';
+import { S3Module } from 'src/s3/s3.module';
+import { S3Service } from 'src/s3/s3.service';
 
 @Module({
   imports: [
@@ -32,7 +34,8 @@ import { LandingModule } from 'src/landing/landing.module';
     UsersModule,
     HttpModule,
     SharedModule,
-    LandingModule
+    LandingModule,
+    S3Module
   ],
   controllers: [LandingPageController],
   providers: [
@@ -45,6 +48,7 @@ import { LandingModule } from 'src/landing/landing.module';
     CommonService,
     EnvironmentConfigService,
     LeadsUtilService,
+    S3Service
   ],
 })
 export class LandingPageModule {}
