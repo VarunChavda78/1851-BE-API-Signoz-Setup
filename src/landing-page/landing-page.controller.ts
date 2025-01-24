@@ -117,6 +117,19 @@ export class LandingPageController {
      throw new HttpException('Failed to delete lead', error?.status || 500);
     }
   }
+  @Get('leads/export')
+  async exportToCsv(@Query('slug') slug: string) {
+    try {
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
+      }
+
+      return await this.landingPageService.exportToCsv(brand.id);
+    } catch (error) {
+      throw new HttpException('Failed to export leads', error?.status || 500);
+    }
+  }
   @Get(':brandId')
   async getSection(@Param('brandId') brandId: number) {
     try {

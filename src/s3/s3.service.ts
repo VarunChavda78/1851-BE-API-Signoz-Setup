@@ -185,4 +185,39 @@ export class S3Service {
       return `Could not upload file: ${error.message}`
     }
   }
+
+  async uploadCsvToS3(
+    csvData: string,
+    filename: string,
+    path: string = 'landing-lead-exports/',
+  ): Promise<{ url: string; message: string }> {
+    try {
+      if (path && !path.endsWith('/')) {
+        path += '/';
+      }
+      this.init('1851')
+  
+
+      const key = `${path}${filename}`;
+
+      const command = new PutObjectCommand({
+        Bucket: this.bucketName,
+        Key: key,
+        Body: csvData,
+        ContentType: 'text/csv',
+      });
+  
+      await this.s3Client.send(command);
+  
+      const s3BaseUrl = this.getBaseUrl('s3.url');
+      const fileUrl = `${s3BaseUrl}/${key}`;
+      return {
+        message: 'CSV file uploaded successfully',
+        url: fileUrl,
+      };
+    } catch (error) {
+      this.logger.error('Error uploading CSV to S3', error);
+      throw error;
+    }
+  }
 }

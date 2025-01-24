@@ -11,6 +11,8 @@ import { VerifyCaptchaService } from 'src/shared/services/verify-captcha.service
 import { LeadsUtilService } from './leads-utils.service';
 import { UsersService } from 'src/users/users.service';
 import { LpPdfRepository } from 'src/landing/lp-pdf.repository';
+import { createObjectCsvStringifier } from 'csv-writer';
+import { S3Service } from 'src/s3/s3.service';
 
 @Injectable()
 export class LandingPageService {
@@ -27,6 +29,7 @@ export class LandingPageService {
     private leadsUtilService: LeadsUtilService,
     private readonly usersService: UsersService,
     private readonly lpPdfRepository: LpPdfRepository,
+    private s3Service: S3Service
   ) {}
 
   async findOne(brandId: number) {
@@ -256,11 +259,14 @@ export class LandingPageService {
 
   async getLeads(brandId: number, filterDto: LeadsFilterDto) {
     try {
-      const limit = filterDto?.limit && filterDto.limit > 0 ? Number(filterDto.limit) : 10;
-      const page = filterDto?.page && filterDto.page > 0 ? Number(filterDto.page) : 1;
+      const limit =
+        filterDto?.limit && filterDto.limit > 0 ? Number(filterDto.limit) : 10;
+      const page =
+        filterDto?.page && filterDto.page > 0 ? Number(filterDto.page) : 1;
       const skip = (page - 1) * limit;
       const orderBy = filterDto?.sort || 'createdAt';
-      const order: 'ASC' | 'DESC' = filterDto?.order?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
+      const order: 'ASC' | 'DESC' =
+        filterDto?.order?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
 
       // Base queries
       let leadsQuery = this.landingPageLeadsRepository
@@ -271,7 +277,8 @@ export class LandingPageService {
       let pdfQuery = this.lpPdfRepository
         .createQueryBuilder('lp_pdf')
         .select(['lp_pdf.id', 'lp_pdf.email', 'lp_pdf.createdAt'])
-        .where('lp_pdf.brandId = :brandId', { brandId }).andWhere('lp_pdf.deletedAt IS NULL');
+        .where('lp_pdf.brandId = :brandId', { brandId })
+        .andWhere('lp_pdf.deletedAt IS NULL');
 
       // Apply search if provided
       if (filterDto.q) {
@@ -293,26 +300,28 @@ export class LandingPageService {
           pdfQuery.getMany(),
         ]);
 
-        const transformedLeads = leads.map(lead => ({
+        const transformedLeads = leads.map((lead) => ({
           ...lead,
-          leadType: 'inquiry' as const
+          leadType: 'inquiry' as const,
         }));
 
-        const transformedPdfDownloads = pdfDownloads.map(pdf => ({
+        const transformedPdfDownloads = pdfDownloads.map((pdf) => ({
           id: pdf.id,
           email: pdf.email,
           createdAt: pdf.createdAt,
-          leadType: 'download' as const
+          leadType: 'download' as const,
         }));
 
         // Combine and sort by leadType
-        const combinedResults = [...transformedLeads, ...transformedPdfDownloads]
-          .sort((a, b) => {
-            if (order === 'ASC') {
-              return a.leadType.localeCompare(b.leadType);
-            }
-            return b.leadType.localeCompare(a.leadType);
-          });
+        const combinedResults = [
+          ...transformedLeads,
+          ...transformedPdfDownloads,
+        ].sort((a, b) => {
+          if (order === 'ASC') {
+            return a.leadType.localeCompare(b.leadType);
+          }
+          return b.leadType.localeCompare(a.leadType);
+        });
 
         // Apply pagination after sorting
         const paginatedResults = combinedResults.slice(skip, skip + limit);
@@ -329,98 +338,100 @@ export class LandingPageService {
       // Apply ordering and pagination based on orderBy field
       else if (orderBy === 'createdAt' || orderBy === 'email') {
         // For createdAt and email, apply sorting and pagination to both queries
-        leadsQuery = leadsQuery
-          .orderBy(`landing_page_leads.${orderBy}`, order)
+        leadsQuery = leadsQuery.orderBy(`landing_page_leads.${orderBy}`, order);
 
-        pdfQuery = pdfQuery
-          .orderBy(`lp_pdf.${orderBy}`, order)
+        pdfQuery = pdfQuery.orderBy(`lp_pdf.${orderBy}`, order);
 
         const [leads, pdfDownloads] = await Promise.all([
           leadsQuery.getMany(),
           pdfQuery.getMany(),
         ]);
 
-        const transformedLeads = leads.map(lead => ({
+        const transformedLeads = leads.map((lead) => ({
           ...lead,
-          leadType: 'inquiry' as const
+          leadType: 'inquiry' as const,
         }));
 
-        const transformedPdfDownloads = pdfDownloads.map(pdf => ({
+        const transformedPdfDownloads = pdfDownloads.map((pdf) => ({
           id: pdf.id,
           email: pdf.email,
           createdAt: pdf.createdAt,
-          leadType: 'download' as const
+          leadType: 'download' as const,
         }));
 
         // Combine and sort results
-        const combinedResults = [...transformedLeads, ...transformedPdfDownloads]
-          .sort((a, b) => {
-            const aValue = a[orderBy];
-            const bValue = b[orderBy];
-            return order === 'ASC' ? 
-              (aValue > bValue ? 1 : -1) : 
-              (aValue < bValue ? 1 : -1);
-          })
+        const combinedResults = [
+          ...transformedLeads,
+          ...transformedPdfDownloads,
+        ].sort((a, b) => {
+          const aValue = a[orderBy];
+          const bValue = b[orderBy];
+          return order === 'ASC'
+            ? aValue > bValue
+              ? 1
+              : -1
+            : aValue < bValue
+              ? 1
+              : -1;
+        });
 
-          const paginatedResults = combinedResults.slice(skip, skip + limit);
+        const paginatedResults = combinedResults.slice(skip, skip + limit);
 
-          // Calculate total records and pagination
-          const totalRecords = combinedResults.length;
-          const pagination = this.commonService.getPagination(
-            totalRecords,
-            limit,
-            page,
-          );
-          
-          return { data: paginatedResults, pagination };
+        // Calculate total records and pagination
+        const totalRecords = combinedResults.length;
+        const pagination = this.commonService.getPagination(
+          totalRecords,
+          limit,
+          page,
+        );
+
+        return { data: paginatedResults, pagination };
       } else {
         // For other fields, sort and paginate leads first, then append PDFs
-        leadsQuery = leadsQuery
-          .orderBy(`landing_page_leads.${orderBy}`, order)
+        leadsQuery = leadsQuery.orderBy(`landing_page_leads.${orderBy}`, order);
 
         const [leads, pdfDownloads] = await Promise.all([
           leadsQuery.getMany(),
           pdfQuery.getMany(), // Get all PDF downloads without sorting/pagination
         ]);
 
-        const transformedLeads = leads.map(lead => ({
+        const transformedLeads = leads.map((lead) => ({
           ...lead,
-          leadType: 'inquiry' as const
+          leadType: 'inquiry' as const,
         }));
 
-        const transformedPdfDownloads = pdfDownloads.map(pdf => ({
+        const transformedPdfDownloads = pdfDownloads.map((pdf) => ({
           id: pdf.id,
           email: pdf.email,
           createdAt: pdf.createdAt,
-          leadType: 'download' as const
+          leadType: 'download' as const,
         }));
 
         // For other fields, simply append PDF downloads after leads
         const combinedResults = [
           ...transformedLeads,
-          ...transformedPdfDownloads
-        ]
+          ...transformedPdfDownloads,
+        ];
 
         const paginatedResults = combinedResults.slice(skip, skip + limit);
 
-          // Calculate total records and pagination
-          const totalRecords = combinedResults.length;
-          const pagination = this.commonService.getPagination(
-            totalRecords,
-            limit,
-            page,
-          );
-          
-          return { data: paginatedResults, pagination };
+        // Calculate total records and pagination
+        const totalRecords = combinedResults.length;
+        const pagination = this.commonService.getPagination(
+          totalRecords,
+          limit,
+          page,
+        );
+
+        return { data: paginatedResults, pagination };
       }
     } catch (error) {
       this.logger.error('Error retrieving leads and PDF downloads', error);
       throw error;
     }
   }
-  
 
-  async deleteLead(id: number, brandId: number, leadType = 'inquiry'){
+  async deleteLead(id: number, brandId: number, leadType = 'inquiry') {
     try {
       let response;
       if (leadType === 'inquiry') {
@@ -439,16 +450,95 @@ export class LandingPageService {
 
       if (!response.affected) {
         throw new NotFoundException(
-          `${leadType === 'inquiry' ? 'Lead' : 'PDF download'} not found`
+          `${leadType === 'inquiry' ? 'Lead' : 'PDF download'} not found`,
         );
       }
 
-      return { 
-        status: true, 
-        message: `${leadType === 'inquiry' ? 'Lead' : 'PDF download'} deleted successfully` 
+      return {
+        status: true,
+        message: `${
+          leadType === 'inquiry' ? 'Lead' : 'PDF download'
+        } deleted successfully`,
       };
     } catch (error) {
       this.logger.error('Error deleting lead', error);
+      throw error;
+    }
+  }
+
+  async exportToCsv(brandId: number) {
+    try {
+      const leadsQuery = this.landingPageLeadsRepository
+        .createQueryBuilder('landing_page_leads')
+        .select([
+          'landing_page_leads.firstName',
+          'landing_page_leads.lastName',
+          'landing_page_leads.email',
+          'landing_page_leads.createdAt',
+        ])
+        .where('landing_page_leads.brandId = :brandId', { brandId })
+        .andWhere('landing_page_leads.deletedAt IS NULL')
+        .orderBy('landing_page_leads.createdAt', 'ASC');
+
+      const pdfQuery = this.lpPdfRepository
+        .createQueryBuilder('lp_pdf')
+        .select(['lp_pdf.email', 'lp_pdf.createdAt'])
+        .where('lp_pdf.brandId = :brandId', { brandId })
+        .andWhere('lp_pdf.deletedAt IS NULL')
+        .orderBy('lp_pdf.createdAt', 'ASC');
+
+      const [leads, pdfDownloads] = await Promise.all([
+        leadsQuery.getMany(),
+        pdfQuery.getMany(),
+      ]);
+
+      const transformedLeads = leads.map((lead) => ({
+        ...lead,
+        leadType: 'inquiry' as const,
+      }));
+
+      const transformedPdfDownloads = pdfDownloads.map((pdf) => ({
+        email: pdf.email,
+        createdAt: pdf.createdAt,
+        leadType: 'download' as const,
+      }));
+
+      // Combine and sort results
+      const combinedResults = [
+        ...transformedLeads,
+        ...transformedPdfDownloads,
+      ].sort((a, b) => {
+        const aValue = a['createdAt'];
+        const bValue = b['createdAt'];
+        return aValue > bValue ? 1 : -1;
+      });
+
+      const csvStringifier = createObjectCsvStringifier({
+        header: [
+          { id: 'firstName', title: 'First Name' },
+          { id: 'lastName', title: 'Last Name' },
+          { id: 'email', title: 'Email' },
+          { id: 'createdAt', title: 'Created At' },
+          { id: 'leadType', title: 'Lead Type' },
+        ],
+      });
+  
+      const csvHeader = csvStringifier.getHeaderString();
+      const csvRecords = csvStringifier.stringifyRecords(combinedResults);
+      const csvData = `${csvHeader}${csvRecords}`;
+  
+      // Define the filename
+      const filename = `landing_leads_${Date.now()}.csv`;
+  
+      // Upload CSV to S3 using the new function
+      const uploadResult = await this.s3Service.uploadCsvToS3(csvData, filename);
+  
+      return {
+        message: 'CSV file uploaded successfully',
+        url: uploadResult.url,
+      };
+    } catch (error) {
+      this.logger.error('Error exporting leads to CSV', error);
       throw error;
     }
   }
