@@ -482,14 +482,14 @@ export class LandingPageService {
         ])
         .where('landing_page_leads.brandId = :brandId', { brandId })
         .andWhere('landing_page_leads.deletedAt IS NULL')
-        .orderBy('landing_page_leads.createdAt', 'ASC');
+        .orderBy('landing_page_leads.createdAt', 'DESC');
 
       const pdfQuery = this.lpPdfRepository
         .createQueryBuilder('lp_pdf')
         .select(['lp_pdf.email', 'lp_pdf.createdAt'])
         .where('lp_pdf.brandId = :brandId', { brandId })
         .andWhere('lp_pdf.deletedAt IS NULL')
-        .orderBy('lp_pdf.createdAt', 'ASC');
+        .orderBy('lp_pdf.createdAt', 'DESC');
 
       const [leads, pdfDownloads] = await Promise.all([
         leadsQuery.getMany(),
@@ -513,9 +513,9 @@ export class LandingPageService {
         ...transformedLeads,
         ...transformedPdfDownloads,
       ].sort((a, b) => {
-        const aValue = a['createdAt'];
-        const bValue = b['createdAt'];
-        return aValue > bValue ? 1 : -1;
+        const aMoment = moment(a.createdAt, 'YYYY-MM-DD HH:mm:ss').tz('America/Chicago');
+        const bMoment = moment(b.createdAt, 'YYYY-MM-DD HH:mm:ss').tz('America/Chicago');
+        return bMoment.valueOf() - aMoment.valueOf();
       });
 
       const csvStringifier = createObjectCsvStringifier({
