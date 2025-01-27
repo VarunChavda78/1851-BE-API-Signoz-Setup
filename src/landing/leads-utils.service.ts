@@ -16,7 +16,7 @@ export class LeadsUtilService {
     const toEmail = brand?.email || [];
     const bccMail = [this.config.getBccEmail()];
     const sign = this.commonService.getEmailSign();
-    const subject = `Download Landing Lead - ${sign}`;
+    const subject = `Download Brochure PDF Inquiry`;
 
     const leadData = [
       { name: 'Email', value: request?.email || '' },
