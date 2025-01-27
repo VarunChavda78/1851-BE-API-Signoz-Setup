@@ -13,7 +13,7 @@ export class LeadsUtilService {
     const toEmail = brand?.email || [];
     const bccMail = [this.config.getBccEmail()];
     const sign = this.commonService.getEmailSign();
-    const subject = `New Landing Lead from ${sign}`;
+    const subject = `New Lead from your landing page`;
 
     const leadData = [
       { name: 'First Name', value: request?.firstName || '' },
@@ -36,7 +36,7 @@ export class LeadsUtilService {
     );
   }
   async sendEmailToUser(request, brand) {
-    const subject = 'Landing Lead Call!';
+    const subject = 'Your Inquiry Has Been Received – Expect a Follow-Up Soon!';
     const fromEmail = this.config.getFromEmail();
     const toEmail = [request?.email];
     const noreplyEmail = this.config.getNoReplyEmail();
