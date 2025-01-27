@@ -99,7 +99,7 @@ export class LeadsUtilService {
 
   private addLeadsDetails(brand, data): string {
     let content =
-      `<strong>HI ${data[0] && data[0].value?.toUpperCase()}</strong>,` +
+      `<strong>Hi ${data[0] && data[0].value}</strong>,` +
       `<p>Thank you for expressing interest in ${brand?.company?.toUpperCase()}. We have received your information. Someone from the team will be in touch shortly.</p>` +
       '<p>Below is a copy of the information you have submitted:</p>';
     content += `<p>${this.getPlainContent(
