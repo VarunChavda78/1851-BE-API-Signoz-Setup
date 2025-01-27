@@ -1,8 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { EnvironmentConfigService } from '../shared/config/environment-config.service';
-import { RollbarLogger } from 'nestjs-rollbar';
-import * as nodemailer from 'nodemailer';
-import { Options } from 'nodemailer/lib/json-transport';
 import { CommonService } from 'src/shared/services/common.service';
 
 @Injectable()
@@ -39,7 +36,7 @@ export class LeadsUtilService {
   }
 
   private getContent(data, brand, sign): string {
-    let content = `HI ${brand?.company?.toUpperCase()},<br><br>
+    let content = `Hi ${brand?.company},<br><br>
     There's been a Download PDF lead on your ${sign} landing page.<br><br>`;
 
     content += this.getPlainContent(data);
