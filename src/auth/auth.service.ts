@@ -4,7 +4,6 @@ import { Injectable } from '@nestjs/common';
 export class AuthService {
   constructor() {}
   validateUser(brandId: any, user: any) {
-    console.log(brandId, user?.id);
     if (user?.user_type && user.user_type === 'user') {
       if (brandId == user?.id) {
         return true;
