@@ -13,6 +13,7 @@ import { LandingService } from './landing.service';
 import { UsersService } from 'src/users/users.service';
 import { PageOptionsDto } from './dtos/pageOptionsDto';
 import { LpPageRepository } from './lp-page.repository';
+import { Protected } from '../auth/auth.decorator';
 
 @Controller({
   version: '1',
@@ -45,6 +46,7 @@ export class LandingController {
     }
   }
 
+  @Protected()
   @Post('publish/:slug/:lpId')
   async createOrUpdatePublish(
     @Param('slug') slug: string,
@@ -131,6 +133,7 @@ export class LandingController {
     }
   }
 
+  @Protected()
   @Post(':slug/create')
   @HttpCode(HttpStatus.CREATED) // Sets the response code to 201
   async createPage(
@@ -168,6 +171,7 @@ export class LandingController {
     }
   }
 
+  @Protected()
   @Post(':slug/status')
   @HttpCode(HttpStatus.OK)
   async updateLandingPageStatus(
@@ -189,6 +193,7 @@ export class LandingController {
     }
   }
 
+  @Protected()
   @Delete(':slug/:lpId')
   @HttpCode(HttpStatus.OK)
   async deletePage(@Param('slug') slug: string, @Param('lpId') lpId: number) {
@@ -206,6 +211,7 @@ export class LandingController {
     }
   }
 
+  @Protected()
   @Post(':slug/:lpId/:sectionSlug')
   async createOrUpdateSection(
     @Param('slug') slug: string,
@@ -255,6 +261,7 @@ export class LandingController {
       return { status: false, message: err?.message, content: '' };
     }
   }
+
   @Post('pdf')
   async createPdf(
     @Query('slug') slug: string,

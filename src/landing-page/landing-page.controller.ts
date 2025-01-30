@@ -85,7 +85,6 @@ export class LandingPageController {
       };
     }
   }
-  @Protected()
   @Get('leads')
   async getLeads(
     @Query('slug') slug: string,
@@ -106,6 +105,8 @@ export class LandingPageController {
       throw new HttpException('Failed to get leads', err?.status || 500);
     }
   }
+
+  @Protected()
   @Delete('leads/:id')
   async deleteLead(@Param('id') id: number, @Query('slug') slug: string, @Query('leadType') leadType: string) {
     try {
@@ -149,6 +150,7 @@ export class LandingPageController {
     }
   }
 
+  @Protected()
   @Post(':brandId')
   async createOrUpdate(
     @Param('brandId') brandId: number,
@@ -169,6 +171,7 @@ export class LandingPageController {
     }
   }
 
+  @Protected()
   @Post('publish/:slug')
   async createOrUpdatePublish(
     @Param('slug') slug: string,
@@ -247,6 +250,7 @@ export class LandingPageController {
     }
   }
 
+  @Protected()
   @Post(':slug/:sectionSlug')
   async createOrUpdateSection(
     @Param('slug') slug: string,
