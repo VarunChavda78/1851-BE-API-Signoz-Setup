@@ -17,13 +17,7 @@ export class MysqldbService {
   ) {}
   async fetchUserByToken(token: string | null, id: any | null) {
     try {
-      const query = this.adminRepository.createQueryBuilder('admin');
-      if (token) {
-        query.where('admin.access_token = :token', { token });
-      }
-      if (id) {
-        query.where('admin.uuid = :id', { id });
-      }
+      const query = this.adminRepository.createQueryBuilder('admin').where('admin.access_token = :token', { token });
 
       const data = await query.getOne();
       return data;
@@ -36,10 +30,9 @@ export class MysqldbService {
   async fetch1851BrandByToken(token: string | null) {
     try {
       const query = this.registrationRepo
-        .createQueryBuilder('registration')
-        .where('registration.access_token = :token', { token });
+        .createQueryBuilder('registration').where('registration.user_type = :type', { type: 'user' })
+        .andWhere('registration.access_token = :token', { token });
       const data = await query.getOne();
-
       return data;
     } catch (err) {
       console.log('err', err);

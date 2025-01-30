@@ -13,6 +13,7 @@ import { LandingPageService } from './landing-page.service';
 import { UsersService } from 'src/users/users.service';
 import { LandingPagePublishRepository } from './landing-page-publish.repository';
 import { LeadsFilterDto } from './dto/leads-dto';
+import { Protected } from 'src/auth/auth.decorator';
 
 @Controller({
   version: '1',
@@ -84,6 +85,7 @@ export class LandingPageController {
       };
     }
   }
+  @Protected()
   @Get('leads')
   async getLeads(
     @Query('slug') slug: string,
@@ -100,6 +102,7 @@ export class LandingPageController {
         leads,
       };
     } catch (err) {
+      console.log("ERROR", err)
       throw new HttpException('Failed to get leads', err?.status || 500);
     }
   }

@@ -44,20 +44,9 @@ export class AuthGuard implements CanActivate {
     const token = authHeader.split(' ')[1];
     let type = UserType.ADMIN;
     let user: any = await this.mysqlDbService.fetchUserByToken(token, null);
-
     if (!user) {
       user = await this.mysqlDbService.fetch1851BrandByToken(token);
       type = UserType.BRAND_1851;
-    }
-    if (!user) {
-      user = await this.mysqlDbService.fetchBrandByToken(token);
-      type = UserType.BRAND_GC;
-      if (user) {
-        const id = request?.params?.id || request?.params?.brandId || null;
-        if (id && user.id != id) {
-          throw new ForbiddenException('Invalid Id');
-        }
-      }
     }
     if (!user) {
       try {
