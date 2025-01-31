@@ -8,11 +8,15 @@ import {
   Query,
   Delete,
   HttpException,
+  Req,
+  BadRequestException,
 } from '@nestjs/common';
 import { LandingPageService } from './landing-page.service';
 import { UsersService } from 'src/users/users.service';
 import { LandingPagePublishRepository } from './landing-page-publish.repository';
 import { LeadsFilterDto } from './dto/leads-dto';
+import { Protected } from 'src/auth/auth.decorator';
+import { AuthService } from 'src/auth/auth.service';
 
 @Controller({
   version: '1',
@@ -25,6 +29,7 @@ export class LandingPageController {
     private readonly landingPageService: LandingPageService,
     private readonly landingPagePublishRepository: LandingPagePublishRepository,
     private readonly usersService: UsersService,
+    private readonly authService: AuthService,
   ) {}
 
   @Get('mapped-domain')
@@ -103,18 +108,22 @@ export class LandingPageController {
       throw new HttpException('Failed to get leads', err?.status || 500);
     }
   }
+  @Protected()
   @Delete('leads/:id')
-  async deleteLead(@Param('id') id: number, @Query('slug') slug: string, @Query('leadType') leadType: string) {
+  async deleteLead(@Param('id') id: number, @Query('slug') slug: string, @Query('leadType') leadType: string, @Req() req: any) {
     try {
       const brand = await this.usersService.getBrandIdBySlug(slug);
       if (!brand) {
         throw new Error(`Brand not found for slug: ${slug}`);
       }
+      if(!this.authService.validateUser(brand.id, req.user)) {
+        throw new BadRequestException('Unauthorized to access resource');
+      }
       const response = await this.landingPageService.deleteLead(id, brand.id, leadType);
 
       return response;
     } catch (error) {
-     throw new HttpException('Failed to delete lead', error?.status || 500);
+     throw new HttpException(error?.message || 'Failed to delete lead', error?.status || 500);
     }
   }
   @Get('leads/export')
