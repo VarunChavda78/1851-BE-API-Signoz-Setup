@@ -13,3 +13,9 @@ export enum DomainType {
   SUBDOMAIN = 1,
   CUSTOM_DOMAIN = 2,
 }
+
+export enum UserType {
+  ADMIN = 1,
+  BRAND_1851 = 2,
+  BRAND_GC = 3
+}
