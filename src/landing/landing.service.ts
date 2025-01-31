@@ -102,20 +102,22 @@ export class LandingService {
   async createPage(
     slug: string,
     createPageDto: { name: string; templateId: number },
-    brandId: number,
-    user: any
   ) {
+    const brand = await this.usersService.getBrandIdBySlug(slug);
+    if (!brand) {
+      throw new Error(`Brand not found for slug: ${slug}`);
+    }
 
     const timestamp = new Date();
 
     const newPage = this.lpPageRepository.create({
-      brandId,
+      brandId: brand.id,
       name: createPageDto.name,
       brandSlug: slug,
       templateId: createPageDto.templateId,
       status: PageStatus.DRAFT,
-      updatedBy: user.id,
-      createdBy: user.id,
+      updatedBy: 1,
+      createdBy: 1,
       createdAt: timestamp,
       updatedAt: timestamp,
       deletedAt: null,
@@ -124,9 +126,13 @@ export class LandingService {
     return await this.lpPageRepository.save(newPage);
   }
 
-  async deletePage(brandId: number, lpId: number) {
+  async deletePage(slug: string, lpId: number) {
+    const brand = await this.usersService.getBrandIdBySlug(slug);
+    if (!brand) {
+      throw new Error(`Brand not found for slug: ${slug}`);
+    }
     const page = await this.lpPageRepository.findOne({
-      where: { id: lpId, brandId },
+      where: { id: lpId, brandId: brand?.id },
     });
 
     if (!page) {
@@ -160,13 +166,16 @@ export class LandingService {
   }
 
   async createOrUpdateSection(
-    brandId: number,
+    slug: string,
     lpId: number,
     sectionSlug: string,
     createLandingPageDto: any,
-    user: any
   ) {
     try {
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
+      }
       const section = await this.lpSectionRepository.findOne({
         where: { slug: sectionSlug },
       });
@@ -192,8 +201,8 @@ export class LandingService {
           landingPageId: lpId,
           section: section,
           content: createLandingPageDto?.data || '',
-          createdBy: user.id,
-          updatedBy: user.id,
+          createdBy: 1,
+          updatedBy: 1,
           createdAt: timestamp,
           updatedAt: timestamp,
         });
@@ -315,16 +324,20 @@ export class LandingService {
     };
   }
 
-  async updateLandingPageStatus(brandId: number, status: boolean, userId: number) {
+  async updateLandingPageStatus(slug: string, status: boolean, userId: number) {
+    const brand = await this.usersService.getBrandIdBySlug(slug);
+    if (!brand) {
+      throw new Error(`Brand not found for slug: ${slug}`);
+    }
 
-    let settings = await this.lpSettingsRepository.findOne({ where: { brandId } });
+    let settings = await this.lpSettingsRepository.findOne({ where: { brandId: brand.id } });
     
     if (settings) {
       settings.status = status;
       settings.updatedBy = userId;
     } else {
       settings = this.lpSettingsRepository.create({
-        brandId,
+        brandId: brand.id,
         status,
         createdBy: userId,
         updatedBy: userId,

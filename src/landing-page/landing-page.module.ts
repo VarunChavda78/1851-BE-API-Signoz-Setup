@@ -21,7 +21,6 @@ import { LeadsUtilService } from './leads-utils.service';
 import { LandingModule } from 'src/landing/landing.module';
 import { S3Module } from 'src/s3/s3.module';
 import { S3Service } from 'src/s3/s3.service';
-import { AuthService } from 'src/auth/auth.service';
 
 @Module({
   imports: [
@@ -49,8 +48,7 @@ import { AuthService } from 'src/auth/auth.service';
     CommonService,
     EnvironmentConfigService,
     LeadsUtilService,
-    S3Service,
-    AuthService
+    S3Service
   ],
 })
 export class LandingPageModule {}
