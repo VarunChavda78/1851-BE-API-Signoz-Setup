@@ -8,11 +8,15 @@ import {
   Get,
   Delete,
   Query,
+  Req,
+  BadRequestException,
 } from '@nestjs/common';
 import { LandingService } from './landing.service';
 import { UsersService } from 'src/users/users.service';
 import { PageOptionsDto } from './dtos/pageOptionsDto';
 import { LpPageRepository } from './lp-page.repository';
+import { Protected } from '../auth/auth.decorator';
+import { AuthService } from 'src/auth/auth.service';
 
 @Controller({
   version: '1',
@@ -23,6 +27,7 @@ export class LandingController {
     private readonly landingService: LandingService,
     private readonly usersService: UsersService,
     private readonly lpPageRepository: LpPageRepository,
+    private readonly authService: AuthService,
   ) {}
 
   @Get('mapped-domain')
@@ -45,6 +50,7 @@ export class LandingController {
     }
   }
 
+  @Protected()
   @Post('publish/:slug/:lpId')
   async createOrUpdatePublish(
     @Param('slug') slug: string,
@@ -56,11 +62,15 @@ export class LandingController {
       domain?: string;
       customDomainStatus?: string;
     },
+    @Req() req,
   ) {
     try {
       const brand = await this.usersService.getBrandIdBySlug(slug);
       if (!brand) {
         throw new Error(`Brand not found for slug: ${slug}`);
+      }
+      if (!this.authService.validateUser(brand.id, req.user)) {
+        throw new BadRequestException(`Unauthorized to access resources for ${slug}`);
       }
       const data = await this.landingService.UpdatePublishData(
         lpId,
@@ -131,14 +141,23 @@ export class LandingController {
     }
   }
 
+  @Protected()
   @Post(':slug/create')
   @HttpCode(HttpStatus.CREATED) // Sets the response code to 201
   async createPage(
     @Param('slug') slug: string,
     @Body() createPageDto: { name: string; templateId: number },
+    @Req() req,
   ) {
     try {
-      const newPage = await this.landingService.createPage(slug, createPageDto);
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
+      }
+      if (!this.authService.validateUser(brand.id, req.user)) {
+        throw new BadRequestException(`Unauthorized to access resources for ${slug}`);
+      }
+      const newPage = await this.landingService.createPage(slug, createPageDto, brand.id, req.user);
       return {
         status: true,
         data: newPage,
@@ -168,15 +187,24 @@ export class LandingController {
     }
   }
 
+  @Protected()
   @Post(':slug/status')
   @HttpCode(HttpStatus.OK)
   async updateLandingPageStatus(
     @Param('slug') slug: string,
     @Body() body: { status: boolean },
+    @Req() req,
   ) {
     try {
-      const userId = 1; // Replace this with actual user ID from auth context
-      const data = await this.landingService.updateLandingPageStatus(slug, body.status, userId);
+      const userId = req.user.id; // Replace this with actual user ID from auth context
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
+      }
+      if (!this.authService.validateUser(brand.id, req.user)) {
+        throw new BadRequestException(`Unauthorized to access resources for ${slug}`);
+      }
+      const data = await this.landingService.updateLandingPageStatus(brand.id, body.status, userId);
       return {
         status: true,
         data,
@@ -189,11 +217,19 @@ export class LandingController {
     }
   }
 
+  @Protected()
   @Delete(':slug/:lpId')
   @HttpCode(HttpStatus.OK)
-  async deletePage(@Param('slug') slug: string, @Param('lpId') lpId: number) {
+  async deletePage(@Param('slug') slug: string, @Param('lpId') lpId: number, @Req() req) {
     try {
-      await this.landingService.deletePage(slug, lpId);
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
+      }
+      if (!this.authService.validateUser(brand.id, req.user)) {
+        throw new BadRequestException(`Unauthorized to access resources for ${slug}`);
+      }
+      await this.landingService.deletePage(brand.id, lpId);
       return {
         status: true,
         message: 'Page deleted successfully',
@@ -206,19 +242,31 @@ export class LandingController {
     }
   }
 
+  @Protected()
   @Post(':slug/:lpId/:sectionSlug')
   async createOrUpdateSection(
     @Param('slug') slug: string,
     @Param('lpId') lpId: number,
     @Param('sectionSlug') sectionSlug: string,
     @Body() createLandingPageDto: any,
+    @Req() req
   ) {
     try {
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
+      }
+      if (!this.authService.validateUser(brand.id, req.user)) {
+        throw new BadRequestException(
+          `Unauthorized to access resources for ${slug}`,
+        );
+      }
       const data = await this.landingService.createOrUpdateSection(
-        slug,
+        brand.id,
         lpId,
         sectionSlug,
         createLandingPageDto,
+        req.user
       );
       return {
         status: true,
@@ -255,6 +303,7 @@ export class LandingController {
       return { status: false, message: err?.message, content: '' };
     }
   }
+
   @Post('pdf')
   async createPdf(
     @Query('slug') slug: string,

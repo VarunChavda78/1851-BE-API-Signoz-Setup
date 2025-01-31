@@ -12,6 +12,8 @@ import { S3Module } from './s3/s3.module';
 import { LandingPageModule } from './landing-page/landing-page.module';
 import { NavigationMenuModule } from './navigation-menu/navigation-menu.module';
 import { LandingModule } from './landing/landing.module';
+import { MysqldbModule } from './mysqldb/mysqldb.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -35,6 +37,8 @@ import { LandingModule } from './landing/landing.module';
     LandingPageModule,
     NavigationMenuModule,
     LandingModule,
+    MysqldbModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
