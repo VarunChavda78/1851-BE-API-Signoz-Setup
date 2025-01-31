@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { LpPageRepository } from './lp-page.repository';
 import { UsersService } from 'src/users/users.service';
 import { PageStatus, PageStatusName } from './landing.constant';
@@ -12,6 +12,13 @@ import { EnvironmentConfigService } from 'src/shared/config/environment-config.s
 import { LpPdfRepository } from './lp-pdf.repository';
 import { LpSettingsRepository } from './lp-settings.repository';
 import { LeadsUtilService } from './leads-utils.service';
+import { S3Service } from 'src/s3/s3.service';
+import { CommonService } from 'src/shared/services/common.service';
+import * as moment from 'moment-timezone';
+import { LandingPageLeadsRepository } from './landing-leads.repository';
+import { LeadsFilterDto } from './dtos/leads-dto';
+import { createObjectCsvStringifier } from 'csv-writer';
+import { VerifyCaptchaService } from 'src/shared/services/verify-captcha.service';
 
 @Injectable()
 export class LandingService {
@@ -24,6 +31,14 @@ export class LandingService {
     private readonly lpPdfRepository: LpPdfRepository,
     private readonly lpSettingsRepository: LpSettingsRepository,
     private readonly leadsUtilService: LeadsUtilService,
+    private s3Service: S3Service,
+    private envService: EnvironmentConfigService,
+    private commonService: CommonService,
+    private readonly landingPageLeadsRepository: LandingPageLeadsRepository,
+    private verifyCaptchaService: VerifyCaptchaService,
+
+
+
   ) {}
 
   async getPagesBySlug(slug: string, pageOptions: PageOptionsDto) {
@@ -349,5 +364,329 @@ export class LandingService {
     return {
       message: status ? "Landing page enabled successfully" : "Landing page disabled successfully"
     };
+  }
+
+  async exportToCsv(brandId: number) {
+    try {
+      const siteId = this.envService.getSiteId() || '1851';
+      const leadsQuery = this.landingPageLeadsRepository
+        .createQueryBuilder('landing_page_leads')
+        .select([
+          'landing_page_leads.firstName',
+          'landing_page_leads.lastName',
+          'landing_page_leads.email',
+          'landing_page_leads.createdAt',
+        ])
+        .where('landing_page_leads.brandId = :brandId', { brandId })
+        .andWhere('landing_page_leads.deletedAt IS NULL')
+        .orderBy('landing_page_leads.createdAt', 'DESC');
+
+      const pdfQuery = this.lpPdfRepository
+        .createQueryBuilder('lp_pdf')
+        .select(['lp_pdf.email', 'lp_pdf.createdAt'])
+        .where('lp_pdf.brandId = :brandId', { brandId })
+        .andWhere('lp_pdf.deletedAt IS NULL')
+        .orderBy('lp_pdf.createdAt', 'DESC');
+
+      const [leads, pdfDownloads] = await Promise.all([
+        leadsQuery.getMany(),
+        pdfQuery.getMany(),
+      ]);
+
+      const transformedLeads = leads.map((lead) => ({
+        ...lead,
+        createdAt: moment(lead.createdAt).tz('America/Chicago').format('YYYY-MM-DD HH:mm:ss'),
+        leadType: 'Inquiry Form' as const,
+      }));
+
+      const transformedPdfDownloads = pdfDownloads.map((pdf) => ({
+        email: pdf.email,
+        createdAt: moment(pdf.createdAt).tz('America/Chicago').format('YYYY-MM-DD HH:mm:ss'),
+        leadType: 'Download Pdf' as const,
+      }));
+
+      // Combine and sort results
+      const combinedResults = [
+        ...transformedLeads,
+        ...transformedPdfDownloads,
+      ].sort((a, b) => {
+        const aMoment = moment(a.createdAt, 'YYYY-MM-DD HH:mm:ss').tz('America/Chicago');
+        const bMoment = moment(b.createdAt, 'YYYY-MM-DD HH:mm:ss').tz('America/Chicago');
+        return bMoment.valueOf() - aMoment.valueOf();
+      });
+
+      const csvStringifier = createObjectCsvStringifier({
+        header: [
+          { id: 'firstName', title: 'First Name' },
+          { id: 'lastName', title: 'Last Name' },
+          { id: 'email', title: 'Email' },
+          { id: 'createdAt', title: 'Submitted Date' },
+          { id: 'leadType', title: 'Lead Type' },
+        ],
+      });
+  
+      const csvHeader = csvStringifier.getHeaderString();
+      const csvRecords = csvStringifier.stringifyRecords(combinedResults);
+      const csvData = `${csvHeader}${csvRecords}`;
+  
+      const filename = `landing_leads_${Date.now()}.csv`;
+  
+      const uploadResult = await this.s3Service.uploadCsvToS3(csvData, filename, 'landing-lead-exports/', siteId);
+  
+      return {
+        message: 'CSV file uploaded successfully',
+        url: uploadResult.url,
+        name: filename
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async deleteLead(id: number, brandId: number, leadType = 'inquiry') {
+    try {
+      let response;
+      if (leadType === 'inquiry') {
+        response = await this.landingPageLeadsRepository.softDelete({
+          id,
+          brandId,
+        });
+      } else if (leadType === 'download') {
+        response = await this.lpPdfRepository.softDelete({
+          id,
+          brandId,
+        });
+      } else {
+        throw new BadRequestException('Invalid lead type');
+      }
+
+      if (!response.affected) {
+        throw new NotFoundException(
+          `${leadType === 'inquiry' ? 'Lead' : 'PDF download'} not found`,
+        );
+      }
+
+      return {
+        status: true,
+        message: `${
+          leadType === 'inquiry' ? 'Lead' : 'PDF download'
+        } deleted successfully`,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+  async createLead(brandId: number, leadDataDto: any): Promise<any> {
+    try {
+      const recaptcha = await this.verifyCaptchaService.verifyCaptcha(
+        leadDataDto?.gReCaptchaToken,
+      );
+
+      if (!recaptcha) {
+        return {
+          status: false,
+          message: 'Invalid Captcha response',
+        };
+      }
+      delete leadDataDto?.gReCaptchaToken;
+
+      const newLead = this.landingPageLeadsRepository.create({
+        brandId,
+        firstName: leadDataDto.firstName,
+        lastName: leadDataDto.lastName,
+        email: leadDataDto.email,
+        phone: leadDataDto.phone,
+        city: leadDataDto.city,
+        state: leadDataDto.state,
+        zip: leadDataDto.zip,
+        interest: leadDataDto.interest,
+        type: leadDataDto.type,
+        lookingFor: leadDataDto.lookingFor,
+      });
+
+      const lead = await this.landingPageLeadsRepository.save(newLead);
+      const brand = await this.usersService.getBrandDetails(brandId);
+      await this.leadsUtilService.sendEmailToUser(lead, brand);
+      await this.leadsUtilService.sendEmailToBrand(lead, brand);
+      return {
+        status: true,
+        id: lead.id,
+        message: 'Lead has been added successfully',
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+  async getLeads(brandId: number, filterDto: LeadsFilterDto) {
+    try {
+      const limit =
+        filterDto?.limit && filterDto.limit > 0 ? Number(filterDto.limit) : 10;
+      const page =
+        filterDto?.page && filterDto.page > 0 ? Number(filterDto.page) : 1;
+      const skip = (page - 1) * limit;
+      const orderBy = filterDto?.sort || 'createdAt';
+      const order: 'ASC' | 'DESC' =
+        filterDto?.order?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
+
+      // Base queries
+      let leadsQuery = this.landingPageLeadsRepository
+        .createQueryBuilder('landing_page_leads')
+        .where('landing_page_leads.brandId = :brandId', { brandId })
+        .andWhere('landing_page_leads.deletedAt IS NULL');
+
+      let pdfQuery = this.lpPdfRepository
+        .createQueryBuilder('lp_pdf')
+        .select(['lp_pdf.id', 'lp_pdf.email', 'lp_pdf.createdAt'])
+        .where('lp_pdf.brandId = :brandId', { brandId })
+        .andWhere('lp_pdf.deletedAt IS NULL');
+
+      // Apply search if provided
+      if (filterDto.q) {
+        const searchTerm = `%${filterDto.q}%`;
+        leadsQuery = leadsQuery.andWhere(
+          '(LOWER(landing_page_leads.firstName) LIKE LOWER(:search) OR LOWER(landing_page_leads.lastName) LIKE LOWER(:search) OR LOWER(landing_page_leads.email) LIKE LOWER(:search))',
+          { search: searchTerm },
+        );
+
+        pdfQuery = pdfQuery.andWhere(
+          'LOWER(lp_pdf.email) LIKE LOWER(:search)',
+          { search: searchTerm },
+        );
+      }
+      if (orderBy === 'leadType') {
+        // For leadType sorting, we'll fetch all records and sort them in memory
+        const [leads, pdfDownloads] = await Promise.all([
+          leadsQuery.getMany(),
+          pdfQuery.getMany(),
+        ]);
+
+        const transformedLeads = leads.map((lead) => ({
+          ...lead,
+          leadType: 'inquiry' as const,
+        }));
+
+        const transformedPdfDownloads = pdfDownloads.map((pdf) => ({
+          id: pdf.id,
+          email: pdf.email,
+          createdAt: pdf.createdAt,
+          leadType: 'download' as const,
+        }));
+
+        // Combine and sort by leadType
+        const combinedResults = [
+          ...transformedLeads,
+          ...transformedPdfDownloads,
+        ].sort((a, b) => {
+          if (order === 'ASC') {
+            return a.leadType.localeCompare(b.leadType);
+          }
+          return b.leadType.localeCompare(a.leadType);
+        });
+
+        // Apply pagination after sorting
+        const paginatedResults = combinedResults.slice(skip, skip + limit);
+        const totalRecords = combinedResults.length;
+
+        const pagination = this.commonService.getPagination(
+          totalRecords,
+          limit,
+          page,
+        );
+
+        return { data: paginatedResults, pagination };
+      }
+      // Apply ordering and pagination based on orderBy field
+      else if (orderBy === 'createdAt' || orderBy === 'email') {
+        // For createdAt and email, apply sorting and pagination to both queries
+        leadsQuery = leadsQuery.orderBy(`landing_page_leads.${orderBy}`, order);
+
+        pdfQuery = pdfQuery.orderBy(`lp_pdf.${orderBy}`, order);
+
+        const [leads, pdfDownloads] = await Promise.all([
+          leadsQuery.getMany(),
+          pdfQuery.getMany(),
+        ]);
+
+        const transformedLeads = leads.map((lead) => ({
+          ...lead,
+          leadType: 'inquiry' as const,
+        }));
+
+        const transformedPdfDownloads = pdfDownloads.map((pdf) => ({
+          id: pdf.id,
+          email: pdf.email,
+          createdAt: pdf.createdAt,
+          leadType: 'download' as const,
+        }));
+
+        // Combine and sort results
+        const combinedResults = [
+          ...transformedLeads,
+          ...transformedPdfDownloads,
+        ].sort((a, b) => {
+          const aValue = a[orderBy];
+          const bValue = b[orderBy];
+          return order === 'ASC'
+            ? aValue > bValue
+              ? 1
+              : -1
+            : aValue < bValue
+              ? 1
+              : -1;
+        });
+
+        const paginatedResults = combinedResults.slice(skip, skip + limit);
+
+        // Calculate total records and pagination
+        const totalRecords = combinedResults.length;
+        const pagination = this.commonService.getPagination(
+          totalRecords,
+          limit,
+          page,
+        );
+
+        return { data: paginatedResults, pagination };
+      } else {
+        // For other fields, sort and paginate leads first, then append PDFs
+        leadsQuery = leadsQuery.orderBy(`landing_page_leads.${orderBy}`, order);
+
+        const [leads, pdfDownloads] = await Promise.all([
+          leadsQuery.getMany(),
+          pdfQuery.getMany(), // Get all PDF downloads without sorting/pagination
+        ]);
+
+        const transformedLeads = leads.map((lead) => ({
+          ...lead,
+          leadType: 'inquiry' as const,
+        }));
+
+        const transformedPdfDownloads = pdfDownloads.map((pdf) => ({
+          id: pdf.id,
+          email: pdf.email,
+          createdAt: pdf.createdAt,
+          leadType: 'download' as const,
+        }));
+
+        // For other fields, simply append PDF downloads after leads
+        const combinedResults = [
+          ...transformedLeads,
+          ...transformedPdfDownloads,
+        ];
+
+        const paginatedResults = combinedResults.slice(skip, skip + limit);
+
+        // Calculate total records and pagination
+        const totalRecords = combinedResults.length;
+        const pagination = this.commonService.getPagination(
+          totalRecords,
+          limit,
+          page,
+        );
+
+        return { data: paginatedResults, pagination };
+      }
+    } catch (error) {
+      throw error;
+    }
   }
 }

@@ -14,9 +14,16 @@ import { LpPdfRepository } from './lp-pdf.repository';
 import { LpSettingsRepository } from './lp-settings.repository';
 import { LeadsUtilService } from './leads-utils.service';
 import { CommonService } from 'src/shared/services/common.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { LandingPageLeads } from './landing-leads.entity';
+import { S3Module } from 'src/s3/s3.module';
+import { HttpModule } from '@nestjs/axios';
+import { S3Service } from 'src/s3/s3.service';
+import { LandingPageLeadsRepository } from './landing-leads.repository';
+import { AuthService } from 'src/auth/auth.service';
 
 @Module({
-  imports: [UsersModule, SharedModule],
+  imports: [TypeOrmModule.forFeature([LandingPageLeads]), UsersModule, SharedModule, S3Module, HttpModule],
   controllers: [LandingController],
   providers: [
     LandingService,
@@ -30,10 +37,10 @@ import { CommonService } from 'src/shared/services/common.service';
     LpPdfRepository,
     LpSettingsRepository,
     LeadsUtilService,
-    CommonService
-  ],
-  exports: [
-    LpPdfRepository,
-  ],
+    CommonService,
+    S3Service,
+    LandingPageLeadsRepository,
+    AuthService
+  ]
 })
 export class LandingModule {}
