@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { LpPageRepository } from './lp-page.repository';
 import { UsersService } from 'src/users/users.service';
 import { PageStatus, PageStatusName } from './landing.constant';
@@ -353,7 +353,11 @@ export class LandingService {
     };
   }
 
-  async createLpLead(brandId: number, slug: string, leadDataDto: CreateLeadDto): Promise<any> {
+  async createLpLead(
+    brandId: number,
+    slug: string,
+    leadDataDto: CreateLeadDto,
+  ): Promise<any> {
     try {
       // Verify reCAPTCHA
       const recaptcha = await this.verifyCaptchaService.verifyCaptcha(
@@ -393,7 +397,11 @@ export class LandingService {
         leadFields = Object.entries(leadDataDto)
           .filter(
             ([key, value]) =>
-              value != null && key !== 'type' && key !== 'formType' && key !== 'gReCaptchaToken' && key !== 'lpId',
+              value != null &&
+              key !== 'type' &&
+              key !== 'formType' &&
+              key !== 'gReCaptchaToken' &&
+              key !== 'lpId',
           )
           .map(([field, value]) => ({
             brandId,
@@ -465,6 +473,41 @@ export class LandingService {
       };
     } catch (error) {
       throw error;
+    }
+  }
+
+  async deleteLpLead(brandId: number, uid: string): Promise<any> {
+    try {
+      const existingLeads = await this.lpLeadsRepository
+        .createQueryBuilder('lead')
+        .where('lead.brandId = :brandId', { brandId })
+        .andWhere('lead.uid = :uid', { uid })
+        .andWhere('lead.deletedAt IS NULL')
+        .getCount();
+
+      if (existingLeads === 0) {
+        throw new NotFoundException(`No leads found for the given identifier`);
+      }
+
+      const result = await this.lpLeadsRepository
+        .createQueryBuilder('lead')
+        .softDelete()
+        .where('brandId = :brandId', { brandId })
+        .andWhere('uid = :uid', { uid })
+        .execute();
+      if (result.affected === 0) {
+        throw new NotFoundException(`No leads found for the given identifier`);
+      }
+      return {
+        status: true,
+        message: 'Lead deleted successfully',
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException('Failed to delete leads');
     }
   }
 }

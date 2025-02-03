@@ -349,4 +349,19 @@ export class LandingController {
       throw new HttpException('Failed to create leads', error?.status || 500);
     }
   }
+
+  @Delete('lp-leads/:slug/:uid')
+  async deleteLpLead(@Param('slug') slug: string, @Param('uid') uid: string) {
+    try {
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
+      }
+      const result = await this.landingService.deleteLpLead(brand.id, uid);
+      return result
+    } catch (error) {
+      console.log('error', error);
+      throw new HttpException(error?.message || 'Failed to delete leads', error?.status || 500);
+    }
+  }
 }
