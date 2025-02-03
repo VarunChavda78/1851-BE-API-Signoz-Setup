@@ -14,6 +14,7 @@ import { LpPdfRepository } from './lp-pdf.repository';
 import { LpSettingsRepository } from './lp-settings.repository';
 import { LeadsUtilService } from './leads-utils.service';
 import { CommonService } from 'src/shared/services/common.service';
+import { AuthService } from 'src/auth/auth.service';
 
 @Module({
   imports: [UsersModule, SharedModule],
@@ -30,7 +31,8 @@ import { CommonService } from 'src/shared/services/common.service';
     LpPdfRepository,
     LpSettingsRepository,
     LeadsUtilService,
-    CommonService
+    CommonService,
+    AuthService
   ],
   exports: [
     LpPdfRepository,
