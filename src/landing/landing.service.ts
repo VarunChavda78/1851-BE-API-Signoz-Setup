@@ -560,20 +560,18 @@ export class LandingService {
       if (sort === 'createdAt') {
         query = query.orderBy('MAX(lead.createdAt)', order);
       } else if (sort === 'formType') {
-        query = query.orderBy('MAX(lead.formType)', order);
+        query = query.orderBy('MAX(lead.formType)', order === 'ASC' ? 'DESC' : 'ASC');
       } else {
+        // For other fields, join with the same table to get sort field values
         query = query
           .leftJoin(
-            (qb) =>
-              qb
-                .select('s.uid')
-                .addSelect('s.value')
-                .from(LpLeads, 's')
-                .where('s.field = :sortField', { sortField: sort }),
-            'sort_value',
-            'sort_value.uid = lead.uid',
+            'lp_leads',
+            'sort_data',
+            'sort_data.uid = lead.uid AND sort_data.field = :sortField AND sort_data.brandId = :brandId AND sort_data.deletedAt IS NULL',
+            { sortField: sort, brandId }
           )
-          .orderBy('sort_value.value', order, 'NULLS LAST');
+          .addSelect('MAX(sort_data.value)', 'sort_value')
+          .orderBy('MAX(sort_data.value)', order, 'NULLS LAST');
       }
 
       if (sort !== 'createdAt') {
