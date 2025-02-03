@@ -19,6 +19,9 @@ import { CreateLeadDto } from './dtos/createLeadDto';
 import { LpLeads } from './lp-leads.entity';
 import { LeadsFilterDto } from './dtos/leadsFilterDto';
 import { CommonService } from 'src/shared/services/common.service';
+import { S3Service } from 'src/s3/s3.service';
+import * as moment from 'moment-timezone';
+import { createObjectCsvStringifier } from 'csv-writer';
 
 @Injectable()
 export class LandingService {
@@ -33,7 +36,8 @@ export class LandingService {
     private readonly leadsUtilService: LeadsUtilService,
     private verifyCaptchaService: VerifyCaptchaService,
     private readonly lpLeadsRepository: LpLeadsRepository,
-    private readonly commonService: CommonService
+    private readonly commonService: CommonService,
+    private s3Service: S3Service
   ) {}
 
   async getPagesBySlug(slug: string, pageOptions: PageOptionsDto) {
@@ -609,8 +613,8 @@ export class LandingService {
           (acc, curr) => ({
             ...acc,
             [curr.field]: curr.value,
-            createdAt: curr.createdAt,
-            formType: curr.formType,
+            createdAt: moment(curr.createdAt).tz('America/Chicago').format('YYYY-MM-DD HH:mm:ss'),
+            formType: curr.formType === 1 ? 'Inquiry Form' : 'Download PDF',
           }),
           {},
         );
@@ -629,6 +633,58 @@ export class LandingService {
       };
     } catch (error) {
       throw error;
+    }
+  }
+
+  async exportToCsv(brandId: number){
+    try {
+      // Get unique fields excluding the ones we don't want in CSV
+      const uniqueFields = await this.lpLeadsRepository
+        .createQueryBuilder('lead')
+        .select('DISTINCT lead.field', 'field')
+        .where('lead.brandId = :brandId', { brandId })
+        .andWhere('lead.deletedAt IS NULL')
+        .andWhere('lead.field NOT IN (:...excludeFields)', {
+          excludeFields: ['id', 'brandId', 'uid', 'deletedAt', 'lpId', 'type'],
+        })
+        .getRawMany();
+
+      // Create dynamic headers
+      const headers = uniqueFields.map(({ field }) => ({
+        id: field,
+        title: this.leadsUtilService.formatFieldName(field), // Capitalize first letter
+      }));
+
+      // Add createdAt and formType to headers
+      headers.push(
+        { id: 'createdAt', title: 'Submitted Date' },
+        { id: 'formType', title: 'Form Type' }
+      );
+
+      const csvStringifier = createObjectCsvStringifier({ header: headers });
+
+      // Get all leads data
+      const { data: leadsData } = await this.getLpLeads(brandId, {});
+
+      const csvHeader = csvStringifier.getHeaderString();
+      const csvRecords = csvStringifier.stringifyRecords(leadsData);
+      const csvData = `${csvHeader}${csvRecords}`;
+      const filename = `landing_leads_${Date.now()}.csv`;
+
+      const uploadResult = await this.s3Service.uploadCsvToS3(
+        csvData,
+        filename,
+        'landing-lead-exports/',
+        '1851'
+      );
+
+      return {
+        message: 'CSV file uploaded successfully',
+        url: uploadResult.url,
+        name: filename,
+      };
+    } catch (error) {
+      throw new Error(`Failed to export CSV: ${error.message}`);
     }
   }
 }

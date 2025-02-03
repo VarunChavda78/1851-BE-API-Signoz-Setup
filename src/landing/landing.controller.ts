@@ -394,4 +394,21 @@ export class LandingController {
       throw new HttpException(error?.message || 'Failed to get leads', error?.status || 500);
     }
   }
+
+  @Get('lp-leads/export')
+  async exportToCsv(@Query('slug') slug: string) {
+    try {
+      if (!slug) {
+        throw new BadRequestException('Slug is required');
+      }
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
+      }
+
+      return await this.landingService.exportToCsv(brand.id);
+    } catch (error) {
+      throw new HttpException('Failed to export leads', error?.status || 500);
+    }
+  }
 }

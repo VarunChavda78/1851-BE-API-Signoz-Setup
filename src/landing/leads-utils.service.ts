@@ -126,7 +126,7 @@ export class LeadsUtilService {
     return content;
   }
 
-  private formatFieldName(field: string): string {
+  public formatFieldName(field: string): string {
     return field
       .replace(/([A-Z])/g, ' $1')
       .replace(/^./, (str) => str.toUpperCase())

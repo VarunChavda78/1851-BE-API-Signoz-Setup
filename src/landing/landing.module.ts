@@ -18,6 +18,7 @@ import { AuthService } from 'src/auth/auth.service';
 import { VerifyCaptchaService } from 'src/shared/services/verify-captcha.service';
 import { LpLeadsRepository } from './lp-leads.repository';
 import { HttpModule } from '@nestjs/axios';
+import { S3Service } from 'src/s3/s3.service';
 
 @Module({
   imports: [UsersModule, SharedModule, HttpModule],
@@ -38,6 +39,7 @@ import { HttpModule } from '@nestjs/axios';
     AuthService,
     VerifyCaptchaService,
     LpLeadsRepository,
+    S3Service
   ],
   exports: [
     LpPdfRepository,
