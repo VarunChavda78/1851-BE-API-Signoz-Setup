@@ -340,6 +340,9 @@ export class LandingController {
   @Post('lp-leads')
   async createLpLeads(@Query('slug') slug: string, @Body() lpLeadsDto: CreateLeadDto){
     try {
+      if (!slug) {
+        throw new BadRequestException('Slug is required');
+      }
       const brand = await this.usersService.getBrandIdBySlug(slug);
       if (!brand) {
         throw new Error(`Brand not found for slug: ${slug}`);
@@ -347,13 +350,16 @@ export class LandingController {
       const result = await this.landingService.createLpLead(brand.id, slug, lpLeadsDto);
       return result
     } catch (error) {
-      throw new HttpException('Failed to create leads', error?.status || 500);
+      throw new HttpException(error?.message || 'Failed to create leads', error?.status || 500);
     }
   }
 
   @Delete('lp-leads/:slug/:uid')
   async deleteLpLead(@Param('slug') slug: string, @Param('uid') uid: string) {
     try {
+      if (!slug || !uid) {
+        throw new BadRequestException('Slug and uid are required');
+      }
       const brand = await this.usersService.getBrandIdBySlug(slug);
       if (!brand) {
         throw new Error(`Brand not found for slug: ${slug}`);
@@ -372,6 +378,9 @@ export class LandingController {
     @Query() filterDto: LeadsFilterDto,
   ){
     try {
+      if (!slug) {
+        throw new BadRequestException('Slug is required');
+      }
       const brand = await this.usersService.getBrandIdBySlug(slug);
       if (!brand) {
         throw new Error(`Brand not found for slug: ${slug}`);
