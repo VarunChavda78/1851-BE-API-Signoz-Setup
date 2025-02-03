@@ -16,6 +16,9 @@ import { v4 as uuid } from 'uuid';
 import { VerifyCaptchaService } from 'src/shared/services/verify-captcha.service';
 import { LpLeadsRepository } from './lp-leads.repository';
 import { CreateLeadDto } from './dtos/createLeadDto';
+import { LpLeads } from './lp-leads.entity';
+import { LeadsFilterDto } from './dtos/leadsFilterDto';
+import { CommonService } from 'src/shared/services/common.service';
 
 @Injectable()
 export class LandingService {
@@ -30,6 +33,7 @@ export class LandingService {
     private readonly leadsUtilService: LeadsUtilService,
     private verifyCaptchaService: VerifyCaptchaService,
     private readonly lpLeadsRepository: LpLeadsRepository,
+    private readonly commonService: CommonService
   ) {}
 
   async getPagesBySlug(slug: string, pageOptions: PageOptionsDto) {
@@ -508,6 +512,125 @@ export class LandingService {
       }
 
       throw new InternalServerErrorException('Failed to delete leads');
+    }
+  }
+
+  async getLpLeads(brandId: number, filterDto: LeadsFilterDto) {
+    try {
+      const limit =
+        filterDto?.limit && filterDto.limit > 0 ? Number(filterDto.limit) : 10;
+      const page =
+        filterDto?.page && filterDto.page > 0 ? Number(filterDto.page) : 1;
+      const skip = (page - 1) * limit;
+      const sort = filterDto?.sort || 'createdAt';
+      const order: 'ASC' | 'DESC' =
+        filterDto?.order?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
+
+      let query = this.lpLeadsRepository
+        .createQueryBuilder('lead')
+        .select('lead.uid')
+        .addSelect('MAX(lead.createdAt)', 'createdAt')
+        .addSelect('MAX(lead.formType)', 'formType')
+        .where('lead.brandId = :brandId', { brandId })
+        .andWhere('lead.deletedAt IS NULL')
+        .groupBy('lead.uid');
+
+      
+      if (filterDto.q) {
+        query = query.andWhere((qb) => {
+          const subQuery = qb
+            .subQuery()
+            .select('s.uid')
+            .from(LpLeads, 's')
+            .where('s.brandId = :brandId', { brandId })
+            .andWhere('LOWER(s.value) LIKE LOWER(:search)', {
+              search: `%${filterDto.q}%`,
+            })
+            .getQuery();
+          return 'lead.uid IN ' + subQuery;
+        });
+      }
+
+      const totalQuery = this.lpLeadsRepository
+            .createQueryBuilder('lead')
+            .select('COUNT(DISTINCT lead.uid)', 'count')
+            .where('lead.brandId = :brandId', { brandId })
+            .andWhere('lead.deletedAt IS NULL');
+
+      if (sort === 'createdAt') {
+        query = query.orderBy('MAX(lead.createdAt)', order);
+      } else if (sort === 'formType') {
+        query = query.orderBy('MAX(lead.formType)', order);
+      } else {
+        query = query
+          .leftJoin(
+            (qb) =>
+              qb
+                .select('s.uid')
+                .addSelect('s.value')
+                .from(LpLeads, 's')
+                .where('s.field = :sortField', { sortField: sort }),
+            'sort_value',
+            'sort_value.uid = lead.uid',
+          )
+          .orderBy('sort_value.value', order, 'NULLS LAST');
+      }
+
+      if (sort !== 'createdAt') {
+        query = query.addOrderBy('MAX(lead.createdAt)', 'DESC');
+      }
+
+      const totalCount = await totalQuery.getRawOne();
+        const total = parseInt(totalCount.count);
+
+      query = query.offset(skip).limit(limit);
+
+      const uidResults = await query.getRawMany();
+      const uids = uidResults.map((result) => result.lead_uid);
+
+      if (uids.length === 0) {
+        return {
+          data: [],
+          pagination: this.commonService.getPagination(0, limit, page),
+        };
+      }
+
+      const leadsQuery = this.lpLeadsRepository
+        .createQueryBuilder('lead')
+        .where('lead.brandId = :brandId', { brandId })
+        .andWhere('lead.uid IN (:...uids)', { uids })
+        .andWhere('lead.deletedAt IS NULL')
+        .orderBy('lead.uid', 'ASC')
+        .addOrderBy('lead.field', 'ASC');
+
+      const leads = await leadsQuery.getMany();
+
+      const transformedLeads = uids.map((uid) => {
+        const leadFields = leads.filter((lead) => lead.uid === uid);
+        const leadData = leadFields.reduce(
+          (acc, curr) => ({
+            ...acc,
+            [curr.field]: curr.value,
+            createdAt: curr.createdAt,
+            formType: curr.formType,
+          }),
+          {},
+        );
+
+        return {
+          ...leadData,
+          uid,
+        };
+      });
+
+      const pagination = this.commonService.getPagination(total, limit, page);
+
+      return {
+        data: transformedLeads,
+        pagination,
+      };
+    } catch (error) {
+      throw error;
     }
   }
 }

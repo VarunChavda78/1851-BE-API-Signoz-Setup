@@ -19,6 +19,7 @@ import { LpPageRepository } from './lp-page.repository';
 import { Protected } from '../auth/auth.decorator';
 import { AuthService } from 'src/auth/auth.service';
 import { CreateLeadDto } from './dtos/createLeadDto';
+import { LeadsFilterDto } from './dtos/leadsFilterDto';
 
 @Controller({
   version: '1',
@@ -362,6 +363,26 @@ export class LandingController {
     } catch (error) {
       console.log('error', error);
       throw new HttpException(error?.message || 'Failed to delete leads', error?.status || 500);
+    }
+  }
+
+  @Get('lp-leads')
+  async getLpLeads(
+    @Query('slug') slug: string,
+    @Query() filterDto: LeadsFilterDto,
+  ){
+    try {
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
+      }
+      const leads = await this.landingService.getLpLeads(brand.id, filterDto);
+      return {
+        status: true,
+        leads,
+      };
+    } catch (error) {
+      throw new HttpException(error?.message || 'Failed to get leads', error?.status || 500);
     }
   }
 }
