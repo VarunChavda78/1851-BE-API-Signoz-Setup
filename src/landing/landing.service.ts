@@ -12,6 +12,9 @@ import { EnvironmentConfigService } from 'src/shared/config/environment-config.s
 import { LpPdfRepository } from './lp-pdf.repository';
 import { LpSettingsRepository } from './lp-settings.repository';
 import { LeadsUtilService } from './leads-utils.service';
+import { v4 as uuid } from 'uuid';
+import { VerifyCaptchaService } from 'src/shared/services/verify-captcha.service';
+import { LpLeadsRepository } from './lp-leads.repository';
 
 @Injectable()
 export class LandingService {
@@ -24,6 +27,8 @@ export class LandingService {
     private readonly lpPdfRepository: LpPdfRepository,
     private readonly lpSettingsRepository: LpSettingsRepository,
     private readonly leadsUtilService: LeadsUtilService,
+    private verifyCaptchaService: VerifyCaptchaService,
+    private readonly lpLeadsRepository: LpLeadsRepository,
   ) {}
 
   async getPagesBySlug(slug: string, pageOptions: PageOptionsDto) {
@@ -283,7 +288,7 @@ export class LandingService {
         email: pdfDto.email,
       });
       await this.lpPdfRepository.save(newLead);
-      if(pdfDto?.email){
+      if (pdfDto?.email) {
         const brand = await this.usersService.getBrandDetails(brandId);
         await this.leadsUtilService.sendPdfEmailToBrand(pdfDto, brand);
       }
@@ -308,9 +313,11 @@ export class LandingService {
       throw new Error(`Brand not found for slug: ${slug}`);
     }
 
-    const settings = await this.lpSettingsRepository.findOne({ where: { brandId: brand.id } });
+    const settings = await this.lpSettingsRepository.findOne({
+      where: { brandId: brand.id },
+    });
     return {
-      isEnabled: settings ? settings.status : false
+      isEnabled: settings ? settings.status : false,
     };
   }
 
@@ -320,8 +327,10 @@ export class LandingService {
       throw new Error(`Brand not found for slug: ${slug}`);
     }
 
-    let settings = await this.lpSettingsRepository.findOne({ where: { brandId: brand.id } });
-    
+    let settings = await this.lpSettingsRepository.findOne({
+      where: { brandId: brand.id },
+    });
+
     if (settings) {
       settings.status = status;
       settings.updatedBy = userId;
@@ -337,7 +346,129 @@ export class LandingService {
     await this.lpSettingsRepository.save(settings);
 
     return {
-      message: status ? "Landing page enabled successfully" : "Landing page disabled successfully"
+      message: status
+        ? 'Landing page enabled successfully'
+        : 'Landing page disabled successfully',
     };
+  }
+
+  async createLpLead(brandId: number, slug: string, leadDataDto: any): Promise<any> {
+    try {
+      // Verify reCAPTCHA
+      const recaptcha = await this.verifyCaptchaService.verifyCaptcha(
+        leadDataDto?.gReCaptchaToken,
+      );
+
+      if (!recaptcha) {
+        return {
+          status: false,
+          message: 'Invalid Captcha response',
+        };
+      }
+
+      // Remove captcha token from data
+      delete leadDataDto?.gReCaptchaToken;
+
+      // Generate unique ID for this submission
+      const uid = uuid();
+
+      let leadFields;
+
+      if (leadDataDto.formType === 2) {
+        // Handle PDF download case
+        leadFields = [
+          {
+            brandId,
+            lpId: leadDataDto.lpId || 1,
+            uid,
+            field: 'email',
+            value: leadDataDto.email,
+            type: leadDataDto.type || 1,
+            formType: 2, // PDF form type
+          },
+        ];
+      } else {
+        // Handle regular lead case
+        leadFields = Object.entries(leadDataDto)
+          .filter(
+            ([key, value]) =>
+              value != null && key !== 'type' && key !== 'formType',
+          )
+          .map(([field, value]) => ({
+            brandId,
+            lpId: leadDataDto.lpId || 1,
+            uid,
+            field,
+            value: String(value),
+            type: leadDataDto.type || 1,
+            formType: leadDataDto.formType || 1,
+          }));
+      }
+
+      // Create and save all fields
+      const savedLeads = await this.lpLeadsRepository.save(leadFields);
+
+      // Get brand details for email
+      const brand = await this.usersService.getBrandDetails(brandId);
+
+      // Transform saved leads back to flat object for email service
+      const leadForEmail = savedLeads.reduce(
+        (acc, curr) => ({
+          ...acc,
+          [curr.field]: curr.value,
+          id: curr.id,
+          brandId: curr.brandId,
+          type: curr.type,
+          formType: curr.formType,
+          createdAt: curr.createdAt,
+        }),
+        {},
+      );
+
+      // Handle emails based on form type
+      if (leadDataDto.formType === 2) {
+        // PDF download case
+        await this.leadsUtilService.sendPdfEmailToBrand(
+          { email: leadDataDto.email },
+          brand,
+        );
+
+        // Get PDF content if slug is provided
+        if (slug) {
+          const data = await this.lpPageRepository.find({
+            where: { brandSlug: slug, status: PageStatus.PUBLISH },
+          });
+
+          const res = data?.filter((item) => !item.deletedAt);
+
+          if (res[0]) {
+            const page = await this.findSection(res[0].id, 't2-download-pdf');
+            return {
+              status: true,
+              id: uid,
+              message: 'PDF lead has been added successfully',
+              pdf: page?.content?.pdf,
+            };
+          }
+        }
+      } else {
+        // Regular lead case
+        await Promise.all([
+          this.leadsUtilService.sendEmailToUser(leadForEmail, brand),
+          this.leadsUtilService.sendEmailToBrand(leadForEmail, brand),
+        ]);
+      }
+
+      return {
+        status: true,
+        id: uid,
+        message:
+          leadDataDto.formType === 2
+            ? 'PDF lead has been added successfully'
+            : 'Lead has been added successfully',
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 }
