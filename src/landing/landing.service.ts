@@ -393,7 +393,7 @@ export class LandingService {
         leadFields = Object.entries(leadDataDto)
           .filter(
             ([key, value]) =>
-              value != null && key !== 'type' && key !== 'formType',
+              value != null && key !== 'type' && key !== 'formType' && key !== 'gReCaptchaToken' && key !== 'lpId',
           )
           .map(([field, value]) => ({
             brandId,
