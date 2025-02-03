@@ -19,7 +19,7 @@ export class CreateLeadDto {
 
   @IsString()
   @IsOptional()
-  email: string;
+  email?: string;
 
   [key: string]: any;
 }

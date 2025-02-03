@@ -15,6 +15,7 @@ import { LeadsUtilService } from './leads-utils.service';
 import { v4 as uuid } from 'uuid';
 import { VerifyCaptchaService } from 'src/shared/services/verify-captcha.service';
 import { LpLeadsRepository } from './lp-leads.repository';
+import { CreateLeadDto } from './dtos/createLeadDto';
 
 @Injectable()
 export class LandingService {
@@ -352,7 +353,7 @@ export class LandingService {
     };
   }
 
-  async createLpLead(brandId: number, slug: string, leadDataDto: any): Promise<any> {
+  async createLpLead(brandId: number, slug: string, leadDataDto: CreateLeadDto): Promise<any> {
     try {
       // Verify reCAPTCHA
       const recaptcha = await this.verifyCaptchaService.verifyCaptcha(
@@ -416,11 +417,6 @@ export class LandingService {
         (acc, curr) => ({
           ...acc,
           [curr.field]: curr.value,
-          id: curr.id,
-          brandId: curr.brandId,
-          type: curr.type,
-          formType: curr.formType,
-          createdAt: curr.createdAt,
         }),
         {},
       );

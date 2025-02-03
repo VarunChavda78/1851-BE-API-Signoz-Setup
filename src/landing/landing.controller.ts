@@ -10,6 +10,7 @@ import {
   Query,
   Req,
   BadRequestException,
+  HttpException,
 } from '@nestjs/common';
 import { LandingService } from './landing.service';
 import { UsersService } from 'src/users/users.service';
@@ -17,6 +18,7 @@ import { PageOptionsDto } from './dtos/pageOptionsDto';
 import { LpPageRepository } from './lp-page.repository';
 import { Protected } from '../auth/auth.decorator';
 import { AuthService } from 'src/auth/auth.service';
+import { CreateLeadDto } from './dtos/createLeadDto';
 
 @Controller({
   version: '1',
@@ -331,6 +333,20 @@ export class LandingController {
         status: false,
         message: err?.message,
       };
+    }
+  }
+
+  @Post('lp-leads')
+  async createLpLeads(@Query('slug') slug: string, @Body() lpLeadsDto: CreateLeadDto){
+    try {
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
+      }
+      const result = await this.landingService.createLpLead(brand.id, slug, lpLeadsDto);
+      return result
+    } catch (error) {
+      throw new HttpException('Failed to create leads', error?.status || 500);
     }
   }
 }

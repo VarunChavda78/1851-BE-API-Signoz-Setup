@@ -15,9 +15,12 @@ import { LpSettingsRepository } from './lp-settings.repository';
 import { LeadsUtilService } from './leads-utils.service';
 import { CommonService } from 'src/shared/services/common.service';
 import { AuthService } from 'src/auth/auth.service';
+import { VerifyCaptchaService } from 'src/shared/services/verify-captcha.service';
+import { LpLeadsRepository } from './lp-leads.repository';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
-  imports: [UsersModule, SharedModule],
+  imports: [UsersModule, SharedModule, HttpModule],
   controllers: [LandingController],
   providers: [
     LandingService,
@@ -32,7 +35,9 @@ import { AuthService } from 'src/auth/auth.service';
     LpSettingsRepository,
     LeadsUtilService,
     CommonService,
-    AuthService
+    AuthService,
+    VerifyCaptchaService,
+    LpLeadsRepository,
   ],
   exports: [
     LpPdfRepository,
