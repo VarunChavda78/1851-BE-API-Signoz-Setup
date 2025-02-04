@@ -237,6 +237,7 @@ export class LandingController {
      throw new HttpException(error?.message || 'Failed to delete lead', error?.status || 500);
     }
   }
+  @Protected()
   @Delete(':slug/:lpId')
   @HttpCode(HttpStatus.OK)
   async deletePage(@Param('slug') slug: string, @Param('lpId') lpId: number, @Req() req) {
