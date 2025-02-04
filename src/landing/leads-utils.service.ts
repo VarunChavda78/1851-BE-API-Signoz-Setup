@@ -16,7 +16,7 @@ export class LeadsUtilService {
     const subject = `Download Brochure PDF Inquiry`;
 
     const leadData = [{ name: 'Email', value: request?.email || '' }];
-    const content = this.getContent(leadData, brand, sign);
+    const content = this.getPdfContent(leadData, brand, sign);
     await this.commonService.sendMassEmailWithCC(
       toEmail,
       bccMail,
@@ -33,12 +33,20 @@ export class LeadsUtilService {
     return content.join('') || '';
   }
 
-  private getContent(data, brand, sign): string {
+  private getPdfContent(data, brand, sign): string {
     let content = `Hi ${brand?.company},<br><br>
     There's been a Download PDF lead on your ${sign} landing page.<br><br>`;
 
     content += this.getPlainContent(data);
     content += `<br>Thanks,<br>${sign} Team`;
+    return content;
+  }
+
+  private getContent(data, brand, sign): string {
+    let content = `Hi ${brand?.company},<br><br>
+    You've received a new lead from your landing page. The information is below.<br><br>`;
+    content += this.getPlainContent(data);
+    content += `<br><br>Thanks,<br>${sign} Support Team`;
     return content;
   }
 
