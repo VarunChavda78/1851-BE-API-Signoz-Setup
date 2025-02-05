@@ -610,23 +610,38 @@ export class LandingService {
 
       const leads = await leadsQuery.getMany();
 
-      const transformedLeads = uids.map((uid) => {
-        const leadFields = leads.filter((lead) => lead.uid === uid);
-        const leadData = leadFields.reduce(
-          (acc, curr) => ({
-            ...acc,
-            [curr.field]: curr.value,
-            createdAt: moment(curr.createdAt).tz('America/Chicago').format('YYYY-MM-DD HH:mm:ss'),
-            formType: curr.formType === 1 ? 'Inquiry Form' : 'Download PDF',
-          }),
-          {},
-        );
+        const transformedLeads = uids.map((uid) => {
+          const leadFields = leads.filter((lead) => lead.uid === uid);
+          
+          // First, create an object with required fields initialized as null
+          const priorityFields = {
+            firstName: null,
+            lastName: null,
+            email: null,
+            phone: null,
+          };
 
-        return {
-          ...leadData,
-          uid,
-        };
-      });
+          // Then create an object for other fields
+          const otherFields = {};
+
+          // Populate both objects from lead fields
+          leadFields.forEach((lead) => {
+            if (lead.field in priorityFields) {
+              priorityFields[lead.field] = lead.value;
+            } else {
+              otherFields[lead.field] = lead.value;
+            }
+          });
+
+          // Combine objects in desired order with metadata
+          return {
+            ...priorityFields,
+            ...otherFields,
+            createdAt: moment(leadFields[0]?.createdAt).tz('America/Chicago').format('YYYY-MM-DD HH:mm:ss'),
+            formType: leadFields[0]?.formType === 1 ? 'Inquiry Form' : 'Download PDF',
+            uid,
+          };
+        });
 
       const pagination = this.commonService.getPagination(total, limit, page);
 
