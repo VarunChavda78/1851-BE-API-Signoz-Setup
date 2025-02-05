@@ -520,7 +520,7 @@ export class LandingService {
     }
   }
 
-  async getLpLeads(brandId: number, filterDto?: LeadsFilterDto | null) {
+  async getLpLeads(brandId: number, filterDto?: LeadsFilterDto | null, csv: boolean = false) {
     try {
       const limit =
         filterDto?.limit && filterDto.limit > 0 ? Number(filterDto.limit) : 10;
@@ -586,7 +586,9 @@ export class LandingService {
       const totalCount = await totalQuery.getRawOne();
         const total = parseInt(totalCount.count);
 
-      query = query.offset(skip).limit(limit);
+      if(!csv){
+        query = query.offset(skip).limit(limit);
+      }
 
       const uidResults = await query.getRawMany();
       const uids = uidResults.map((result) => result.lead_uid);
@@ -665,7 +667,7 @@ export class LandingService {
       const csvStringifier = createObjectCsvStringifier({ header: headers });
 
       // Get all leads data
-      const { data: leadsData } = await this.getLpLeads(brandId, null);
+      const { data: leadsData } = await this.getLpLeads(brandId, null, true);
 
       const csvHeader = csvStringifier.getHeaderString();
       const csvRecords = csvStringifier.stringifyRecords(leadsData);
