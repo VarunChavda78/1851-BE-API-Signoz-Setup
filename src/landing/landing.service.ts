@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { LpPageRepository } from './lp-page.repository';
 import { UsersService } from 'src/users/users.service';
 import { PageStatus, PageStatusName } from './landing.constant';
@@ -12,11 +12,14 @@ import { EnvironmentConfigService } from 'src/shared/config/environment-config.s
 import { LpPdfRepository } from './lp-pdf.repository';
 import { LpSettingsRepository } from './lp-settings.repository';
 import { LeadsUtilService } from './leads-utils.service';
+import { v4 as uuid } from 'uuid';
+import { LpLeadsRepository } from './lp-leads.repository';
+import { CreateLeadDto } from './dtos/createLeadDto';
+import { LpLeads } from './lp-leads.entity';
 import { S3Service } from 'src/s3/s3.service';
 import { CommonService } from 'src/shared/services/common.service';
 import * as moment from 'moment-timezone';
-import { LandingPageLeadsRepository } from './landing-leads.repository';
-import { LeadsFilterDto } from './dtos/leads-dto';
+import { LeadsFilterDto } from './dtos/leadsFilterDto';
 import { createObjectCsvStringifier } from 'csv-writer';
 import { VerifyCaptchaService } from 'src/shared/services/verify-captcha.service';
 
@@ -31,14 +34,11 @@ export class LandingService {
     private readonly lpPdfRepository: LpPdfRepository,
     private readonly lpSettingsRepository: LpSettingsRepository,
     private readonly leadsUtilService: LeadsUtilService,
+    private readonly lpLeadsRepository: LpLeadsRepository,
     private s3Service: S3Service,
     private envService: EnvironmentConfigService,
     private commonService: CommonService,
-    private readonly landingPageLeadsRepository: LandingPageLeadsRepository,
     private verifyCaptchaService: VerifyCaptchaService,
-
-
-
   ) {}
 
   async getPagesBySlug(slug: string, pageOptions: PageOptionsDto) {
@@ -298,7 +298,7 @@ export class LandingService {
         email: pdfDto.email,
       });
       await this.lpPdfRepository.save(newLead);
-      if(pdfDto?.email){
+      if (pdfDto?.email) {
         const brand = await this.usersService.getBrandDetails(brandId);
         await this.leadsUtilService.sendPdfEmailToBrand(pdfDto, brand);
       }
@@ -323,9 +323,11 @@ export class LandingService {
       throw new Error(`Brand not found for slug: ${slug}`);
     }
 
-    const settings = await this.lpSettingsRepository.findOne({ where: { brandId: brand.id } });
+    const settings = await this.lpSettingsRepository.findOne({
+      where: { brandId: brand.id },
+    });
     return {
-      isEnabled: settings ? settings.status : false
+      isEnabled: settings ? settings.status : false,
     };
   }
 
@@ -335,8 +337,10 @@ export class LandingService {
       throw new Error(`Brand not found for slug: ${slug}`);
     }
 
-    let settings = await this.lpSettingsRepository.findOne({ where: { brandId: brand.id } });
-    
+    let settings = await this.lpSettingsRepository.findOne({
+      where: { brandId: brand.id },
+    });
+
     if (settings) {
       settings.status = status;
       settings.updatedBy = userId;
@@ -352,122 +356,19 @@ export class LandingService {
     await this.lpSettingsRepository.save(settings);
 
     return {
-      message: status ? "Landing page enabled successfully" : "Landing page disabled successfully"
+      message: status
+        ? 'Landing page enabled successfully'
+        : 'Landing page disabled successfully',
     };
   }
 
-  async exportToCsv(brandId: number) {
+  async createLpLead(
+    brandId: number,
+    slug: string,
+    leadDataDto: CreateLeadDto,
+  ): Promise<any> {
     try {
-      const siteId = this.envService.getSiteId() || '1851';
-      const leadsQuery = this.landingPageLeadsRepository
-        .createQueryBuilder('landing_page_leads')
-        .select([
-          'landing_page_leads.firstName',
-          'landing_page_leads.lastName',
-          'landing_page_leads.email',
-          'landing_page_leads.createdAt',
-        ])
-        .where('landing_page_leads.brandId = :brandId', { brandId })
-        .andWhere('landing_page_leads.deletedAt IS NULL')
-        .orderBy('landing_page_leads.createdAt', 'DESC');
-
-      const pdfQuery = this.lpPdfRepository
-        .createQueryBuilder('lp_pdf')
-        .select(['lp_pdf.email', 'lp_pdf.createdAt'])
-        .where('lp_pdf.brandId = :brandId', { brandId })
-        .andWhere('lp_pdf.deletedAt IS NULL')
-        .orderBy('lp_pdf.createdAt', 'DESC');
-
-      const [leads, pdfDownloads] = await Promise.all([
-        leadsQuery.getMany(),
-        pdfQuery.getMany(),
-      ]);
-
-      const transformedLeads = leads.map((lead) => ({
-        ...lead,
-        createdAt: moment(lead.createdAt).tz('America/Chicago').format('YYYY-MM-DD HH:mm:ss'),
-        leadType: 'Inquiry Form' as const,
-      }));
-
-      const transformedPdfDownloads = pdfDownloads.map((pdf) => ({
-        email: pdf.email,
-        createdAt: moment(pdf.createdAt).tz('America/Chicago').format('YYYY-MM-DD HH:mm:ss'),
-        leadType: 'Download Pdf' as const,
-      }));
-
-      // Combine and sort results
-      const combinedResults = [
-        ...transformedLeads,
-        ...transformedPdfDownloads,
-      ].sort((a, b) => {
-        const aMoment = moment(a.createdAt, 'YYYY-MM-DD HH:mm:ss').tz('America/Chicago');
-        const bMoment = moment(b.createdAt, 'YYYY-MM-DD HH:mm:ss').tz('America/Chicago');
-        return bMoment.valueOf() - aMoment.valueOf();
-      });
-
-      const csvStringifier = createObjectCsvStringifier({
-        header: [
-          { id: 'firstName', title: 'First Name' },
-          { id: 'lastName', title: 'Last Name' },
-          { id: 'email', title: 'Email' },
-          { id: 'createdAt', title: 'Submitted Date' },
-          { id: 'leadType', title: 'Lead Type' },
-        ],
-      });
-  
-      const csvHeader = csvStringifier.getHeaderString();
-      const csvRecords = csvStringifier.stringifyRecords(combinedResults);
-      const csvData = `${csvHeader}${csvRecords}`;
-  
-      const filename = `landing_leads_${Date.now()}.csv`;
-  
-      const uploadResult = await this.s3Service.uploadCsvToS3(csvData, filename, 'landing-lead-exports/', siteId);
-  
-      return {
-        message: 'CSV file uploaded successfully',
-        url: uploadResult.url,
-        name: filename
-      };
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async deleteLead(id: number, brandId: number, leadType = 'inquiry') {
-    try {
-      let response;
-      if (leadType === 'inquiry') {
-        response = await this.landingPageLeadsRepository.softDelete({
-          id,
-          brandId,
-        });
-      } else if (leadType === 'download') {
-        response = await this.lpPdfRepository.softDelete({
-          id,
-          brandId,
-        });
-      } else {
-        throw new BadRequestException('Invalid lead type');
-      }
-
-      if (!response.affected) {
-        throw new NotFoundException(
-          `${leadType === 'inquiry' ? 'Lead' : 'PDF download'} not found`,
-        );
-      }
-
-      return {
-        status: true,
-        message: `${
-          leadType === 'inquiry' ? 'Lead' : 'PDF download'
-        } deleted successfully`,
-      };
-    } catch (error) {
-      throw error;
-    }
-  }
-  async createLead(brandId: number, leadDataDto: any): Promise<any> {
-    try {
+      // Verify reCAPTCHA
       const recaptcha = await this.verifyCaptchaService.verifyCaptcha(
         leadDataDto?.gReCaptchaToken,
       );
@@ -478,205 +379,315 @@ export class LandingService {
           message: 'Invalid Captcha response',
         };
       }
+
+      // Remove captcha token from data
       delete leadDataDto?.gReCaptchaToken;
 
-      const newLead = this.landingPageLeadsRepository.create({
-        brandId,
-        firstName: leadDataDto.firstName,
-        lastName: leadDataDto.lastName,
-        email: leadDataDto.email,
-        phone: leadDataDto.phone,
-        city: leadDataDto.city,
-        state: leadDataDto.state,
-        zip: leadDataDto.zip,
-        interest: leadDataDto.interest,
-        type: leadDataDto.type,
-        lookingFor: leadDataDto.lookingFor,
-      });
+      // Generate unique ID for this submission
+      const uid = uuid();
 
-      const lead = await this.landingPageLeadsRepository.save(newLead);
+      let leadFields;
+
+      if (leadDataDto.formType === 2) {
+        // Handle PDF download case
+        leadFields = [
+          {
+            brandId,
+            lpId: leadDataDto.lpId || 1,
+            uid,
+            field: 'email',
+            value: leadDataDto.email,
+            type: leadDataDto.type || 1,
+            formType: 2, // PDF form type
+          },
+        ];
+      } else {
+        // Handle regular lead case
+        leadFields = Object.entries(leadDataDto)
+          .filter(
+            ([key, value]) =>
+              value != null &&
+              key !== 'type' &&
+              key !== 'formType' &&
+              key !== 'gReCaptchaToken' &&
+              key !== 'lpId',
+          )
+          .map(([field, value]) => ({
+            brandId,
+            lpId: leadDataDto.lpId || 1,
+            uid,
+            field,
+            value: String(value),
+            type: leadDataDto.type || 1,
+            formType: leadDataDto.formType || 1,
+          }));
+      }
+
+      // Create and save all fields
+      const savedLeads = await this.lpLeadsRepository.save(leadFields);
+
+      // Get brand details for email
       const brand = await this.usersService.getBrandDetails(brandId);
-      await this.leadsUtilService.sendEmailToUser(lead, brand);
-      await this.leadsUtilService.sendEmailToBrand(lead, brand);
+
+      // Transform saved leads back to flat object for email service
+      const leadForEmail = savedLeads.reduce(
+        (acc, curr) => ({
+          ...acc,
+          [curr.field]: curr.value,
+        }),
+        {},
+      );
+
+      // Handle emails based on form type
+      if (leadDataDto.formType === 2) {
+        // PDF download case
+        await this.leadsUtilService.sendPdfEmailToBrand(
+          { email: leadDataDto.email },
+          brand,
+        );
+
+        // Get PDF content if slug is provided
+        if (slug) {
+          const data = await this.lpPageRepository.find({
+            where: { brandSlug: slug, status: PageStatus.PUBLISH },
+          });
+
+          const res = data?.filter((item) => !item.deletedAt);
+
+          if (res[0]) {
+            const page = await this.findSection(res[0].id, 't2-download-pdf');
+            return {
+              status: true,
+              id: uid,
+              message: 'PDF lead has been added successfully',
+              pdf: page?.content?.pdf,
+            };
+          }
+        }
+      } else {
+        // Regular lead case
+        await Promise.all([
+          this.leadsUtilService.sendEmailToUser(leadForEmail, brand),
+          this.leadsUtilService.sendEmailToBrand(leadForEmail, brand),
+        ]);
+      }
+
       return {
         status: true,
-        id: lead.id,
-        message: 'Lead has been added successfully',
+        id: uid,
+        message:
+          leadDataDto.formType === 2
+            ? 'PDF lead has been added successfully'
+            : 'Lead has been added successfully',
       };
     } catch (error) {
       throw error;
     }
   }
-  async getLeads(brandId: number, filterDto: LeadsFilterDto) {
+
+  async deleteLpLead(brandId: number, uid: string): Promise<any> {
+    try {
+      const existingLeads = await this.lpLeadsRepository
+        .createQueryBuilder('lead')
+        .where('lead.brandId = :brandId', { brandId })
+        .andWhere('lead.uid = :uid', { uid })
+        .andWhere('lead.deletedAt IS NULL')
+        .getCount();
+
+      if (existingLeads === 0) {
+        throw new NotFoundException(`No leads found for the given identifier`);
+      }
+
+      const result = await this.lpLeadsRepository
+        .createQueryBuilder('lead')
+        .softDelete()
+        .where('brandId = :brandId', { brandId })
+        .andWhere('uid = :uid', { uid })
+        .execute();
+      if (result.affected === 0) {
+        throw new NotFoundException(`No leads found for the given identifier`);
+      }
+      return {
+        status: true,
+        message: 'Lead deleted successfully',
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException('Failed to delete leads');
+    }
+  }
+
+  async getLpLeads(brandId: number, filterDto?: LeadsFilterDto | null, csv: boolean = false) {
     try {
       const limit =
         filterDto?.limit && filterDto.limit > 0 ? Number(filterDto.limit) : 10;
       const page =
         filterDto?.page && filterDto.page > 0 ? Number(filterDto.page) : 1;
       const skip = (page - 1) * limit;
-      const orderBy = filterDto?.sort || 'createdAt';
+      const sort = filterDto?.sort || 'createdAt';
       const order: 'ASC' | 'DESC' =
         filterDto?.order?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
 
-      // Base queries
-      let leadsQuery = this.landingPageLeadsRepository
-        .createQueryBuilder('landing_page_leads')
-        .where('landing_page_leads.brandId = :brandId', { brandId })
-        .andWhere('landing_page_leads.deletedAt IS NULL');
+      let query = this.lpLeadsRepository
+        .createQueryBuilder('lead')
+        .select('lead.uid')
+        .addSelect('MAX(lead.createdAt)', 'createdAt')
+        .addSelect('MAX(lead.formType)', 'formType')
+        .where('lead.brandId = :brandId', { brandId })
+        .andWhere('lead.deletedAt IS NULL')
+        .groupBy('lead.uid');
 
-      let pdfQuery = this.lpPdfRepository
-        .createQueryBuilder('lp_pdf')
-        .select(['lp_pdf.id', 'lp_pdf.email', 'lp_pdf.createdAt'])
-        .where('lp_pdf.brandId = :brandId', { brandId })
-        .andWhere('lp_pdf.deletedAt IS NULL');
-
-      // Apply search if provided
+      
       if (filterDto.q) {
-        const searchTerm = `%${filterDto.q}%`;
-        leadsQuery = leadsQuery.andWhere(
-          '(LOWER(landing_page_leads.firstName) LIKE LOWER(:search) OR LOWER(landing_page_leads.lastName) LIKE LOWER(:search) OR LOWER(landing_page_leads.email) LIKE LOWER(:search))',
-          { search: searchTerm },
-        );
-
-        pdfQuery = pdfQuery.andWhere(
-          'LOWER(lp_pdf.email) LIKE LOWER(:search)',
-          { search: searchTerm },
-        );
-      }
-      if (orderBy === 'leadType') {
-        // For leadType sorting, we'll fetch all records and sort them in memory
-        const [leads, pdfDownloads] = await Promise.all([
-          leadsQuery.getMany(),
-          pdfQuery.getMany(),
-        ]);
-
-        const transformedLeads = leads.map((lead) => ({
-          ...lead,
-          leadType: 'inquiry' as const,
-        }));
-
-        const transformedPdfDownloads = pdfDownloads.map((pdf) => ({
-          id: pdf.id,
-          email: pdf.email,
-          createdAt: pdf.createdAt,
-          leadType: 'download' as const,
-        }));
-
-        // Combine and sort by leadType
-        const combinedResults = [
-          ...transformedLeads,
-          ...transformedPdfDownloads,
-        ].sort((a, b) => {
-          if (order === 'ASC') {
-            return a.leadType.localeCompare(b.leadType);
-          }
-          return b.leadType.localeCompare(a.leadType);
+        query = query.andWhere((qb) => {
+          const subQuery = qb
+            .subQuery()
+            .select('s.uid')
+            .from(LpLeads, 's')
+            .where('s.brandId = :brandId', { brandId })
+            .andWhere('LOWER(s.value) LIKE LOWER(:search)', {
+              search: `%${filterDto.q}%`,
+            })
+            .getQuery();
+          return 'lead.uid IN ' + subQuery;
         });
-
-        // Apply pagination after sorting
-        const paginatedResults = combinedResults.slice(skip, skip + limit);
-        const totalRecords = combinedResults.length;
-
-        const pagination = this.commonService.getPagination(
-          totalRecords,
-          limit,
-          page,
-        );
-
-        return { data: paginatedResults, pagination };
       }
-      // Apply ordering and pagination based on orderBy field
-      else if (orderBy === 'createdAt' || orderBy === 'email') {
-        // For createdAt and email, apply sorting and pagination to both queries
-        leadsQuery = leadsQuery.orderBy(`landing_page_leads.${orderBy}`, order);
 
-        pdfQuery = pdfQuery.orderBy(`lp_pdf.${orderBy}`, order);
+      const totalQuery = this.lpLeadsRepository
+            .createQueryBuilder('lead')
+            .select('COUNT(DISTINCT lead.uid)', 'count')
+            .where('lead.brandId = :brandId', { brandId })
+            .andWhere('lead.deletedAt IS NULL');
 
-        const [leads, pdfDownloads] = await Promise.all([
-          leadsQuery.getMany(),
-          pdfQuery.getMany(),
-        ]);
-
-        const transformedLeads = leads.map((lead) => ({
-          ...lead,
-          leadType: 'inquiry' as const,
-        }));
-
-        const transformedPdfDownloads = pdfDownloads.map((pdf) => ({
-          id: pdf.id,
-          email: pdf.email,
-          createdAt: pdf.createdAt,
-          leadType: 'download' as const,
-        }));
-
-        // Combine and sort results
-        const combinedResults = [
-          ...transformedLeads,
-          ...transformedPdfDownloads,
-        ].sort((a, b) => {
-          const aValue = a[orderBy];
-          const bValue = b[orderBy];
-          return order === 'ASC'
-            ? aValue > bValue
-              ? 1
-              : -1
-            : aValue < bValue
-              ? 1
-              : -1;
-        });
-
-        const paginatedResults = combinedResults.slice(skip, skip + limit);
-
-        // Calculate total records and pagination
-        const totalRecords = combinedResults.length;
-        const pagination = this.commonService.getPagination(
-          totalRecords,
-          limit,
-          page,
-        );
-
-        return { data: paginatedResults, pagination };
+      if (sort === 'createdAt') {
+        query = query.orderBy('MAX(lead.createdAt)', order);
+      } else if (sort === 'formType') {
+        query = query.orderBy('MAX(lead.formType)', order === 'ASC' ? 'DESC' : 'ASC');
       } else {
-        // For other fields, sort and paginate leads first, then append PDFs
-        leadsQuery = leadsQuery.orderBy(`landing_page_leads.${orderBy}`, order);
+        // For other fields, join with the same table to get sort field values
+        query = query
+          .leftJoin(
+            'lp_leads',
+            'sort_data',
+            'sort_data.uid = lead.uid AND sort_data.field = :sortField AND sort_data.brandId = :brandId AND sort_data.deletedAt IS NULL',
+            { sortField: sort, brandId }
+          )
+          .addSelect('MAX(sort_data.value)', 'sort_value')
+          .orderBy('MAX(sort_data.value)', order, 'NULLS LAST');
+      }
 
-        const [leads, pdfDownloads] = await Promise.all([
-          leadsQuery.getMany(),
-          pdfQuery.getMany(), // Get all PDF downloads without sorting/pagination
-        ]);
+      if (sort !== 'createdAt') {
+        query = query.addOrderBy('MAX(lead.createdAt)', 'DESC');
+      }
 
-        const transformedLeads = leads.map((lead) => ({
-          ...lead,
-          leadType: 'inquiry' as const,
-        }));
+      const totalCount = await totalQuery.getRawOne();
+        const total = parseInt(totalCount.count);
 
-        const transformedPdfDownloads = pdfDownloads.map((pdf) => ({
-          id: pdf.id,
-          email: pdf.email,
-          createdAt: pdf.createdAt,
-          leadType: 'download' as const,
-        }));
+      if(!csv){
+        query = query.offset(skip).limit(limit);
+      }
 
-        // For other fields, simply append PDF downloads after leads
-        const combinedResults = [
-          ...transformedLeads,
-          ...transformedPdfDownloads,
-        ];
+      const uidResults = await query.getRawMany();
+      const uids = uidResults.map((result) => result.lead_uid);
 
-        const paginatedResults = combinedResults.slice(skip, skip + limit);
+      if (uids.length === 0) {
+        return {
+          data: [],
+          pagination: this.commonService.getPagination(0, limit, page),
+        };
+      }
 
-        // Calculate total records and pagination
-        const totalRecords = combinedResults.length;
-        const pagination = this.commonService.getPagination(
-          totalRecords,
-          limit,
-          page,
+      const leadsQuery = this.lpLeadsRepository
+        .createQueryBuilder('lead')
+        .where('lead.brandId = :brandId', { brandId })
+        .andWhere('lead.uid IN (:...uids)', { uids })
+        .andWhere('lead.deletedAt IS NULL')
+        .orderBy('lead.uid', 'ASC')
+        .addOrderBy('lead.field', 'ASC');
+
+      const leads = await leadsQuery.getMany();
+
+      const transformedLeads = uids.map((uid) => {
+        const leadFields = leads.filter((lead) => lead.uid === uid);
+        const leadData = leadFields.reduce(
+          (acc, curr) => ({
+            ...acc,
+            [curr.field]: curr.value,
+            createdAt: moment(curr.createdAt).tz('America/Chicago').format('YYYY-MM-DD HH:mm:ss'),
+            formType: curr.formType === 1 ? 'Inquiry Form' : 'Download PDF',
+          }),
+          {},
         );
 
-        return { data: paginatedResults, pagination };
-      }
+        return {
+          ...leadData,
+          uid,
+        };
+      });
+
+      const pagination = this.commonService.getPagination(total, limit, page);
+
+      return {
+        data: transformedLeads,
+        pagination,
+      };
     } catch (error) {
       throw error;
+    }
+  }
+
+  async exportToCsv(brandId: number){
+    try {
+      // Get unique fields excluding the ones we don't want in CSV
+      const uniqueFields = await this.lpLeadsRepository
+        .createQueryBuilder('lead')
+        .select('DISTINCT lead.field', 'field')
+        .where('lead.brandId = :brandId', { brandId })
+        .andWhere('lead.deletedAt IS NULL')
+        .andWhere('lead.field NOT IN (:...excludeFields)', {
+          excludeFields: ['id', 'brandId', 'uid', 'deletedAt', 'lpId', 'type'],
+        })
+        .getRawMany();
+
+      // Create dynamic headers
+      const headers = uniqueFields.map(({ field }) => ({
+        id: field,
+        title: this.leadsUtilService.formatFieldName(field), // Capitalize first letter
+      }));
+
+      // Add createdAt and formType to headers
+      headers.push(
+        { id: 'createdAt', title: 'Submitted Date' },
+        { id: 'formType', title: 'Form Type' }
+      );
+
+      const csvStringifier = createObjectCsvStringifier({ header: headers });
+
+      // Get all leads data
+      const { data: leadsData } = await this.getLpLeads(brandId, null, true);
+
+      const csvHeader = csvStringifier.getHeaderString();
+      const csvRecords = csvStringifier.stringifyRecords(leadsData);
+      const csvData = `${csvHeader}${csvRecords}`;
+      const filename = `landing_leads_${Date.now()}.csv`;
+
+      const uploadResult = await this.s3Service.uploadCsvToS3(
+        csvData,
+        filename,
+        'landing-lead-exports/',
+        '1851'
+      );
+
+      return {
+        message: 'CSV file uploaded successfully',
+        url: uploadResult.url,
+        name: filename,
+      };
+    } catch (error) {
+      throw new Error(`Failed to export CSV: ${error.message}`);
     }
   }
 }

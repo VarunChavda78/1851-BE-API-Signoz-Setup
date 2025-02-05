@@ -45,69 +45,42 @@ export class LeadsUtilService {
   private getContent(data, brand, sign): string {
     let content = `Hi ${brand?.company},<br><br>
     You've received a new lead from your landing page. The information is below.<br><br>`;
+
     content += this.getPlainContent(data);
     content += `<br><br>Thanks,<br>${sign} Support Team`;
     return content;
   }
 
-  async sendEmailToBrand(request, brand) {
-    const fromEmail = this.config.getFromEmail();
-    const toEmail = brand?.email || [];
-    const bccMail = [this.config.getBccEmail()];
-    const sign = this.commonService.getEmailSign();
-    const subject = `New Lead from your landing page`;
-
-    const leadData = [
-      { name: 'First Name', value: request?.firstName || '' },
-      { name: 'Last Name', value: request?.lastName || '' },
-      { name: 'Email', value: request?.email || '' },
-      { name: 'Phone', value: request?.phone || '' },
-      { name: 'City', value: request?.city || '' },
-      { name: 'State', value: request?.state || '' },
-      { name: 'ZIP', value: request?.zip || '' },
-      { name: 'Interest', value: request?.interest || '' },
-      { name: 'Looking For', value: request?.lookingFor || '' },
-    ];
-    const content = this.getContent(leadData, brand, sign);
-    await this.commonService.sendMassEmailWithCC(
-      toEmail,
-      bccMail,
-      fromEmail,
-      subject,
-      content,
-    );
-  }
-  async sendEmailToUser(request, brand) {
+  async sendEmailToUser(request: { [key: string]: string }, brand: any) {
     const subject = 'Your Inquiry Has Been Received – Expect a Follow-Up Soon!';
     const fromEmail = this.config.getFromEmail();
-    const toEmail = [request?.email];
     const noreplyEmail = this.config.getNoReplyEmail();
     const ccEmail = [this.config.getBccEmail()];
-    const firstName = request?.firstName;
-    const lastName = request?.lastName;
     const feUrl = this.config.getFEUrl();
     const brandUrl = `${feUrl}/${brand?.brandUrl}`;
     const link = `<a href="${brandUrl}">${brandUrl}</a>`;
+
+    const toEmail = [request.email];
+
     const placeholders = {
-      '{{name}}': `${this.capitalize(firstName)} ${this.capitalize(lastName)}`,
+      '{{name}}': `${this.capitalize(request.firstName)} ${this.capitalize(
+        request.lastName,
+      )}`,
       '{{brand}}': brand?.company,
       '{{brand_url}}': link,
     };
-    const leadData = [
-      { name: 'First Name', value: request?.firstName || '' },
-      { name: 'Last Name', value: request?.lastName || '' },
-      { name: 'Email', value: request?.email || '' },
-      { name: 'Phone', value: request?.phone || '' },
-      { name: 'City', value: request?.city || '' },
-      { name: 'State', value: request?.state || '' },
-      { name: 'ZIP', value: request?.zip || '' },
-      { name: 'Interest', value: request?.interest || '' },
-      { name: 'Looking For', value: request?.lookingFor || '' },
-    ];
+
+    // Convert object to leadData format
+    const leadData = Object.entries(request).map(([field, value]) => ({
+      name: this.formatFieldName(field),
+      value: value || '',
+    }));
+
     let content = '';
     Object.keys(placeholders).forEach((key) => {
       content = content.replace(new RegExp(key, 'g'), placeholders[key]);
     });
+
     content += this.addLeadsDetails(brand, leadData);
     await this.commonService.sendMassEmailWithCC(
       toEmail,
@@ -119,8 +92,27 @@ export class LeadsUtilService {
     );
   }
 
-  public capitalize(text: string): string {
-    return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+  async sendEmailToBrand(request: { [key: string]: string }, brand: any) {
+    const fromEmail = this.config.getFromEmail();
+    const toEmail = brand?.email || [];
+    const bccMail = [this.config.getBccEmail()];
+    const sign = this.commonService.getEmailSign();
+    const subject = `New Lead from your landing page`;
+
+    // Convert object to leadData format
+    const leadData = Object.entries(request).map(([field, value]) => ({
+      name: this.formatFieldName(field),
+      value: value || '',
+    }));
+
+    const content = this.getContent(leadData, brand, sign);
+    await this.commonService.sendMassEmailWithCC(
+      toEmail,
+      bccMail,
+      fromEmail,
+      subject,
+      content,
+    );
   }
 
   private addLeadsDetails(brand, data): string {
@@ -132,5 +124,18 @@ export class LeadsUtilService {
       data,
     )}</p>Thanks,<br>${brand?.company}`;
     return content;
+  }
+
+  public formatFieldName(field: string): string {
+    return field
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/^./, (str) => str.toUpperCase())
+      .replace(/Zip/g, 'ZIP')
+      .trim();
+  }
+
+  private capitalize(str: string): string {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
   }
 }
