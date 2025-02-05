@@ -21,6 +21,7 @@ import { HttpModule } from '@nestjs/axios';
 import { S3Service } from 'src/s3/s3.service';
 
 @Module({
+  imports: [TypeOrmModule.forFeature([LandingPageLeads]), UsersModule, SharedModule, S3Module, HttpModule],
   imports: [UsersModule, SharedModule, HttpModule],
   controllers: [LandingController],
   providers: [

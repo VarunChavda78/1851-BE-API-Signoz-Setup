@@ -13,15 +13,15 @@ import { LpPdfRepository } from './lp-pdf.repository';
 import { LpSettingsRepository } from './lp-settings.repository';
 import { LeadsUtilService } from './leads-utils.service';
 import { v4 as uuid } from 'uuid';
-import { VerifyCaptchaService } from 'src/shared/services/verify-captcha.service';
 import { LpLeadsRepository } from './lp-leads.repository';
 import { CreateLeadDto } from './dtos/createLeadDto';
 import { LpLeads } from './lp-leads.entity';
-import { LeadsFilterDto } from './dtos/leadsFilterDto';
-import { CommonService } from 'src/shared/services/common.service';
 import { S3Service } from 'src/s3/s3.service';
+import { CommonService } from 'src/shared/services/common.service';
 import * as moment from 'moment-timezone';
+import { LeadsFilterDto } from './dtos/leads-dto';
 import { createObjectCsvStringifier } from 'csv-writer';
+import { VerifyCaptchaService } from 'src/shared/services/verify-captcha.service';
 
 @Injectable()
 export class LandingService {
@@ -34,10 +34,11 @@ export class LandingService {
     private readonly lpPdfRepository: LpPdfRepository,
     private readonly lpSettingsRepository: LpSettingsRepository,
     private readonly leadsUtilService: LeadsUtilService,
-    private verifyCaptchaService: VerifyCaptchaService,
     private readonly lpLeadsRepository: LpLeadsRepository,
-    private readonly commonService: CommonService,
-    private s3Service: S3Service
+    private s3Service: S3Service,
+    private envService: EnvironmentConfigService,
+    private commonService: CommonService,
+    private verifyCaptchaService: VerifyCaptchaService,
   ) {}
 
   async getPagesBySlug(slug: string, pageOptions: PageOptionsDto) {

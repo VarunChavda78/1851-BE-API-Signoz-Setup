@@ -8,15 +8,15 @@ import {
   Get,
   Delete,
   Query,
-  Req,
+  HttpException,
   BadRequestException,
+  Req,
   HttpException,
 } from '@nestjs/common';
 import { LandingService } from './landing.service';
 import { UsersService } from 'src/users/users.service';
 import { PageOptionsDto } from './dtos/pageOptionsDto';
 import { LpPageRepository } from './lp-page.repository';
-import { Protected } from '../auth/auth.decorator';
 import { AuthService } from 'src/auth/auth.service';
 import { CreateLeadDto } from './dtos/createLeadDto';
 import { LeadsFilterDto } from './dtos/leadsFilterDto';
@@ -30,8 +30,7 @@ export class LandingController {
     private readonly landingService: LandingService,
     private readonly usersService: UsersService,
     private readonly lpPageRepository: LpPageRepository,
-    private readonly authService: AuthService
-    
+    private readonly authService: AuthService,
   ) {}
 
   @Get('mapped-domain')
@@ -191,7 +190,6 @@ export class LandingController {
     }
   }
 
-  @Protected()
   @Post(':slug/status')
   @HttpCode(HttpStatus.OK)
   async updateLandingPageStatus(
@@ -200,14 +198,7 @@ export class LandingController {
     @Req() req
   ) {
     try {
-      const userId = req.user.id; // Replace this with actual user ID from auth context
-      const brand = await this.usersService.getBrandIdBySlug(slug);
-      if (!brand) {
-        throw new Error(`Brand not found for slug: ${slug}`);
-      }
-      if (!this.authService.validateUser(brand.id, req.user)) {
-        throw new BadRequestException(`Unauthorized to access resources for ${slug}`);
-      }
+      const userId = 1; // Replace this with actual user ID from auth context
       const data = await this.landingService.updateLandingPageStatus(slug, body.status, userId);
       return {
         status: true,
@@ -220,7 +211,25 @@ export class LandingController {
       };
     }
   }
+  @Protected()
+  @Delete('leads/:id')
+  async deleteLead(@Param('id') id: number, @Query('slug') slug: string, @Query('leadType') leadType: string, @Req() req: any) {
+    try {
+      console.log('SLUG', slug);
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
+      }
+      if(!this.authService.validateUser(brand.id, req.user)) {
+        throw new BadRequestException('Unauthorized to access resource');
+      }
+      const response = await this.landingService.deleteLead(id, brand.id, leadType);
 
+      return response;
+    } catch (error) {
+     throw new HttpException(error?.message || 'Failed to delete lead', error?.status || 500);
+    }
+  }
   @Protected()
   @Delete(':slug/:lpId')
   @HttpCode(HttpStatus.OK)

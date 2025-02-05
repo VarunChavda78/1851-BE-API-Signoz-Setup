@@ -9,7 +9,6 @@ import { FaqModule } from './faq/faq.module';
 import { UsersModule } from './users/users.module';
 import { EmailModule } from './email/email.module';
 import { S3Module } from './s3/s3.module';
-import { LandingPageModule } from './landing-page/landing-page.module';
 import { NavigationMenuModule } from './navigation-menu/navigation-menu.module';
 import { LandingModule } from './landing/landing.module';
 import { AuthModule } from './auth/auth.module';
@@ -35,7 +34,6 @@ import { MysqldbModule } from './mysqldb/mysqldb.module';
     UsersModule,
     EmailModule,
     S3Module,
-    LandingPageModule,
     NavigationMenuModule,
     LandingModule,
     AuthModule,
