@@ -529,7 +529,7 @@ export class LandingService {
       const skip = (page - 1) * limit;
       const sort = filterDto?.sort || 'createdAt';
       const order: 'ASC' | 'DESC' =
-        filterDto?.order?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
+        filterDto?.order?.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
       let query = this.lpLeadsRepository
         .createQueryBuilder('lead')
@@ -541,7 +541,7 @@ export class LandingService {
         .groupBy('lead.uid');
 
       
-      if (filterDto.q) {
+      if (filterDto && filterDto.q) {
         query = query.andWhere((qb) => {
           const subQuery = qb
             .subQuery()
