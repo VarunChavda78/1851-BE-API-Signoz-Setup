@@ -19,7 +19,7 @@ import { LpLeads } from './lp-leads.entity';
 import { S3Service } from 'src/s3/s3.service';
 import { CommonService } from 'src/shared/services/common.service';
 import * as moment from 'moment-timezone';
-import { LeadsFilterDto } from './dtos/leads-dto';
+import { LeadsFilterDto } from './dtos/leadsFilterDto';
 import { createObjectCsvStringifier } from 'csv-writer';
 import { VerifyCaptchaService } from 'src/shared/services/verify-captcha.service';
 
@@ -520,7 +520,7 @@ export class LandingService {
     }
   }
 
-  async getLpLeads(brandId: number, filterDto: LeadsFilterDto) {
+  async getLpLeads(brandId: number, filterDto?: LeadsFilterDto | null) {
     try {
       const limit =
         filterDto?.limit && filterDto.limit > 0 ? Number(filterDto.limit) : 10;
@@ -665,7 +665,7 @@ export class LandingService {
       const csvStringifier = createObjectCsvStringifier({ header: headers });
 
       // Get all leads data
-      const { data: leadsData } = await this.getLpLeads(brandId, {});
+      const { data: leadsData } = await this.getLpLeads(brandId, null);
 
       const csvHeader = csvStringifier.getHeaderString();
       const csvRecords = csvStringifier.stringifyRecords(leadsData);

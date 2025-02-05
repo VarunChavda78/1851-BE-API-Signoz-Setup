@@ -11,7 +11,6 @@ import {
   HttpException,
   BadRequestException,
   Req,
-  HttpException,
 } from '@nestjs/common';
 import { LandingService } from './landing.service';
 import { UsersService } from 'src/users/users.service';
@@ -20,6 +19,7 @@ import { LpPageRepository } from './lp-page.repository';
 import { AuthService } from 'src/auth/auth.service';
 import { CreateLeadDto } from './dtos/createLeadDto';
 import { LeadsFilterDto } from './dtos/leadsFilterDto';
+import { Protected } from 'src/auth/auth.decorator';
 
 @Controller({
   version: '1',
@@ -212,25 +212,6 @@ export class LandingController {
     }
   }
   @Protected()
-  @Delete('leads/:id')
-  async deleteLead(@Param('id') id: number, @Query('slug') slug: string, @Query('leadType') leadType: string, @Req() req: any) {
-    try {
-      console.log('SLUG', slug);
-      const brand = await this.usersService.getBrandIdBySlug(slug);
-      if (!brand) {
-        throw new Error(`Brand not found for slug: ${slug}`);
-      }
-      if(!this.authService.validateUser(brand.id, req.user)) {
-        throw new BadRequestException('Unauthorized to access resource');
-      }
-      const response = await this.landingService.deleteLead(id, brand.id, leadType);
-
-      return response;
-    } catch (error) {
-     throw new HttpException(error?.message || 'Failed to delete lead', error?.status || 500);
-    }
-  }
-  @Protected()
   @Delete(':slug/:lpId')
   @HttpCode(HttpStatus.OK)
   async deletePage(@Param('slug') slug: string, @Param('lpId') lpId: number, @Req() req) {
@@ -346,7 +327,7 @@ export class LandingController {
     }
   }
 
-  @Post('lp-leads')
+  @Post('leads')
   async createLpLeads(@Query('slug') slug: string, @Body() lpLeadsDto: CreateLeadDto){
     try {
       if (!slug) {
@@ -363,7 +344,7 @@ export class LandingController {
     }
   }
 
-  @Delete('lp-leads/:slug/:uid')
+  @Delete('leads/:slug/:uid')
   async deleteLpLead(@Param('slug') slug: string, @Param('uid') uid: string) {
     try {
       if (!slug || !uid) {
@@ -381,7 +362,7 @@ export class LandingController {
     }
   }
 
-  @Get('lp-leads')
+  @Get('leads')
   async getLpLeads(
     @Query('slug') slug: string,
     @Query() filterDto: LeadsFilterDto,
@@ -404,7 +385,7 @@ export class LandingController {
     }
   }
 
-  @Get('lp-leads/export')
+  @Get('leads/export')
   async exportToCsv(@Query('slug') slug: string) {
     try {
       if (!slug) {

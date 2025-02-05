@@ -15,4 +15,7 @@ export class LeadsFilterDto {
 
   @IsString()
   q?: string;
+
+  @IsString()
+  gReCaptchaToken: string;
 }

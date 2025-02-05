@@ -19,10 +19,12 @@ import { VerifyCaptchaService } from 'src/shared/services/verify-captcha.service
 import { LpLeadsRepository } from './lp-leads.repository';
 import { HttpModule } from '@nestjs/axios';
 import { S3Service } from 'src/s3/s3.service';
+import { LpLeads } from './lp-leads.entity';
+import { S3Module } from 'src/s3/s3.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([LandingPageLeads]), UsersModule, SharedModule, S3Module, HttpModule],
-  imports: [UsersModule, SharedModule, HttpModule],
+  imports: [TypeOrmModule.forFeature([LpLeads]), UsersModule, SharedModule, S3Module, HttpModule],
   controllers: [LandingController],
   providers: [
     LandingService,
@@ -41,9 +43,6 @@ import { S3Service } from 'src/s3/s3.service';
     VerifyCaptchaService,
     LpLeadsRepository,
     S3Service
-  ],
-  exports: [
-    LpPdfRepository,
   ],
 })
 export class LandingModule {}
