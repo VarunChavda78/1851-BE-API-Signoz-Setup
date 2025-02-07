@@ -669,17 +669,24 @@ export class LandingService {
         })
         .getRawMany();
 
-      // Create dynamic headers
-      const headers = uniqueFields.map(({ field }) => ({
-        id: field,
-        title: this.leadsUtilService.formatFieldName(field), // Capitalize first letter
-      }));
-
-      // Add createdAt and formType to headers
-      headers.push(
+      // Priority fields that should come first
+      const priorityFields = ['firstName', 'lastName', 'email', 'phone'];
+      
+      // Create headers with priority fields first
+      const headers = [
+        ...priorityFields.map(field => ({
+          id: field,
+          title: this.leadsUtilService.formatFieldName(field)
+        })),
+        ...uniqueFields
+          .filter(({ field }) => !priorityFields.includes(field))
+          .map(({ field }) => ({
+            id: field,
+            title: this.leadsUtilService.formatFieldName(field)
+          })),
         { id: 'createdAt', title: 'Submitted Date' },
         { id: 'formType', title: 'Form Type' }
-      );
+      ];
 
       const csvStringifier = createObjectCsvStringifier({ header: headers });
 
