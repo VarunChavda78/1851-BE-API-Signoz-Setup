@@ -60,7 +60,7 @@ jobs:
         id: build-nginx
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          NGINX_REPOSITORY: supplier-nginx
+          NGINX_REPOSITORY: 1851-admin-be-nginx
           IMAGE_TAG: ${{ github.sha }}
         run: |
           docker build -f Docker/Dockerfile-nginx -t $ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG .
@@ -79,7 +79,7 @@ jobs:
       - name: Configure AWS credential
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_DEV_DEV }}
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_DEV }}
           aws-region: ${{ secrets.AWS_REGION }}
     
       - name: Login to Amazon ECR
@@ -219,7 +219,7 @@ jobs:
         - name: Configure AWS credential
           uses: aws-actions/configure-aws-credentials@v4
           with:
-            role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_DEV_DEV }}
+            role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_DEV }}
             aws-region: ${{ secrets.AWS_REGION }}
   
         - name: Login to Amazon ECR
