@@ -1,0 +1,48 @@
+name: Docker Build App
+
+on:
+  workflow_call:
+    outputs:
+      app_image:
+        description: "Built app image URI"
+        value: ${{ jobs.build.outputs.app_image }}
+    secrets:
+      AWS_ROLE_TO_ASSUME_DEV:
+        required: true
+      AWS_REGION:
+        required: true
+
+env:
+  IMAGE_TAG: ${{ github.sha }}
+  APP_REPOSITORY: 1851-admin-be-api
+
+jobs:
+  build:
+    name: "Build App Docker Image"
+    runs-on: "ubuntu-latest"
+    outputs:
+      app_image: ${{ steps.build-image.outputs.app }}
+      
+    steps:
+      - name: "Checkout Code"
+        uses: "actions/checkout@v2"
+
+      - name: Configure AWS credential
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_DEV }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and push app image
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          # Build app image without environment files
+          docker build -f Docker/Dockerfile -t $ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG
+          echo "app=$ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
