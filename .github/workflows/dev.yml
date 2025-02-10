@@ -120,7 +120,7 @@ jobs:
   Deployment:
     name: "Deployment"
     runs-on: "ubuntu-latest"
-    needs: [Build-App, Build-Nginx]
+    needs: [Build-App, Build-Nginx,Scan]
     if: ${{ github.event_name == 'push' || (github.event.inputs.deploy == 'deploy') }}
     timeout-minutes: 5
     
