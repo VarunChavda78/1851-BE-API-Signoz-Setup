@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Get, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { LpPageRepository } from './lp-page.repository';
 import { UsersService } from 'src/users/users.service';
 import { PageStatus, PageStatusName } from './landing.constant';
@@ -24,6 +24,7 @@ import { createObjectCsvStringifier } from 'csv-writer';
 import { VerifyCaptchaService } from 'src/shared/services/verify-captcha.service';
 import { LpInquiryRepository } from './lp-inquiry.repository';
 import { UpdateLpInquiryDto } from './dtos/lpInquiryDto';
+import { LpCrmFormRepository } from './lp-form.repository';
 
 @Injectable()
 export class LandingService {
@@ -38,6 +39,7 @@ export class LandingService {
     private readonly leadsUtilService: LeadsUtilService,
     private readonly lpLeadsRepository: LpLeadsRepository,
     private lpInquiryRepository: LpInquiryRepository,
+    private lpCrmFormRepository: LpCrmFormRepository,
     private s3Service: S3Service,
     private envService: EnvironmentConfigService,
     private commonService: CommonService,
@@ -372,18 +374,18 @@ export class LandingService {
   ): Promise<any> {
     try {
       // Verify reCAPTCHA
-      if(leadDataDto?.formType !== 2){
+      if (leadDataDto?.formType !== 2) {
         const recaptcha = await this.verifyCaptchaService.verifyCaptcha(
           leadDataDto?.gReCaptchaToken,
         );
-  
+
         if (!recaptcha) {
           return {
             status: false,
             message: 'Invalid Captcha response',
           };
         }
-  
+
         // Remove captcha token from data
         delete leadDataDto?.gReCaptchaToken;
       }
@@ -442,12 +444,15 @@ export class LandingService {
         }),
         {},
       );
-      const inquiryEmails = await this.getInquiryEmails(leadDataDto.lpId, brandId);
+      const inquiryEmails = await this.getInquiryEmails(
+        leadDataDto.lpId,
+        brandId,
+      );
       // Handle emails based on form type
       if (leadDataDto.formType === 2) {
         // PDF download case
         await this.leadsUtilService.sendPdfEmailToBrand(
-          { email: leadDataDto.email},
+          { email: leadDataDto.email },
           brand,
           inquiryEmails?.email,
         );
@@ -474,7 +479,11 @@ export class LandingService {
         // Regular lead case
         await Promise.all([
           this.leadsUtilService.sendEmailToUser(leadForEmail, brand),
-          this.leadsUtilService.sendEmailToBrand(leadForEmail, brand, inquiryEmails?.email),
+          this.leadsUtilService.sendEmailToBrand(
+            leadForEmail,
+            brand,
+            inquiryEmails?.email,
+          ),
         ]);
       }
 
@@ -526,7 +535,11 @@ export class LandingService {
     }
   }
 
-  async getLpLeads(brandId: number, filterDto?: LeadsFilterDto | null, csv: boolean = false) {
+  async getLpLeads(
+    brandId: number,
+    filterDto?: LeadsFilterDto | null,
+    csv: boolean = false,
+  ) {
     try {
       const limit =
         filterDto?.limit && filterDto.limit > 0 ? Number(filterDto.limit) : 10;
@@ -546,7 +559,6 @@ export class LandingService {
         .andWhere('lead.deletedAt IS NULL')
         .groupBy('lead.uid');
 
-      
       if (filterDto && filterDto.q) {
         query = query.andWhere((qb) => {
           const subQuery = qb
@@ -563,15 +575,18 @@ export class LandingService {
       }
 
       const totalQuery = this.lpLeadsRepository
-            .createQueryBuilder('lead')
-            .select('COUNT(DISTINCT lead.uid)', 'count')
-            .where('lead.brandId = :brandId', { brandId })
-            .andWhere('lead.deletedAt IS NULL');
+        .createQueryBuilder('lead')
+        .select('COUNT(DISTINCT lead.uid)', 'count')
+        .where('lead.brandId = :brandId', { brandId })
+        .andWhere('lead.deletedAt IS NULL');
 
       if (sort === 'createdAt') {
         query = query.orderBy('MAX(lead.createdAt)', order);
       } else if (sort === 'formType') {
-        query = query.orderBy('MAX(lead.formType)', order === 'ASC' ? 'DESC' : 'ASC');
+        query = query.orderBy(
+          'MAX(lead.formType)',
+          order === 'ASC' ? 'DESC' : 'ASC',
+        );
       } else {
         // For other fields, join with the same table to get sort field values
         query = query
@@ -579,7 +594,7 @@ export class LandingService {
             'lp_leads',
             'sort_data',
             'sort_data.uid = lead.uid AND sort_data.field = :sortField AND sort_data.brandId = :brandId AND sort_data.deletedAt IS NULL',
-            { sortField: sort, brandId }
+            { sortField: sort, brandId },
           )
           .addSelect('MAX(sort_data.value)', 'sort_value')
           .orderBy('MAX(sort_data.value)', order, 'NULLS LAST');
@@ -590,9 +605,9 @@ export class LandingService {
       }
 
       const totalCount = await totalQuery.getRawOne();
-        const total = parseInt(totalCount.count);
+      const total = parseInt(totalCount.count);
 
-      if(!csv){
+      if (!csv) {
         query = query.offset(skip).limit(limit);
       }
 
@@ -616,38 +631,41 @@ export class LandingService {
 
       const leads = await leadsQuery.getMany();
 
-        const transformedLeads = uids.map((uid) => {
-          const leadFields = leads.filter((lead) => lead.uid === uid);
-          
-          // First, create an object with required fields initialized as null
-          const priorityFields = {
-            firstName: null,
-            lastName: null,
-            email: null,
-            phone: null,
-          };
+      const transformedLeads = uids.map((uid) => {
+        const leadFields = leads.filter((lead) => lead.uid === uid);
 
-          // Then create an object for other fields
-          const otherFields = {};
+        // First, create an object with required fields initialized as null
+        const priorityFields = {
+          firstName: null,
+          lastName: null,
+          email: null,
+          phone: null,
+        };
 
-          // Populate both objects from lead fields
-          leadFields.forEach((lead) => {
-            if (lead.field in priorityFields) {
-              priorityFields[lead.field] = lead.value;
-            } else {
-              otherFields[lead.field] = lead.value;
-            }
-          });
+        // Then create an object for other fields
+        const otherFields = {};
 
-          // Combine objects in desired order with metadata
-          return {
-            ...priorityFields,
-            ...otherFields,
-            createdAt: moment(leadFields[0]?.createdAt).tz('America/Chicago').format('YYYY-MM-DD HH:mm:ss'),
-            formType: leadFields[0]?.formType === 1 ? 'Inquiry Form' : 'Download PDF',
-            uid,
-          };
+        // Populate both objects from lead fields
+        leadFields.forEach((lead) => {
+          if (lead.field in priorityFields) {
+            priorityFields[lead.field] = lead.value;
+          } else {
+            otherFields[lead.field] = lead.value;
+          }
         });
+
+        // Combine objects in desired order with metadata
+        return {
+          ...priorityFields,
+          ...otherFields,
+          createdAt: moment(leadFields[0]?.createdAt)
+            .tz('America/Chicago')
+            .format('YYYY-MM-DD HH:mm:ss'),
+          formType:
+            leadFields[0]?.formType === 1 ? 'Inquiry Form' : 'Download PDF',
+          uid,
+        };
+      });
 
       const pagination = this.commonService.getPagination(total, limit, page);
 
@@ -660,7 +678,7 @@ export class LandingService {
     }
   }
 
-  async exportToCsv(brandId: number){
+  async exportToCsv(brandId: number) {
     try {
       // Get unique fields excluding the ones we don't want in CSV
       const uniqueFields = await this.lpLeadsRepository
@@ -675,21 +693,21 @@ export class LandingService {
 
       // Priority fields that should come first
       const priorityFields = ['firstName', 'lastName', 'email', 'phone'];
-      
+
       // Create headers with priority fields first
       const headers = [
-        ...priorityFields.map(field => ({
+        ...priorityFields.map((field) => ({
           id: field,
-          title: this.leadsUtilService.formatFieldName(field)
+          title: this.leadsUtilService.formatFieldName(field),
         })),
         ...uniqueFields
           .filter(({ field }) => !priorityFields.includes(field))
           .map(({ field }) => ({
             id: field,
-            title: this.leadsUtilService.formatFieldName(field)
+            title: this.leadsUtilService.formatFieldName(field),
           })),
         { id: 'createdAt', title: 'Submitted Date' },
-        { id: 'formType', title: 'Form Type' }
+        { id: 'formType', title: 'Form Type' },
       ];
 
       const csvStringifier = createObjectCsvStringifier({ header: headers });
@@ -706,7 +724,7 @@ export class LandingService {
         csvData,
         filename,
         'landing-lead-exports/',
-        '1851'
+        '1851',
       );
 
       return {
@@ -720,13 +738,13 @@ export class LandingService {
   }
 
   async updateOrCreateInquiry(lpId, brandId, emails) {
-    if(!emails) return { data: null };
+    if (!emails) return { data: null };
     // Find the existing record
     const existingInquiry = await this.lpInquiryRepository.findOne({
-        where: {
-            lpId,
-            brandId,
-        },
+      where: {
+        lpId,
+        brandId,
+      },
     });
 
     // Convert array of emails to comma-separated string
@@ -736,40 +754,82 @@ export class LandingService {
     let isNewRecord = false;
 
     if (!existingInquiry) {
-        // Create new record
-        const newInquiry = this.lpInquiryRepository.create({
-            lpId,
-            brandId,
-            email: emailString,
-        });
-        result = await this.lpInquiryRepository.save(newInquiry);
-        isNewRecord = true;
+      // Create new record
+      const newInquiry = this.lpInquiryRepository.create({
+        lpId,
+        brandId,
+        email: emailString,
+      });
+      result = await this.lpInquiryRepository.save(newInquiry);
+      isNewRecord = true;
     } else {
-        // Update existing record
-        existingInquiry.email = emailString;
-        result = await this.lpInquiryRepository.save(existingInquiry);
+      // Update existing record
+      existingInquiry.email = emailString;
+      result = await this.lpInquiryRepository.save(existingInquiry);
     }
 
     return {
-        data: result
+      data: result,
     };
-}
+  }
 
-private emailStringToArray(emailString: string): string[] {
+  private emailStringToArray(emailString: string): string[] {
     return emailString ? emailString.split(',') : [];
-}
+  }
 
-async getInquiryEmails(lpId: number, brandId: number): Promise<any> {
+  async getInquiryEmails(lpId: number, brandId: number): Promise<any> {
     const inquiry = await this.lpInquiryRepository.findOne({
-        where: { lpId, brandId },
+      where: { lpId, brandId },
     });
     if (!inquiry) {
-        return null;
+      return null;
     }
 
     return {
-        ...inquiry,
-        email: this.emailStringToArray(inquiry.email)
+      ...inquiry,
+      email: this.emailStringToArray(inquiry.email),
     };
-}
+  }
+
+  async getLpCrmForm(lpId: number, brandId: number) {
+    try {
+      const form = await this.lpCrmFormRepository.findOne({
+        where: {
+          lpId,
+          brandId,
+        },
+        select: ['id', 'content'],
+      });
+
+      if (!form) {
+        throw new NotFoundException('Form not found');
+      }
+
+      return form;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async createOrUpdateLpCrmForm(lpId: number, brandId: number, content) {
+    const existingForm = await this.lpCrmFormRepository.findOne({
+      where: {
+        lpId,
+        brandId,
+      },
+    });
+
+    if (existingForm) {
+      existingForm.content = content;
+      return await this.lpCrmFormRepository.save(existingForm);
+    }
+
+    const newForm = this.lpCrmFormRepository.create({
+      lpId,
+      brandId,
+      content,
+    });
+
+    return await this.lpCrmFormRepository.save(newForm);
+  }
 }

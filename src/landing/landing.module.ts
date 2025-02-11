@@ -23,6 +23,7 @@ import { LpLeads } from './lp-leads.entity';
 import { S3Module } from 'src/s3/s3.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LpInquiryRepository } from './lp-inquiry.repository';
+import { LpCrmFormRepository } from './lp-form.repository';
 
 @Module({
   imports: [TypeOrmModule.forFeature([LpLeads]), UsersModule, SharedModule, S3Module, HttpModule],
@@ -39,6 +40,7 @@ import { LpInquiryRepository } from './lp-inquiry.repository';
     LpPdfRepository,
     LpSettingsRepository,
     LpInquiryRepository,
+    LpCrmFormRepository,
     LeadsUtilService,
     CommonService,
     AuthService,
