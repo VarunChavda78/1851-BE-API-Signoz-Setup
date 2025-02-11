@@ -22,6 +22,8 @@ import * as moment from 'moment-timezone';
 import { LeadsFilterDto } from './dtos/leadsFilterDto';
 import { createObjectCsvStringifier } from 'csv-writer';
 import { VerifyCaptchaService } from 'src/shared/services/verify-captcha.service';
+import { LpInquiryRepository } from './lp-inquiry.repository';
+import { UpdateLpInquiryDto } from './dtos/lpInquiryDto';
 
 @Injectable()
 export class LandingService {
@@ -35,6 +37,7 @@ export class LandingService {
     private readonly lpSettingsRepository: LpSettingsRepository,
     private readonly leadsUtilService: LeadsUtilService,
     private readonly lpLeadsRepository: LpLeadsRepository,
+    private lpInquiryRepository: LpInquiryRepository,
     private s3Service: S3Service,
     private envService: EnvironmentConfigService,
     private commonService: CommonService,
@@ -714,4 +717,58 @@ export class LandingService {
       throw new Error(`Failed to export CSV: ${error.message}`);
     }
   }
+
+  async updateOrCreateInquiry(lpId, brandId, emails) {
+    if(!emails) return { data: null };
+    // Find the existing record
+    const existingInquiry = await this.lpInquiryRepository.findOne({
+        where: {
+            lpId,
+            brandId,
+        },
+    });
+
+    // Convert array of emails to comma-separated string
+    const emailString = emails.join(',');
+
+    let result;
+    let isNewRecord = false;
+
+    if (!existingInquiry) {
+        // Create new record
+        const newInquiry = this.lpInquiryRepository.create({
+            lpId,
+            brandId,
+            email: emailString,
+        });
+        result = await this.lpInquiryRepository.save(newInquiry);
+        isNewRecord = true;
+    } else {
+        // Update existing record
+        existingInquiry.email = emailString;
+        result = await this.lpInquiryRepository.save(existingInquiry);
+    }
+
+    return {
+        data: result
+    };
+}
+
+private emailStringToArray(emailString: string): string[] {
+    return emailString ? emailString.split(',') : [];
+}
+
+async getInquiryEmails(lpId: number, brandId: number): Promise<any> {
+    const inquiry = await this.lpInquiryRepository.findOne({
+        where: { lpId, brandId },
+    });
+    if (!inquiry) {
+        return null;
+    }
+
+    return {
+        ...inquiry,
+        email: this.emailStringToArray(inquiry.email)
+    };
+}
 }

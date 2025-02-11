@@ -11,6 +11,7 @@ import {
   HttpException,
   BadRequestException,
   Req,
+  NotFoundException,
 } from '@nestjs/common';
 import { LandingService } from './landing.service';
 import { UsersService } from 'src/users/users.service';
@@ -20,6 +21,7 @@ import { AuthService } from 'src/auth/auth.service';
 import { CreateLeadDto } from './dtos/createLeadDto';
 import { LeadsFilterDto } from './dtos/leadsFilterDto';
 import { Protected } from 'src/auth/auth.decorator';
+import { UpdateLpInquiryDto } from './dtos/lpInquiryDto';
 
 @Controller({
   version: '1',
@@ -65,7 +67,7 @@ export class LandingController {
       domain?: string;
       customDomainStatus?: string;
     },
-    @Req() req
+    @Req() req,
   ) {
     try {
       const brand = await this.usersService.getBrandIdBySlug(slug);
@@ -73,7 +75,9 @@ export class LandingController {
         throw new Error(`Brand not found for slug: ${slug}`);
       }
       if (!this.authService.validateUser(brand.id, req.user)) {
-        throw new BadRequestException(`Unauthorized to access resources for ${slug}`);
+        throw new BadRequestException(
+          `Unauthorized to access resources for ${slug}`,
+        );
       }
       const data = await this.landingService.UpdatePublishData(
         lpId,
@@ -150,7 +154,7 @@ export class LandingController {
   async createPage(
     @Param('slug') slug: string,
     @Body() createPageDto: { name: string; templateId: number },
-    @Req() req
+    @Req() req,
   ) {
     try {
       const brand = await this.usersService.getBrandIdBySlug(slug);
@@ -158,9 +162,16 @@ export class LandingController {
         throw new Error(`Brand not found for slug: ${slug}`);
       }
       if (!this.authService.validateUser(brand.id, req.user)) {
-        throw new BadRequestException(`Unauthorized to access resources for ${slug}`);
+        throw new BadRequestException(
+          `Unauthorized to access resources for ${slug}`,
+        );
       }
-      const newPage = await this.landingService.createPage(slug, createPageDto, brand.id, req.user.id);
+      const newPage = await this.landingService.createPage(
+        slug,
+        createPageDto,
+        brand.id,
+        req.user.id,
+      );
       return {
         status: true,
         data: newPage,
@@ -195,11 +206,15 @@ export class LandingController {
   async updateLandingPageStatus(
     @Param('slug') slug: string,
     @Body() body: { status: boolean },
-    @Req() req
+    @Req() req,
   ) {
     try {
       const userId = 1; // Replace this with actual user ID from auth context
-      const data = await this.landingService.updateLandingPageStatus(slug, body.status, userId);
+      const data = await this.landingService.updateLandingPageStatus(
+        slug,
+        body.status,
+        userId,
+      );
       return {
         status: true,
         data,
@@ -214,14 +229,20 @@ export class LandingController {
   @Protected()
   @Delete(':slug/:lpId')
   @HttpCode(HttpStatus.OK)
-  async deletePage(@Param('slug') slug: string, @Param('lpId') lpId: number, @Req() req) {
+  async deletePage(
+    @Param('slug') slug: string,
+    @Param('lpId') lpId: number,
+    @Req() req,
+  ) {
     try {
       const brand = await this.usersService.getBrandIdBySlug(slug);
       if (!brand) {
         throw new Error(`Brand not found for slug: ${slug}`);
       }
       if (!this.authService.validateUser(brand.id, req.user)) {
-        throw new BadRequestException(`Unauthorized to access resources for ${slug}`);
+        throw new BadRequestException(
+          `Unauthorized to access resources for ${slug}`,
+        );
       }
       await this.landingService.deletePage(brand.id, lpId);
       return {
@@ -243,7 +264,7 @@ export class LandingController {
     @Param('lpId') lpId: number,
     @Param('sectionSlug') sectionSlug: string,
     @Body() createLandingPageDto: any,
-    @Req() req
+    @Req() req,
   ) {
     try {
       const brand = await this.usersService.getBrandIdBySlug(slug);
@@ -328,7 +349,10 @@ export class LandingController {
   }
 
   @Post('leads')
-  async createLpLeads(@Query('slug') slug: string, @Body() lpLeadsDto: CreateLeadDto){
+  async createLpLeads(
+    @Query('slug') slug: string,
+    @Body() lpLeadsDto: CreateLeadDto,
+  ) {
     try {
       if (!slug) {
         throw new BadRequestException('Slug is required');
@@ -337,10 +361,17 @@ export class LandingController {
       if (!brand) {
         throw new Error(`Brand not found for slug: ${slug}`);
       }
-      const result = await this.landingService.createLpLead(brand.id, slug, lpLeadsDto);
-      return result
+      const result = await this.landingService.createLpLead(
+        brand.id,
+        slug,
+        lpLeadsDto,
+      );
+      return result;
     } catch (error) {
-      throw new HttpException(error?.message || 'Failed to create leads', error?.status || 500);
+      throw new HttpException(
+        error?.message || 'Failed to create leads',
+        error?.status || 500,
+      );
     }
   }
 
@@ -355,10 +386,13 @@ export class LandingController {
         throw new Error(`Brand not found for slug: ${slug}`);
       }
       const result = await this.landingService.deleteLpLead(brand.id, uid);
-      return result
+      return result;
     } catch (error) {
       console.log('error', error);
-      throw new HttpException(error?.message || 'Failed to delete leads', error?.status || 500);
+      throw new HttpException(
+        error?.message || 'Failed to delete leads',
+        error?.status || 500,
+      );
     }
   }
 
@@ -366,7 +400,7 @@ export class LandingController {
   async getLpLeads(
     @Query('slug') slug: string,
     @Query() filterDto: LeadsFilterDto,
-  ){
+  ) {
     try {
       if (!slug) {
         throw new BadRequestException('Slug is required');
@@ -381,7 +415,10 @@ export class LandingController {
         leads,
       };
     } catch (error) {
-      throw new HttpException(error?.message || 'Failed to get leads', error?.status || 500);
+      throw new HttpException(
+        error?.message || 'Failed to get leads',
+        error?.status || 500,
+      );
     }
   }
 
@@ -399,6 +436,57 @@ export class LandingController {
       return await this.landingService.exportToCsv(brand.id);
     } catch (error) {
       throw new HttpException('Failed to export leads', error?.status || 500);
+    }
+  }
+
+  @Get('inquiry')
+  async getInquiryEmails(
+    @Query('slug') slug: string,
+    @Query('lpId') lpId: number,
+  ) {
+    try {
+      if (!slug || !lpId) {
+        throw new BadRequestException('Slug and lpId are required');
+      }
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new BadRequestException(`Brand not found for slug: ${slug}`);
+      }
+      const response = await this.landingService.getInquiryEmails(lpId, brand.id);
+      return {
+        status: true,
+        data: response || {},
+      };
+    } catch (error) {
+      throw new HttpException(error?.message || 'Failed to get emails', error?.status || 500);
+    }
+  }
+
+  @Post('inquiry')
+  async updateInquiryEmails(
+    @Query('slug') slug: string,
+    @Query('lpId') lpId: number,
+    @Body() updateInquiryEmailsDto: UpdateLpInquiryDto,
+  ) {
+    try {
+      if (!slug) {
+        throw new BadRequestException('Slug is required');
+      }
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new NotFoundException(`Brand not found for slug: ${slug}`);
+      }
+      const response = await this.landingService.updateOrCreateInquiry(
+        lpId,
+        brand.id,
+        updateInquiryEmailsDto.emails,
+      );
+      return {
+        status: true,
+        ...response,
+      };
+    } catch (error) {
+      throw new HttpException(error?.message || 'Failed to update emails', error?.status || 500);
     }
   }
 }
