@@ -8,9 +8,9 @@ export class LeadsUtilService {
     private config: EnvironmentConfigService,
     private commonService: CommonService,
   ) {}
-  async sendPdfEmailToBrand(request, brand) {
+  async sendPdfEmailToBrand(request, brand, inquiryEmails?: any) {
     const fromEmail = this.config.getFromEmail();
-    const toEmail = brand?.email || [];
+    const toEmail = inquiryEmails?.length > 0 ? inquiryEmails : brand?.email || [];
     const bccMail = [this.config.getBccEmail()];
     const sign = this.commonService.getEmailSign();
     const subject = `Download Brochure PDF Inquiry`;
@@ -92,9 +92,9 @@ export class LeadsUtilService {
     );
   }
 
-  async sendEmailToBrand(request: { [key: string]: string }, brand: any) {
+  async sendEmailToBrand(request: { [key: string]: string }, brand: any, inquiryEmails:any) {
     const fromEmail = this.config.getFromEmail();
-    const toEmail = brand?.email || [];
+    const toEmail = inquiryEmails?.length > 0 ? inquiryEmails : brand?.email || [];
     const bccMail = [this.config.getBccEmail()];
     const sign = this.commonService.getEmailSign();
     const subject = `New Lead from your landing page`;

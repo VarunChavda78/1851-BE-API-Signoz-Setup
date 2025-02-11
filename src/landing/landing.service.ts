@@ -442,13 +442,14 @@ export class LandingService {
         }),
         {},
       );
-
+      const inquiryEmails = await this.getInquiryEmails(leadDataDto.lpId, brandId);
       // Handle emails based on form type
       if (leadDataDto.formType === 2) {
         // PDF download case
         await this.leadsUtilService.sendPdfEmailToBrand(
-          { email: leadDataDto.email },
+          { email: leadDataDto.email},
           brand,
+          inquiryEmails
         );
 
         // Get PDF content if slug is provided
@@ -473,7 +474,7 @@ export class LandingService {
         // Regular lead case
         await Promise.all([
           this.leadsUtilService.sendEmailToUser(leadForEmail, brand),
-          this.leadsUtilService.sendEmailToBrand(leadForEmail, brand),
+          this.leadsUtilService.sendEmailToBrand(leadForEmail, brand, inquiryEmails),
         ]);
       }
 
