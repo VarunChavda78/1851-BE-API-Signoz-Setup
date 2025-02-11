@@ -469,8 +469,8 @@ export class LandingController {
     @Body() updateInquiryEmailsDto: UpdateLpInquiryDto,
   ) {
     try {
-      if (!slug) {
-        throw new BadRequestException('Slug is required');
+      if (!slug || !lpId) {
+        throw new BadRequestException('Slug and lpId are required');
       }
       const brand = await this.usersService.getBrandIdBySlug(slug);
       if (!brand) {
@@ -487,6 +487,54 @@ export class LandingController {
       };
     } catch (error) {
       throw new HttpException(error?.message || 'Failed to update emails', error?.status || 500);
+    }
+  }
+
+  @Get('crm-form')
+  async getLpCrmForm(@Query('slug') slug: string, @Query('lpId') lpId: number) {
+    try {
+      if (!slug || !lpId) {
+        throw new BadRequestException('Slug and lpId are required');
+      }
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new NotFoundException(`Brand not found for slug: ${slug}`);
+      }
+      const data = await this.landingService.getLpCrmForm(lpId, brand.id);
+      return {
+        status: true,
+        data,
+      };
+    } catch (error) {
+      throw new HttpException(error?.message || 'Failed to get form', error?.status || 500);
+    }    
+  }
+
+  @Post('crm-form')
+  async createOrUpdateLpCrmForm(
+    @Query('slug') slug: string,
+    @Query('lpId') lpId: number,
+    @Body() lpCrmFormDto: { content: string },
+  ) {
+    try {
+      if (!slug || !lpId) {
+        throw new BadRequestException('Slug and lpId are required');
+      }
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new NotFoundException(`Brand not found for slug: ${slug}`);
+      }
+      const data = await this.landingService.createOrUpdateLpCrmForm(
+        lpId,
+        brand.id,
+        lpCrmFormDto.content,
+      );
+      return {
+        status: true,
+        data,
+      };
+    } catch (error) {
+      throw new HttpException(error?.message || 'Failed to update form', error?.status || 500);
     }
   }
 }
