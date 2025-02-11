@@ -449,7 +449,7 @@ export class LandingService {
         await this.leadsUtilService.sendPdfEmailToBrand(
           { email: leadDataDto.email},
           brand,
-          inquiryEmails
+          inquiryEmails?.email,
         );
 
         // Get PDF content if slug is provided
@@ -474,7 +474,7 @@ export class LandingService {
         // Regular lead case
         await Promise.all([
           this.leadsUtilService.sendEmailToUser(leadForEmail, brand),
-          this.leadsUtilService.sendEmailToBrand(leadForEmail, brand, inquiryEmails),
+          this.leadsUtilService.sendEmailToBrand(leadForEmail, brand, inquiryEmails?.email),
         ]);
       }
 
