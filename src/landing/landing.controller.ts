@@ -293,6 +293,26 @@ export class LandingController {
     }
   }
 
+  @Protected()
+  @Post('published/:lpId')
+  async publishContent(
+    @Param('lpId') lpId: number,
+  ) {
+    try {
+      const data = await this.landingService.publishedContent(
+        lpId,
+      );
+  
+      return {
+        status: true,
+        message: data?.message,
+      };
+    } catch (err) {
+      return { status: false, message: err?.message };
+    }
+  }
+  
+
   @Get(':slug/:lpId/:sectionSlug')
   async findSection(
     @Param('slug') slug: string,

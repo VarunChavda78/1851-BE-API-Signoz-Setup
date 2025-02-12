@@ -22,6 +22,9 @@ export class LpCustomisation {
   @Column('json')
   content: any;
 
+  @Column('json',{ name: 'publishedContent' })
+  publishedContent: any;
+
   @CreateDateColumn()
   createdAt: Date;
 
