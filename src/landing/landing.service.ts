@@ -227,6 +227,39 @@ export class LandingService {
     }
   }
 
+  async publishedContent(
+    lpId: number,
+  ) {
+    try {
+  
+      const existingPage = await this.lpCustomisationRepository.find({
+        where: { landingPageId: lpId},
+      });
+  
+      if (!existingPage) {
+        throw new Error(`Page with ID ${lpId} not found`);
+      }
+
+        const updatedPages = existingPage.map((page) => {
+          page.publishedContent = page.content;
+          page.updatedAt = new Date();
+          return page;
+        });  
+        
+        await this.lpCustomisationRepository.save(updatedPages);
+  
+        return { 
+          message: `updated successfully`,
+      };
+  
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+  
+
+
   async UpdatePublishData(
     lpId: number,
     brandId: number,
