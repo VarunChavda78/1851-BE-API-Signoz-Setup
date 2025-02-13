@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { UserType } from 'src/shared/constants/constants';
 
 @Injectable()
 export class AuthService {
@@ -10,7 +11,7 @@ export class AuthService {
       }
     } else if (
       user?.type &&
-      (user?.type === 'admin' || user?.type === 'superadmin')
+      (user?.type === 'admin' || user?.type === 'superadmin' || user?.type === UserType.ADMIN)
     ) {
       return true;
     }

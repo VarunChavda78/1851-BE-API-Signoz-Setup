@@ -406,8 +406,9 @@ export class LandingController {
     }
   }
 
+  @Protected()
   @Delete('leads/:slug/:uid')
-  async deleteLpLead(@Param('slug') slug: string, @Param('uid') uid: string) {
+  async deleteLpLead(@Param('slug') slug: string, @Param('uid') uid: string, @Req() req) {
     try {
       if (!slug || !uid) {
         throw new BadRequestException('Slug and uid are required');
@@ -415,6 +416,11 @@ export class LandingController {
       const brand = await this.usersService.getBrandIdBySlug(slug);
       if (!brand) {
         throw new Error(`Brand not found for slug: ${slug}`);
+      }
+      if (!this.authService.validateUser(brand.id, req.user)) {
+        throw new BadRequestException(
+          `Unauthorized to access resources for ${slug}`,
+        );
       }
       const result = await this.landingService.deleteLpLead(brand.id, uid);
       return result;
@@ -493,11 +499,13 @@ export class LandingController {
     }
   }
 
+  @Protected()
   @Post('inquiry')
   async updateInquiryEmails(
     @Query('slug') slug: string,
     @Query('lpId') lpId: number,
     @Body() updateInquiryEmailsDto: UpdateLpInquiryDto,
+    @Req() req,
   ) {
     try {
       if (!slug || !lpId) {
@@ -506,6 +514,11 @@ export class LandingController {
       const brand = await this.usersService.getBrandIdBySlug(slug);
       if (!brand) {
         throw new NotFoundException(`Brand not found for slug: ${slug}`);
+      }
+      if (!this.authService.validateUser(brand.id, req.user)) {
+        throw new BadRequestException(
+          `Unauthorized to access resources for ${slug}`,
+        );
       }
       const response = await this.landingService.updateOrCreateInquiry(
         lpId,
@@ -541,11 +554,13 @@ export class LandingController {
     }    
   }
 
+  @Protected()
   @Post('crm-form')
   async createOrUpdateLpCrmForm(
     @Query('slug') slug: string,
     @Query('lpId') lpId: number,
     @Body() lpCrmFormDto: { content: string },
+    @Req() req
   ) {
     try {
       if (!slug || !lpId) {
@@ -554,6 +569,11 @@ export class LandingController {
       const brand = await this.usersService.getBrandIdBySlug(slug);
       if (!brand) {
         throw new NotFoundException(`Brand not found for slug: ${slug}`);
+      }
+      if (!this.authService.validateUser(brand.id, req.user)) {
+        throw new BadRequestException(
+          `Unauthorized to access resources for ${slug}`,
+        );
       }
       const data = await this.landingService.createOrUpdateLpCrmForm(
         lpId,
