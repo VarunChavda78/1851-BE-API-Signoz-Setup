@@ -53,7 +53,7 @@ export class UniversityService {
               imageUrl : data?.image
                     ? `${this.config.get(
                       's3.imageUrl',
-                    )}/university/image/${data?.image}`
+                    )}/filters:format(webp)/university/image/${data?.image}`
                   : '',
                 pdfUrl : data?.pdf 
                     ? `${this.config.get(

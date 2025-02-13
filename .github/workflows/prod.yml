@@ -9,7 +9,7 @@ on:
         type: choice
         options:
           - Prod-Deployment
-          - Infra-Change
+          - Infra-Change+code
 
 permissions:
   id-token: write
@@ -27,11 +27,12 @@ env:
   NGINX_REPOSITORY: 1851-admin-be-nginx
 
 jobs:
-  Build:
-    name: "Build"
+  Build-Nginx:
+    name: "Build Nginx"
     runs-on: "ubuntu-latest"
+    outputs:
+      nginx_image: ${{ steps.build-nginx.outputs.nginx }}
     steps:
-      
       - name: "Checkout Code"
         uses: "actions/checkout@v2"
 
@@ -45,15 +46,13 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build, tag, and push image to Amazon ECRs
-        id: build-image
+      - name: Build and push nginx image
+        id: build-nginx
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          NGINX_REPOSITORY: 1851-admin-be-nginx
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          sh env/prod.sh
-          docker build -f Docker/Dockerfile -t $ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG
-          echo "app=$ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
           docker build  -f Docker/Dockerfile-nginx-prod -t $ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG
           echo "nginx=$ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
@@ -61,7 +60,7 @@ jobs:
   Prod-Deployment:
     name: "Prod-Deployment"
     runs-on: "ubuntu-latest"
-    needs: Build
+    needs: Build-Nginx
     if: ${{ github.event.inputs.job-selection == 'Prod-Deployment' }}
     timeout-minutes: 10
     
@@ -69,28 +68,68 @@ jobs:
       - name: "Checkout Code"
         uses: "actions/checkout@v2"
 
-      - name: Configure AWS credential
+      - name: Configure AWS credentials for dev account
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_DEV }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Dev Amazon ECR
+        id: login-ecr-dev
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Configure AWS credentials for prod account
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_PROD }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Login to Amazon ECR
-        id: login-ecr
+      - name: Login to Prod Amazon ECR
+        id: login-ecr-prod
         uses: aws-actions/amazon-ecr-login@v1
         
-      - name: Download task definition
+      - name: Download task definition and set environment
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          DEV_ECR_REGISTRY: ${{ steps.login-ecr-dev.outputs.registry }}
+          PROD_ECR_REGISTRY: ${{ steps.login-ecr-prod.outputs.registry }}
         run: |
-            echo "NGINX_IMAGE=$ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
-            echo "APP_IMAGE=$ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
+            # Get the task definition
             aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK_DEFINITION }} --query taskDefinition > task-definition.json
+            
+            # Get production environment variables from Secrets Manager
+            aws secretsmanager get-secret-value --secret-id arn:aws:secretsmanager:us-east-1:580880756845:secret:1851-Admin-BE-API-Prod-hilfCK \
+            | jq -r '.SecretString' > prod-env.json
+            
+            # Set image URIs
+            echo "NGINX_IMAGE=$PROD_ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
+            echo "APP_IMAGE=$DEV_ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
+            
+            # Transform secrets into ECS format for app container only
+            SECRET_ARN="arn:aws:secretsmanager:us-east-1:580880756845:secret:1851-Admin-BE-API-Prod-hilfCK"
+            jq --arg env "$(cat prod-env.json)" --arg arn "$SECRET_ARN" --arg app_container "$CONTAINER_NAME" '
+              .containerDefinitions[] |= (
+                if .name == $app_container then
+                  . + {
+                    environment: [],
+                    secrets: ($env | fromjson | to_entries | map({
+                      name: .key,
+                      valueFrom: ($arn + ":" + .key + "::")
+                    }))
+                  }
+                else
+                  . + {
+                    environment: [],
+                    secrets: []
+                  }
+                end
+              )
+            ' task-definition.json > task-definition-with-env.json
+            mv task-definition-with-env.json task-definition.json
 
       - name: Fill in the new image ID in the Amazon ECS task definition (nginx)
         id: task-def_nginx
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REGISTRY: ${{ steps.login-ecr-prod.outputs.registry }}
         uses: aws-actions/amazon-ecs-render-task-definition@v1.3.0
         with:
           task-definition: task-definition.json
@@ -101,7 +140,7 @@ jobs:
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1.3.0
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REGISTRY: ${{ steps.login-ecr-dev.outputs.registry }}
         with:
           task-definition: ${{ steps.task-def_nginx.outputs.task-definition }}
           container-name: ${{ env.CONTAINER_NAME }}
@@ -116,16 +155,18 @@ jobs:
           wait-for-service-stability: true
 
   Infra-Change:
-    name: "Infra-Change"
+    name: "Infra-Change+code"
     runs-on: "ubuntu-latest"
-    needs: Build
-    if: ${{ github.event.inputs.job-selection == 'Infra-Change' }}
+    needs: Build-Nginx
+    if: ${{ github.event.inputs.job-selection == 'Infra-Change+code' }}
     steps:
       - name: "Checkout Code"
         uses: "actions/checkout@v2"
 
       - name: add tags to ecs
-        run: sed -i "s|<changeme>|${{ env.IMAGE_TAG }}|g" ./terraform/1851-prod-ecs/ecs-service.tf
+        run: |
+         sed -i "s|${data.aws_ecr_repository.app.repository_url}:<changeme>|025212946569.dkr.ecr.us-east-1.amazonaws.com/1851-admin-be-api:${{ env.IMAGE_TAG }}|g" ./terraform/1851-prod-ecs/ecs-service.tf
+         sed -i "s|<changeme>|${{ env.IMAGE_TAG }}|g" ./terraform/1851-prod-ecs/ecs-service.tf
 
       - name: Configure AWS credential
         uses: aws-actions/configure-aws-credentials@v4

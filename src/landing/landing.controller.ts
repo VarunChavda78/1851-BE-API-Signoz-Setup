@@ -319,26 +319,37 @@ export class LandingController {
     @Param('slug') slug: string,
     @Param('lpId') lpId: number,
     @Param('sectionSlug') sectionSlug: string,
+    @Query('isUpdated') isUpdated:string
   ) {
     try {
       const brand = await this.usersService.getBrandIdBySlug(slug);
       if (!brand) {
         throw new Error(`Brand not found for slug: ${slug}`);
       }
+
+      const isUpdatedcontent= isUpdated === 'true';
       const page = await this.landingService.findSection(lpId, sectionSlug);
       if (!page) {
         throw new Error(
           `Content not found for slug ${slug} and section slug ${sectionSlug}.`,
         );
       }
+
+      const content = isUpdatedcontent 
+      ? (Object.keys(page?.publishedContent || {}).length > 0 ? page?.publishedContent : page?.content) 
+      : page?.content;
+      
       return {
         status: true,
-        content: page?.content || '',
+        content: content || '',
       };
+      
     } catch (err) {
       return { status: false, message: err?.message, content: '' };
     }
   }
+
+
   @Post('pdf')
   async createPdf(
     @Query('slug') slug: string,
