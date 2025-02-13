@@ -334,11 +334,10 @@ export class LandingController {
           `Content not found for slug ${slug} and section slug ${sectionSlug}.`,
         );
       }
-
-      const content = isUpdatedcontent 
-      ? (Object.keys(page?.publishedContent || {}).length > 0 ? page?.publishedContent : page?.content) 
-      : page?.content;
       
+      const content = isUpdatedcontent 
+      ? (Object.keys(page?.publishedContent || {}).length > 0 ? page?.publishedContent : '') 
+      : page?.content;
       return {
         status: true,
         content: content || '',
