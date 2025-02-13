@@ -50,7 +50,7 @@ jobs:
         id: build-nginx
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          NGINX_REPOSITORY: supplier-api-nginx
+          NGINX_REPOSITORY: 1851-admin-be-nginx
           IMAGE_TAG: ${{ github.sha }}
         run: |
           docker build  -f Docker/Dockerfile-nginx-prod -t $ECR_REGISTRY/$NGINX_REPOSITORY:$IMAGE_TAG .
