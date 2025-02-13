@@ -201,6 +201,7 @@ export class LandingController {
     }
   }
 
+  @Protected()
   @Post(':slug/status')
   @HttpCode(HttpStatus.OK)
   async updateLandingPageStatus(
@@ -209,7 +210,7 @@ export class LandingController {
     @Req() req,
   ) {
     try {
-      const userId = 1; // Replace this with actual user ID from auth context
+      const userId = req.user.id; // Replace this with actual user ID from auth context
       const data = await this.landingService.updateLandingPageStatus(
         slug,
         body.status,
