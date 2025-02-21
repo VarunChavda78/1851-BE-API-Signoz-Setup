@@ -366,10 +366,12 @@ export class LandingService {
     });
     return {
       isEnabled: settings ? settings.status : false,
+      noOfPages: settings ? settings.noOfPages : 1,
+      templateConfig: settings ? settings.templateConfig : {},
     };
   }
 
-  async updateLandingPageStatus(slug: string, status: boolean, userId: number) {
+  async updateLandingPageStatus(slug: string, status: boolean, userId: number, body: any) {
     const brand = await this.usersService.getBrandIdBySlug(slug);
     if (!brand) {
       throw new Error(`Brand not found for slug: ${slug}`);
@@ -382,12 +384,16 @@ export class LandingService {
     if (settings) {
       settings.status = status;
       settings.updatedBy = userId;
+      settings.templateConfig = body?.templateConfig || {};
+      settings.noOfPages = body?.noOfPages || 1;
     } else {
       settings = this.lpSettingsRepository.create({
         brandId: brand.id,
         status,
         createdBy: userId,
         updatedBy: userId,
+        templateConfig: body.templateConfig,
+        noOfPages: body.noOfPages
       });
     }
 
