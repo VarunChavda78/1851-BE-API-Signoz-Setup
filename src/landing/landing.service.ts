@@ -366,6 +366,8 @@ export class LandingService {
     });
     return {
       isEnabled: settings ? settings.status : false,
+      noOfPages: settings ? settings.noOfPages : 1,
+      templateConfig: settings ? settings.templateConfig : {},
     };
   }
 
@@ -382,8 +384,8 @@ export class LandingService {
     if (settings) {
       settings.status = status;
       settings.updatedBy = userId;
-      settings.templateConfig = body.templateConfig;
-      settings.noOfPages = body.noOfPages;
+      settings.templateConfig = body?.templateConfig || {};
+      settings.noOfPages = body?.noOfPages || 1;
     } else {
       settings = this.lpSettingsRepository.create({
         brandId: brand.id,

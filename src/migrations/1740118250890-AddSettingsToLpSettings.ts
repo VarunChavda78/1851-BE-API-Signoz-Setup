@@ -22,7 +22,7 @@ export class AddSettingsToLpSettings1740118250890
         name: 'templateConfig',
         type: 'json',
         isNullable: false,
-        default: '{}',
+        default: "'{}'",
       }),
     );
   }
