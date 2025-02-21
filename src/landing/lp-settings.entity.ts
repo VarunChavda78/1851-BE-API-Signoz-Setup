@@ -11,6 +11,12 @@ export class LpSettings {
   @Column()
   status: boolean;
 
+  @Column({ type: 'int', default: 1, nullable: false })
+  noOfPages: number;
+
+  @Column({ type: 'json', default: {}, nullable: false })
+  templateConfig: Record<string, any>;
+
   @CreateDateColumn()
   createdAt: Date;
 

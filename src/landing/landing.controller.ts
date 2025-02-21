@@ -206,7 +206,7 @@ export class LandingController {
   @HttpCode(HttpStatus.OK)
   async updateLandingPageStatus(
     @Param('slug') slug: string,
-    @Body() body: { status: boolean },
+    @Body() body: { status: boolean; templateConfig?: any; noOfPages?: number },
     @Req() req,
   ) {
     try {
@@ -215,6 +215,7 @@ export class LandingController {
         slug,
         body.status,
         userId,
+        body
       );
       return {
         status: true,
@@ -296,14 +297,10 @@ export class LandingController {
 
   @Protected()
   @Post('published/:lpId')
-  async publishContent(
-    @Param('lpId') lpId: number,
-  ) {
+  async publishContent(@Param('lpId') lpId: number) {
     try {
-      const data = await this.landingService.publishedContent(
-        lpId,
-      );
-  
+      const data = await this.landingService.publishedContent(lpId);
+
       return {
         status: true,
         message: data?.message,
@@ -312,14 +309,13 @@ export class LandingController {
       return { status: false, message: err?.message };
     }
   }
-  
 
   @Get(':slug/:lpId/:sectionSlug')
   async findSection(
     @Param('slug') slug: string,
     @Param('lpId') lpId: number,
     @Param('sectionSlug') sectionSlug: string,
-    @Query('isUpdated') isUpdated:string
+    @Query('isUpdated') isUpdated: string,
   ) {
     try {
       const brand = await this.usersService.getBrandIdBySlug(slug);
@@ -327,27 +323,27 @@ export class LandingController {
         throw new Error(`Brand not found for slug: ${slug}`);
       }
 
-      const isUpdatedcontent= isUpdated === 'true';
+      const isUpdatedcontent = isUpdated === 'true';
       const page = await this.landingService.findSection(lpId, sectionSlug);
       if (!page) {
         throw new Error(
           `Content not found for slug ${slug} and section slug ${sectionSlug}.`,
         );
       }
-      
-      const content = isUpdatedcontent 
-      ? (Object.keys(page?.publishedContent || {}).length > 0 ? page?.publishedContent : '') 
-      : page?.content;
+
+      const content = isUpdatedcontent
+        ? Object.keys(page?.publishedContent || {}).length > 0
+          ? page?.publishedContent
+          : ''
+        : page?.content;
       return {
         status: true,
         content: content || '',
       };
-      
     } catch (err) {
       return { status: false, message: err?.message, content: '' };
     }
   }
-
 
   @Post('pdf')
   async createPdf(
@@ -408,7 +404,11 @@ export class LandingController {
 
   @Protected()
   @Delete('leads/:slug/:uid')
-  async deleteLpLead(@Param('slug') slug: string, @Param('uid') uid: string, @Req() req) {
+  async deleteLpLead(
+    @Param('slug') slug: string,
+    @Param('uid') uid: string,
+    @Req() req,
+  ) {
     try {
       if (!slug || !uid) {
         throw new BadRequestException('Slug and uid are required');
@@ -489,13 +489,19 @@ export class LandingController {
       if (!brand) {
         throw new BadRequestException(`Brand not found for slug: ${slug}`);
       }
-      const response = await this.landingService.getInquiryEmails(lpId, brand.id);
+      const response = await this.landingService.getInquiryEmails(
+        lpId,
+        brand.id,
+      );
       return {
         status: true,
         data: response || {},
       };
     } catch (error) {
-      throw new HttpException(error?.message || 'Failed to get emails', error?.status || 500);
+      throw new HttpException(
+        error?.message || 'Failed to get emails',
+        error?.status || 500,
+      );
     }
   }
 
@@ -530,7 +536,10 @@ export class LandingController {
         ...response,
       };
     } catch (error) {
-      throw new HttpException(error?.message || 'Failed to update emails', error?.status || 500);
+      throw new HttpException(
+        error?.message || 'Failed to update emails',
+        error?.status || 500,
+      );
     }
   }
 
@@ -550,8 +559,11 @@ export class LandingController {
         data,
       };
     } catch (error) {
-      throw new HttpException(error?.message || 'Failed to get form', error?.status || 500);
-    }    
+      throw new HttpException(
+        error?.message || 'Failed to get form',
+        error?.status || 500,
+      );
+    }
   }
 
   @Protected()
@@ -560,7 +572,7 @@ export class LandingController {
     @Query('slug') slug: string,
     @Query('lpId') lpId: number,
     @Body() lpCrmFormDto: { content: string },
-    @Req() req
+    @Req() req,
   ) {
     try {
       if (!slug || !lpId) {
@@ -585,7 +597,10 @@ export class LandingController {
         data,
       };
     } catch (error) {
-      throw new HttpException(error?.message || 'Failed to update form', error?.status || 500);
+      throw new HttpException(
+        error?.message || 'Failed to update form',
+        error?.status || 500,
+      );
     }
   }
 }
