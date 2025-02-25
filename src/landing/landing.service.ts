@@ -600,17 +600,20 @@ export class LandingService {
 
       if (filterDto && filterDto.q) {
         query = query.andWhere((qb) => {
-          const subQuery = qb
-            .subQuery()
-            .select('s.uid')
-            .from(LpLeads, 's')
-            .where('s.brandId = :brandId', { brandId })
-            .andWhere('LOWER(s.value) LIKE LOWER(:search)', {
-              search: `%${filterDto.q}%`,
-            })
-            .getQuery();
-          return 'lead.uid IN ' + subQuery;
-        });
+          const searchTerms = filterDto.q.split(' ').filter(term => term.length > 0);
+          const subQuery = qb.subQuery()
+              .select('s.uid')
+              .from(LpLeads, 's')
+              .where('s.brandId = :brandId', { brandId });
+  
+          searchTerms.forEach((term, index) => {
+              subQuery.andWhere(`LOWER(s.value) LIKE LOWER(:search${index})`, {
+                  [`search${index}`]: `%${term}%`
+              });
+          });
+  
+          return 'lead.uid IN ' + subQuery.getQuery();
+      });
       }
 
       const totalQuery = this.lpLeadsRepository
