@@ -220,4 +220,7 @@ export class Registration {
 
   @Column({ type: 'text', nullable: true })
   disclaimer?: string;
+
+  @Column({ type: 'bool' })
+  isLandingBrand?: boolean;
 }

@@ -603,4 +603,29 @@ export class LandingController {
       );
     }
   }
+
+  @Get('check')
+  async checkLandingBrand(
+    @Query('slug') slug: string
+  ){
+    try {
+      if(!slug){
+        throw new BadRequestException('Slug and is required');
+      }
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new NotFoundException(`Brand not found for slug: ${slug}`);
+      }
+      const data = await this.landingService.checkLandingBrand(brand.id);
+      return {
+        status: true,
+        data
+      }
+    } catch (error) {
+      throw new HttpException(
+        error?.message || 'Failed to update form',
+        error?.status || 500,
+      );
+    }
+  }
 }

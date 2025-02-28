@@ -874,4 +874,13 @@ export class LandingService {
 
     return await this.lpCrmFormRepository.save(newForm);
   }
+
+  async checkLandingBrand(brandId: number){
+    try {
+      const data = await this.usersService.checkLandingBrand(brandId)
+      return data
+    } catch (error) {
+      throw error
+    }
+  }
 }
