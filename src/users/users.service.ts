@@ -742,4 +742,7 @@ export class UsersService {
       throw error;
     }
   }
+  async checkLandingBrand(brandId){
+    return this.usersRepository.findOne({ where: { id: brandId }, select: ['isLandingBrand'] });
+  }
 }
