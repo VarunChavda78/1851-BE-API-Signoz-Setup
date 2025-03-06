@@ -24,7 +24,7 @@ COPY --from=builder --chown=node:node /app/dist ./dist
 COPY --from=builder --chown=node:node /app/package*.json ./
 COPY --from=builder --chown=node:node /app/.env* ./.env
 COPY --from=builder --chown=node:node /app/*.* ./
-COPY --from=builder --chown=node:node /app/src/migrations ./src/
+COPY --from=builder --chown=node:node /app/src/migrations ./src/migrations/
 
 
 USER node
