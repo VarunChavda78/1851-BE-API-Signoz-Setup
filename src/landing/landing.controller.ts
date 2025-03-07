@@ -12,7 +12,6 @@ import {
   BadRequestException,
   Req,
   NotFoundException,
-  Patch,
 } from '@nestjs/common';
 import { LandingService } from './landing.service';
 import { UsersService } from 'src/users/users.service';
@@ -647,7 +646,7 @@ export class LandingController {
   }
 
   @Protected()
-  @Patch(':slug/promote')
+  @Post(':slug/promote')
   @HttpCode(HttpStatus.OK)
   async updateLandingBrandStatus(
     @Param('slug') slug: string,
