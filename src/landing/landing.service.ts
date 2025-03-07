@@ -883,4 +883,29 @@ export class LandingService {
       throw error
     }
   }
+  async getLandingBrandStatus(slug: string) {
+    const brand = await this.usersService.getBrandIdBySlug(slug);
+    if (!brand) {
+      throw new Error(`Brand not found for slug: ${slug}`);
+    }
+
+    const settings = await this.usersService.checkLandingBrand(brand.id);
+    return {
+      isEnabled: settings ? settings.isLandingBrand : false,
+    };
+  }
+
+  async updateLandingBrandStatus(slug: string, status: boolean) {
+    const brand = await this.usersService.getBrandIdBySlug(slug);
+    if (!brand) {
+      throw new Error(`Brand not found for slug: ${slug}`);
+    }
+
+    let settings = await this.usersService.updateLandingBrandStatus(brand.id, status);
+    return {
+      message: status
+        ? 'Landing Brand enabled successfully'
+        : 'Landing Brand promoted successfully',
+    };
+  }
 }

@@ -628,4 +628,48 @@ export class LandingController {
       );
     }
   }
+  @Get(':slug/promote')
+  @HttpCode(HttpStatus.OK)
+  async getLandingBrandStatus(@Param('slug') slug: string) {
+    try {
+      const data = await this.landingService.getLandingBrandStatus(slug);
+      return {
+        status: true,
+        data,
+      };
+    } catch (error) {
+      return {
+        status: false,
+        message: error.message,
+      };
+    }
+  }
+
+  @Protected()
+  @Post(':slug/promote')
+  @HttpCode(HttpStatus.OK)
+  async updateLandingBrandStatus(
+    @Param('slug') slug: string,
+    @Body() body: { status: boolean; },
+    @Req() req,
+  ) {
+    try {
+      if(!this.authService.validateAdmin(req.user)){
+        throw new BadRequestException('Unauthorized');
+      }
+      const data = await this.landingService.updateLandingBrandStatus(
+        slug,
+        body.status
+      );
+      return {
+        status: true,
+        data,
+      };
+    } catch (error) {
+      return {
+        status: false,
+        message: error.message,
+      };
+    }
+  }
 }

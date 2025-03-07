@@ -745,4 +745,19 @@ export class UsersService {
   async checkLandingBrand(brandId){
     return this.usersRepository.findOne({ where: { id: brandId }, select: ['isLandingBrand'] });
   }
+  async updateLandingBrandStatus(brandId, status){
+    try {
+      const brand = await this.usersRepository.findOne({ where: { id: brandId } });
+      brand.isLandingBrand = status;
+      await this.usersRepository.save(brand);
+      return { message: 'Landing brand status updated successfully'};
+    } catch (error) {
+      this.logger.error('Error updating landing brand status', error);
+      this.rollbarLogger.error(
+        `${this.constructor.name}.${this.updateLandingBrandStatus.name} - ${error.message}`,
+        error,
+      );
+      throw error;
+    }
+  }
 }

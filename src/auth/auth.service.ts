@@ -17,4 +17,10 @@ export class AuthService {
     }
     return false;
   }
+  validateAdmin(user: any) {
+    if (user?.type && (user?.type === 'admin' || user?.type === 'superadmin' || user?.type === UserType.ADMIN)) {
+      return true;
+    }
+    return false;
+  }
 }
