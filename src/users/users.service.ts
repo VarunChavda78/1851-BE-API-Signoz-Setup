@@ -750,6 +750,7 @@ export class UsersService {
       const brand = await this.usersRepository.findOne({ where: { id: brandId } });
       brand.isLandingBrand = status;
       await this.usersRepository.save(brand);
+      return { message: 'Landing brand status updated successfully'};
     } catch (error) {
       this.logger.error('Error updating landing brand status', error);
       this.rollbarLogger.error(
