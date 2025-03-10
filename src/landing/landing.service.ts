@@ -309,6 +309,10 @@ export class LandingService {
   }
 
   async publishStatus(slug: string) {
+    const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
+      }
     const data = await this.lpPageRepository.find({
       where: { brandSlug: slug, status: PageStatus.PUBLISH },
     });
@@ -323,10 +327,12 @@ export class LandingService {
           name: res[0]?.name,
           templateId: res[0]?.templateId,
         },
+        approved: brand.status === 'approve'
       };
     return {
       publishStatus: false,
       page: null,
+      approved: brand.status === 'approve'
     };
   }
   async createPdf(slug: string, brandId: number, pdfDto: any): Promise<any> {
