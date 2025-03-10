@@ -118,10 +118,6 @@ export class LandingController {
   @Get('publish-status/:slug')
   async publishStatus(@Param('slug') slug: string) {
     try {
-      const brand = await this.usersService.getBrandIdBySlug(slug);
-      if (!brand) {
-        throw new Error(`Brand not found for slug: ${slug}`);
-      }
       const publishData = await this.landingService.publishStatus(slug);
       return {
         status: true,
