@@ -121,15 +121,23 @@ export class LandingService {
   }
   async createPage(
     slug: string,
-    createPageDto: { name: string; templateId: number },
+    createPageDto: { name: string; templateId: number, nameSlug: string },
     brandId: number,
     userId: number,
   ) {
     const timestamp = new Date();
-
+    // If no nameSlug is provided, generate one from the name
+    if (!createPageDto.nameSlug) {
+      createPageDto.nameSlug = createPageDto.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .replace(/-{2,}/g, '-');
+    }
     const newPage = this.lpPageRepository.create({
       brandId,
       name: createPageDto.name,
+      nameSlug: createPageDto.nameSlug,
       brandSlug: slug,
       templateId: createPageDto.templateId,
       status: PageStatus.DRAFT,
@@ -913,5 +921,30 @@ export class LandingService {
         ? 'Landing Brand enabled successfully'
         : 'Landing Brand promoted successfully',
     };
+  }
+  async getLandingPageIdAndBrandSlugBasedOnNameSlug(nameSlug: string) {
+    const page = await this.lpPageRepository.findOne({
+      where: { nameSlug },
+    });
+
+    if (!page) {
+      throw new NotFoundException('Page not found');
+    }
+
+    return {
+      lpId: page.id,
+      brandSlug: page.brandSlug,
+    };
+  }
+  async checkUniqueNameSlug(nameSlug: string) {
+    const page = await this.lpPageRepository.findOne({
+      where: { nameSlug },
+    });
+
+    if (!page) {
+      return true;
+    } else {
+      return false;
+    }
   }
 }
