@@ -119,6 +119,14 @@ export class LandingService {
           : page.domainType == DomainType.CUSTOM_DOMAIN
             ? `https://${page.domain}`
             : '-',
+      url1:
+        page.domainType == DomainType.SUBDOMAIN
+          ? `https://${page.nameSlug}.${this.config
+              .getFEUrl()
+              ?.replace('https://', '')}`
+          : page.domainType == DomainType.CUSTOM_DOMAIN
+            ? `https://${page.domain}`
+            : '-',
     };
   }
   async createPage(
