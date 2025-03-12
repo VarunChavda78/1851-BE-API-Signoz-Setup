@@ -951,6 +951,7 @@ export class LandingService {
     slug: string,
   ) {
     try {
+
       const data = await this.lpPageRepository.find({
         where: {
           status: currentStatus,
@@ -959,24 +960,12 @@ export class LandingService {
           deletedAt: IsNull(),
         },
       });
+      let baseUrl = `https://${slug}.${this.config.getFEUrl()?.replace('https://', '')}`;
       let url = [
-        `https://${slug}.${this.config
-          .getFEUrl()?.replace('https://', '')}`,
-        `https://${slug}.${this.config
-          .getFEUrl()?.replace(
-          'https://',
-          '',
-        )}/services`,
-        `https://${slug}.${this.config
-          .getFEUrl()?.replace(
-          'https://',
-          '',
-        )}/what-is-franchising`,
-        `https://${slug}.${this.config
-          .getFEUrl()?.replace(
-          'https://',
-          '',
-        )}/meet-the-team`,
+        `${baseUrl}`,
+        `${baseUrl}/services`,
+        `${baseUrl}/what-is-franchising`,
+        `${baseUrl}/meet-the-team`,
       ];
 
       for (let i = 0; i < data.length; i++) {
@@ -986,26 +975,21 @@ export class LandingService {
             (data[i] as any).urls = [...url];
           } else {
             (data[i] as any).urls = [
-              `https://${slug}.${this.config
-                .getFEUrl()?.replace('https://', '')}`,
-              `https://${slug}.${this.config
-                .getFEUrl()?.replace('https://', '')}${
+              `${baseUrl}`,
+              `${baseUrl}${
                 dataUrl.content[1].url
               }`,
-              `https://${slug}.${this.config
-                .getFEUrl()?.replace('https://', '')}${
+              `${baseUrl}${
                 dataUrl.content[2].url
               }`,
-              `https://${slug}.${this.config
-                .getFEUrl()?.replace('https://', '')}${
+              `${baseUrl}${
                 dataUrl.content[3].url
               }`,
             ];
           }
         } else {
           (data[i] as any).urls = [
-            `https://${slug}.${this.config
-              .getFEUrl()?.replace('https://', '')}`,
+            `${baseUrl}`,
           ];
         }
       }
@@ -1017,6 +1001,7 @@ export class LandingService {
   }
   async getSiteMapXml(data: any, slug: string) {
     try {
+      let baseUrl = `https://${slug}.${this.config.getFEUrl()?.replace('https://', '')}`;
       let urlContent = '<?xml version="1.0" encoding="UTF-8"?>';
       urlContent +=
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
@@ -1028,7 +1013,7 @@ export class LandingService {
 <lastmod>${entry.updatedAt}</lastmod>
 <priority>${
             url ===
-            `https://${slug}.${process.env.FE_URL?.replace('https://', '')}`
+            `${baseUrl}`
               ? 1
               : 0.9
           }</priority>
