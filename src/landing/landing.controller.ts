@@ -122,9 +122,9 @@ export class LandingController {
   }
 
   @Get('publish-status/:slug')
-  async publishStatus(@Param('slug') slug: string) {
+  async publishStatus(@Param('slug') slug: string, @Query('lpId') lpId?: number) {
     try {
-      const publishData = await this.landingService.publishStatus(slug);
+      const publishData = await this.landingService.publishStatus(slug, lpId);
       return {
         status: true,
         data: publishData,
