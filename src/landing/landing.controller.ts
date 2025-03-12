@@ -12,7 +12,9 @@ import {
   BadRequestException,
   Req,
   NotFoundException,
+  Res,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { LandingService } from './landing.service';
 import { UsersService } from 'src/users/users.service';
 import { PageOptionsDto } from './dtos/pageOptionsDto';
@@ -22,6 +24,8 @@ import { CreateLeadDto } from './dtos/createLeadDto';
 import { LeadsFilterDto } from './dtos/leadsFilterDto';
 import { Protected } from 'src/auth/auth.decorator';
 import { UpdateLpInquiryDto } from './dtos/lpInquiryDto';
+import { DomainType } from 'src/shared/constants/constants';
+import { PageStatus } from './landing.constant';
 
 @Controller({
   version: '1',
@@ -35,6 +39,25 @@ export class LandingController {
     private readonly authService: AuthService,
   ) {}
 
+  @Get(':slug/sitemap.xml')
+  async sitemapXml(
+    @Param('slug') slug: string,
+    @Res() res: Response,
+  ): Promise<void> {
+    try {
+      const finaldata =
+        await this.landingService.getTemplateSubDomainPublishedBrand(
+          PageStatus.PUBLISH,
+          DomainType.SUBDOMAIN,
+          slug,
+        );
+      const content = await this.landingService.getSiteMapXml(finaldata,slug);
+      res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+      res.status(200).send(content);
+    } catch (err) {
+      res.status(500).send('Failed to generate sitemap XML');
+    }
+  }
   @Get('mapped-domain')
   async getMappedDomains() {
     try {
@@ -217,7 +240,7 @@ export class LandingController {
         slug,
         body.status,
         userId,
-        body
+        body,
       );
       return {
         status: true,
@@ -607,11 +630,9 @@ export class LandingController {
   }
 
   @Get('check')
-  async checkLandingBrand(
-    @Query('slug') slug: string
-  ){
+  async checkLandingBrand(@Query('slug') slug: string) {
     try {
-      if(!slug){
+      if (!slug) {
         throw new BadRequestException('Slug and is required');
       }
       const brand = await this.usersService.getBrandIdBySlug(slug);
@@ -621,8 +642,8 @@ export class LandingController {
       const data = await this.landingService.checkLandingBrand(brand.id);
       return {
         status: true,
-        data
-      }
+        data,
+      };
     } catch (error) {
       throw new HttpException(
         error?.message || 'Failed to update form',
@@ -652,16 +673,16 @@ export class LandingController {
   @HttpCode(HttpStatus.OK)
   async updateLandingBrandStatus(
     @Param('slug') slug: string,
-    @Body() body: { status: boolean; },
+    @Body() body: { status: boolean },
     @Req() req,
   ) {
     try {
-      if(!this.authService.validateAdmin(req.user)){
+      if (!this.authService.validateAdmin(req.user)) {
         throw new BadRequestException('Unauthorized');
       }
       const data = await this.landingService.updateLandingBrandStatus(
         slug,
-        body.status
+        body.status,
       );
       return {
         status: true,

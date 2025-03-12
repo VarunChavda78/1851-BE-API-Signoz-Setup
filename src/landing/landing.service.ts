@@ -253,38 +253,32 @@ export class LandingService {
     }
   }
 
-  async publishedContent(
-    lpId: number,
-  ) {
+  async publishedContent(lpId: number) {
     try {
-  
       const existingPage = await this.lpCustomisationRepository.find({
-        where: { landingPageId: lpId},
+        where: { landingPageId: lpId },
       });
-  
+
       if (!existingPage) {
         throw new Error(`Page with ID ${lpId} not found`);
       }
 
-        const updatedPages = existingPage.map((page) => {
-          page.publishedContent = page.content;
-          page.updatedAt = new Date();
-          return page;
-        });  
-        
-        await this.lpCustomisationRepository.save(updatedPages);
-  
-        return { 
-          message: `updated successfully`,
+      const updatedPages = existingPage.map((page) => {
+        page.publishedContent = page.content;
+        page.updatedAt = new Date();
+        return page;
+      });
+
+      await this.lpCustomisationRepository.save(updatedPages);
+
+      return {
+        message: `updated successfully`,
       };
-  
     } catch (error) {
       console.error(error);
       throw error;
     }
   }
-  
-
 
   async UpdatePublishData(
     lpId: number,
@@ -336,9 +330,9 @@ export class LandingService {
 
   async publishStatus(slug: string, lpId?: number) {
     const brand = await this.usersService.getBrandIdBySlug(slug);
-      if (!brand) {
-        throw new Error(`Brand not found for slug: ${slug}`);
-      }
+    if (!brand) {
+      throw new Error(`Brand not found for slug: ${slug}`);
+    }
     const data = await this.lpPageRepository.find({
       where: { brandSlug: slug, status: PageStatus.PUBLISH, id: lpId || Not(IsNull()) },
     });
@@ -353,12 +347,12 @@ export class LandingService {
           name: res[0]?.name,
           templateId: res[0]?.templateId,
         },
-        approved: brand.status === 'approve'
+        approved: brand.status === 'approve',
       };
     return {
       publishStatus: false,
       page: null,
-      approved: brand.status === 'approve'
+      approved: brand.status === 'approve',
     };
   }
   async createPdf(slug: string, brandId: number, pdfDto: any): Promise<any> {
@@ -403,7 +397,12 @@ export class LandingService {
     };
   }
 
-  async updateLandingPageStatus(slug: string, status: boolean, userId: number, body: any) {
+  async updateLandingPageStatus(
+    slug: string,
+    status: boolean,
+    userId: number,
+    body: any,
+  ) {
     const brand = await this.usersService.getBrandIdBySlug(slug);
     if (!brand) {
       throw new Error(`Brand not found for slug: ${slug}`);
@@ -425,7 +424,7 @@ export class LandingService {
         createdBy: userId,
         updatedBy: userId,
         templateConfig: body.templateConfig,
-        noOfPages: body.noOfPages
+        noOfPages: body.noOfPages,
       });
     }
 
@@ -632,20 +631,23 @@ export class LandingService {
 
       if (filterDto && filterDto.q) {
         query = query.andWhere((qb) => {
-          const searchTerms = filterDto.q.split(' ').filter(term => term.length > 0);
-          const subQuery = qb.subQuery()
-              .select('s.uid')
-              .from(LpLeads, 's')
-              .where('s.brandId = :brandId', { brandId });
-  
+          const searchTerms = filterDto.q
+            .split(' ')
+            .filter((term) => term.length > 0);
+          const subQuery = qb
+            .subQuery()
+            .select('s.uid')
+            .from(LpLeads, 's')
+            .where('s.brandId = :brandId', { brandId });
+
           searchTerms.forEach((term, index) => {
-              subQuery.andWhere(`LOWER(s.value) LIKE LOWER(:search${index})`, {
-                  [`search${index}`]: `%${term}%`
-              });
+            subQuery.andWhere(`LOWER(s.value) LIKE LOWER(:search${index})`, {
+              [`search${index}`]: `%${term}%`,
+            });
           });
-  
+
           return 'lead.uid IN ' + subQuery.getQuery();
-      });
+        });
       }
 
       const totalQuery = this.lpLeadsRepository
@@ -907,12 +909,12 @@ export class LandingService {
     return await this.lpCrmFormRepository.save(newForm);
   }
 
-  async checkLandingBrand(brandId: number){
+  async checkLandingBrand(brandId: number) {
     try {
-      const data = await this.usersService.checkLandingBrand(brandId)
-      return data
+      const data = await this.usersService.checkLandingBrand(brandId);
+      return data;
     } catch (error) {
-      throw error
+      throw error;
     }
   }
   async getLandingBrandStatus(slug: string) {
@@ -933,12 +935,103 @@ export class LandingService {
       throw new Error(`Brand not found for slug: ${slug}`);
     }
 
-    let settings = await this.usersService.updateLandingBrandStatus(brand.id, status);
+    let settings = await this.usersService.updateLandingBrandStatus(
+      brand.id,
+      status,
+    );
     return {
       message: status
         ? 'Landing Brand enabled successfully'
         : 'Landing Brand promoted successfully',
     };
+  }
+  async getTemplateSubDomainPublishedBrand(
+    currentStatus: number,
+    domain: number,
+    slug: string,
+  ) {
+    try {
+      const data = await this.lpPageRepository.find({
+        where: {
+          status: currentStatus,
+          domainType: domain,
+          brandSlug: slug,
+          deletedAt: IsNull(),
+        },
+      });
+      let url = [
+        `https://${slug}.${process.env.FE_URL?.replace('https://', '')}`,
+        `https://${slug}.${process.env.FE_URL?.replace(
+          'https://',
+          '',
+        )}/services`,
+        `https://${slug}.${process.env.FE_URL?.replace(
+          'https://',
+          '',
+        )}/what-is-franchising`,
+        `https://${slug}.${process.env.FE_URL?.replace(
+          'https://',
+          '',
+        )}/meet-the-team`,
+      ];
+
+      for (let i = 0; i < data.length; i++) {
+        if (data[i].templateId == 1) {
+          const dataUrl = await this.findSection(data[i].id, 't1-pageTitle');
+          if (!dataUrl) {
+            (data[i] as any).urls = [...url];
+          } else {
+            (data[i] as any).urls = [
+              `https://${slug}.${process.env.FE_URL?.replace('https://', '')}`,
+              `https://${slug}.${process.env.FE_URL?.replace('https://', '')}${
+                dataUrl.content[1].url
+              }`,
+              `https://${slug}.${process.env.FE_URL.replace('https://', '')}${
+                dataUrl.content[2].url
+              }`,
+              `https://${slug}.${process.env.FE_URL?.replace('https://', '')}${
+                dataUrl.content[3].url
+              }`,
+            ];
+          }
+        } else {
+          (data[i] as any).urls = [
+            `https://${slug}.${process.env.FE_URL?.replace('https://', '')}`,
+          ];
+        }
+      }
+      return data;
+    } catch (error) {
+      console.log('error', error);
+      throw error;
+    }
+  }
+  async getSiteMapXml(data: any, slug: string) {
+    try {
+      let urlContent = '<?xml version="1.0" encoding="UTF-8"?>';
+      urlContent +=
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+      data.forEach((entry) => {
+        entry.urls.forEach((url: any) => {
+          urlContent += `
+    <url>
+<loc>${url}</loc>
+<lastmod>${entry.updatedAt}</lastmod>
+<priority>${
+            url ===
+            `https://${slug}.${process.env.FE_URL?.replace('https://', '')}`
+              ? 1
+              : 0.9
+          }</priority>
+    </url>`;
+        });
+      });
+      urlContent += '</urlset>';
+      return urlContent;
+    } catch (error) {
+      console.log('error', error);
+      throw error;
+    }
   }
   async getLandingPageIdAndBrandSlugBasedOnNameSlug(nameSlug: string) {
     const page = await this.lpPageRepository.findOne({
