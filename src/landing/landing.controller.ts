@@ -13,6 +13,7 @@ import {
   Req,
   NotFoundException,
   Res,
+  Patch,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { LandingService } from './landing.service';
@@ -209,6 +210,43 @@ export class LandingController {
         status: false,
         message: error.message,
       };
+    }
+  }
+  @Protected()
+  @Patch(':slug/edit')
+  @HttpCode(HttpStatus.OK) // Sets the response code to 200
+  async editPage(
+    @Param('slug') slug: string,
+    @Body() editPageDto: { name: string; templateId: number, nameSlug?: string, lpId: number },
+    @Req() req,
+  ) {
+    try {
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
+      }
+      if (!this.authService.validateUser(brand.id, req.user)) {
+        throw new BadRequestException(
+          `Unauthorized to access resources for ${slug}`,
+        );
+      }
+      const newPage = await this.landingService.editPage(
+        editPageDto,
+        brand.id,
+        req.user.id,
+      );
+      if(!newPage){
+        throw new Error("Error updating page");
+      }
+      return {
+        status: true,
+        message: "Page updated successfully",
+      };
+    } catch (error) {
+      throw new HttpException(
+        error?.message || 'Failed to update page',
+        error?.status || 500,
+      );
     }
   }
 
