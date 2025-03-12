@@ -293,6 +293,17 @@ export class LandingService {
     slug: string,
   ) {
     try {
+      const totalPublishedPages = await this.lpPageRepository.count({
+        where: { brandId, status: PageStatus.PUBLISH, deletedAt: IsNull() },
+      });
+      const totalPagesAllowed = await this.lpSettingsRepository.findOne({
+        where: { brandId },
+        select: ['noOfPages'],
+      });
+      if (publishDto.publishStatus && totalPublishedPages >= totalPagesAllowed?.noOfPages) {
+        throw new BadRequestException('Maximum number of published pages reached');
+      }
+
       const existingPublish = await this.lpPageRepository.findOne({
         where: { id: lpId, brandId },
       });
