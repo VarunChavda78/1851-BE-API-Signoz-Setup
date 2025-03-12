@@ -39,9 +39,9 @@ export class LandingController {
     private readonly authService: AuthService,
   ) {}
 
-  @Get(':slug/sitemap.xml')
+  @Get(':templateName/sitemap.xml')
   async sitemapXml(
-    @Param('slug') slug: string,
+    @Param('templateName') templateName: string,
     @Res() res: Response,
   ): Promise<void> {
     try {
@@ -49,9 +49,9 @@ export class LandingController {
         await this.landingService.getTemplateSubDomainPublishedBrand(
           PageStatus.PUBLISH,
           DomainType.SUBDOMAIN,
-          slug,
+          templateName,
         );
-      const content = await this.landingService.getSiteMapXml(finaldata,slug);
+      const content = await this.landingService.getSiteMapXml(finaldata,templateName);
       res.setHeader('Content-Type', 'application/xml; charset=utf-8');
       res.status(200).send(content);
     } catch (err) {

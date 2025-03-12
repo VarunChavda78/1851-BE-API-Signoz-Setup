@@ -948,7 +948,7 @@ export class LandingService {
   async getTemplateSubDomainPublishedBrand(
     currentStatus: number,
     domain: number,
-    slug: string,
+    templateName: string,
   ) {
     try {
 
@@ -956,11 +956,11 @@ export class LandingService {
         where: {
           status: currentStatus,
           domainType: domain,
-          brandSlug: slug,
+          name: templateName,
           deletedAt: IsNull(),
         },
       });
-      let baseUrl = `https://${slug}.${this.config.getFEUrl()?.replace('https://', '')}`;
+      let baseUrl = `https://${templateName}.${this.config.getFEUrl()?.replace('https://', '')}`;
       let url = [
         `${baseUrl}`,
         `${baseUrl}/services`,
@@ -999,9 +999,9 @@ export class LandingService {
       throw error;
     }
   }
-  async getSiteMapXml(data: any, slug: string) {
+  async getSiteMapXml(data: any, templateName: string) {
     try {
-      let baseUrl = `https://${slug}.${this.config.getFEUrl()?.replace('https://', '')}`;
+      let baseUrl = `https://${templateName}.${this.config.getFEUrl()?.replace('https://', '')}`;
       let urlContent = '<?xml version="1.0" encoding="UTF-8"?>';
       urlContent +=
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
