@@ -24,6 +24,8 @@ import { CreateLeadDto } from './dtos/createLeadDto';
 import { LeadsFilterDto } from './dtos/leadsFilterDto';
 import { Protected } from 'src/auth/auth.decorator';
 import { UpdateLpInquiryDto } from './dtos/lpInquiryDto';
+import { DomainType } from 'src/shared/constants/constants';
+import { PageStatus } from './landing.constant';
 
 @Controller({
   version: '1',
@@ -45,8 +47,8 @@ export class LandingController {
     try {
       const finaldata =
         await this.landingService.getTemplateSubDomainPublishedBrand(
-          2,
-          1,
+          PageStatus.PUBLISH,
+          DomainType.SUBDOMAIN,
           slug,
         );
       const content = await this.landingService.getSiteMapXml(finaldata,slug);
