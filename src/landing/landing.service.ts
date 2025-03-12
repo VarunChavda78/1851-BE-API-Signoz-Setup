@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { LpPageRepository } from './lp-page.repository';
 import { UsersService } from 'src/users/users.service';
 import { PageStatus, PageStatusName } from './landing.constant';
@@ -121,18 +121,25 @@ export class LandingService {
   }
   async createPage(
     slug: string,
-    createPageDto: { name: string; templateId: number, nameSlug: string },
+    createPageDto: { name: string; templateId: number, nameSlug?: string },
     brandId: number,
     userId: number,
   ) {
     const timestamp = new Date();
-    // If no nameSlug is provided, generate one from the name
-    if (!createPageDto.nameSlug) {
+    if (!createPageDto?.nameSlug) {
       createPageDto.nameSlug = createPageDto.name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '')
-        .replace(/-{2,}/g, '-');
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .replace(/-{2,}/g, '-');
+    }
+    // Check if page with nameSlug already exists
+    const existingPage = await this.lpPageRepository.findOne({
+      where: { nameSlug: createPageDto.nameSlug },
+    });
+
+    if (existingPage) {
+      throw new BadRequestException(`Page with nameSlug ${createPageDto.nameSlug} already exists`);
     }
     const newPage = this.lpPageRepository.create({
       brandId,

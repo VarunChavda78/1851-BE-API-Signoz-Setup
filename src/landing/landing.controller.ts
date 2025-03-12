@@ -149,7 +149,7 @@ export class LandingController {
   @HttpCode(HttpStatus.CREATED) // Sets the response code to 201
   async createPage(
     @Param('slug') slug: string,
-    @Body() createPageDto: { name: string; templateId: number, nameSlug: string },
+    @Body() createPageDto: { name: string; templateId: number, nameSlug?: string },
     @Req() req,
   ) {
     try {
