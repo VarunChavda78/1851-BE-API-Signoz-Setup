@@ -38,9 +38,15 @@ export class LandingController {
   @Get('mapped-domain')
   async getMappedDomains() {
     try {
-      const mappedDomains = await this.lpPageRepository.find({
-        where: { domainType: 2 },
-      });
+      // const mappedDomains = await this.lpPageRepository.find({
+      //   where: { domainType: 2 },
+      // });
+
+      const mappedDomains = await this.lpPageRepository
+      .createQueryBuilder('lpPage')
+      .where('lpPage.domainType = :domainType', { domainType: 2 })
+      .andWhere('lpPage.deletedAt IS NULL')
+      .getMany();
 
       const result: { [domain: string]: string } = {};
       mappedDomains.forEach((item) => {
