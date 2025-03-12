@@ -120,7 +120,10 @@ export class LandingController {
         data,
       };
     } catch (err) {
-      return { status: false, message: err?.message };
+      throw new HttpException(
+        err?.message || 'Failed to save publish data',
+        err?.status || 500,
+      );
     }
   }
 
