@@ -342,7 +342,6 @@ export class LandingService {
     const data = await this.lpPageRepository.find({
       where: { brandSlug: slug, status: PageStatus.PUBLISH, id: lpId || Not(IsNull()) },
     });
-    console.log('datwa', data);
     const res = data?.filter((item) => {
       return !item.deletedAt;
     });
