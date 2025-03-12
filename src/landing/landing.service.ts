@@ -25,6 +25,7 @@ import { VerifyCaptchaService } from 'src/shared/services/verify-captcha.service
 import { LpInquiryRepository } from './lp-inquiry.repository';
 import { UpdateLpInquiryDto } from './dtos/lpInquiryDto';
 import { LpCrmFormRepository } from './lp-form.repository';
+import { Not, IsNull } from 'typeorm';
 
 @Injectable()
 export class LandingService {
@@ -333,14 +334,15 @@ export class LandingService {
     }
   }
 
-  async publishStatus(slug: string) {
+  async publishStatus(slug: string, lpId?: number) {
     const brand = await this.usersService.getBrandIdBySlug(slug);
       if (!brand) {
         throw new Error(`Brand not found for slug: ${slug}`);
       }
     const data = await this.lpPageRepository.find({
-      where: { brandSlug: slug, status: PageStatus.PUBLISH },
+      where: { brandSlug: slug, status: PageStatus.PUBLISH, id: lpId || Not(IsNull()) },
     });
+    console.log('datwa', data);
     const res = data?.filter((item) => {
       return !item.deletedAt;
     });
