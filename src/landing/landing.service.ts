@@ -960,16 +960,20 @@ export class LandingService {
         },
       });
       let url = [
-        `https://${slug}.${process.env.FE_URL?.replace('https://', '')}`,
-        `https://${slug}.${process.env.FE_URL?.replace(
+        `https://${slug}.${this.config
+          .getFEUrl()?.replace('https://', '')}`,
+        `https://${slug}.${this.config
+          .getFEUrl()?.replace(
           'https://',
           '',
         )}/services`,
-        `https://${slug}.${process.env.FE_URL?.replace(
+        `https://${slug}.${this.config
+          .getFEUrl()?.replace(
           'https://',
           '',
         )}/what-is-franchising`,
-        `https://${slug}.${process.env.FE_URL?.replace(
+        `https://${slug}.${this.config
+          .getFEUrl()?.replace(
           'https://',
           '',
         )}/meet-the-team`,
@@ -982,21 +986,26 @@ export class LandingService {
             (data[i] as any).urls = [...url];
           } else {
             (data[i] as any).urls = [
-              `https://${slug}.${process.env.FE_URL?.replace('https://', '')}`,
-              `https://${slug}.${process.env.FE_URL?.replace('https://', '')}${
+              `https://${slug}.${this.config
+                .getFEUrl()?.replace('https://', '')}`,
+              `https://${slug}.${this.config
+                .getFEUrl()?.replace('https://', '')}${
                 dataUrl.content[1].url
               }`,
-              `https://${slug}.${process.env.FE_URL.replace('https://', '')}${
+              `https://${slug}.${this.config
+                .getFEUrl()?.replace('https://', '')}${
                 dataUrl.content[2].url
               }`,
-              `https://${slug}.${process.env.FE_URL?.replace('https://', '')}${
+              `https://${slug}.${this.config
+                .getFEUrl()?.replace('https://', '')}${
                 dataUrl.content[3].url
               }`,
             ];
           }
         } else {
           (data[i] as any).urls = [
-            `https://${slug}.${process.env.FE_URL?.replace('https://', '')}`,
+            `https://${slug}.${this.config
+              .getFEUrl()?.replace('https://', '')}`,
           ];
         }
       }
