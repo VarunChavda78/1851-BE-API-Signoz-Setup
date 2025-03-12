@@ -149,7 +149,7 @@ export class LandingController {
   @HttpCode(HttpStatus.CREATED) // Sets the response code to 201
   async createPage(
     @Param('slug') slug: string,
-    @Body() createPageDto: { name: string; templateId: number },
+    @Body() createPageDto: { name: string; templateId: number, nameSlug?: string },
     @Req() req,
   ) {
     try {
@@ -657,6 +657,40 @@ export class LandingController {
         slug,
         body.status
       );
+      return {
+        status: true,
+        data,
+      };
+    } catch (error) {
+      return {
+        status: false,
+        message: error.message,
+      };
+    }
+  }
+  @Get('info/:nameSlug')
+  async getLpInfo(@Param('nameSlug') nameSlug: string) {
+    try {
+      const { lpId, brandSlug } =
+        await this.landingService.getLandingPageIdAndBrandSlugBasedOnNameSlug(
+          nameSlug,
+        );
+      return {
+        status: true,
+        lpId,
+        brandSlug,
+      };
+    } catch (error) {
+      return {
+        status: false,
+        message: error.message,
+      };
+    }
+  }
+  @Get('page/check')
+  async checkUniqueNameSlug(@Query('nameSlug') nameSlug: string) {
+    try {
+      const data = await this.landingService.checkUniqueNameSlug(nameSlug);
       return {
         status: true,
         data,

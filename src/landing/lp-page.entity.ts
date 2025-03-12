@@ -19,8 +19,11 @@ export class LpPage {
   @Column()
   templateId: number;
 
-  @Column({ length: 255 })
+  @Column({ length: 255, unique: true })
   name: string;
+
+  @Column({ length: 255, unique: true })
+  nameSlug: string;
 
   @Column({ length: 255 })
   brandSlug: string;
