@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
-import { IsNull } from 'typeorm';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { LpPageRepository } from './lp-page.repository';
 import { UsersService } from 'src/users/users.service';
 import { PageStatus, PageStatusName } from './landing.constant';
@@ -30,6 +25,7 @@ import { VerifyCaptchaService } from 'src/shared/services/verify-captcha.service
 import { LpInquiryRepository } from './lp-inquiry.repository';
 import { UpdateLpInquiryDto } from './dtos/lpInquiryDto';
 import { LpCrmFormRepository } from './lp-form.repository';
+import { Not, IsNull } from 'typeorm';
 
 @Injectable()
 export class LandingService {
@@ -78,6 +74,7 @@ export class LandingService {
         'lp_page.domain',
         'lp_page.deletedAt',
         'lp_page.domainType',
+        'lp_page.nameSlug',
         'template.name AS template_name',
       ]);
     const itemCount = await queryBuilder.getCount();
@@ -107,6 +104,7 @@ export class LandingService {
       id: page.id,
       name: page.name,
       templateId: page.templateId,
+      nameSlug: page.nameSlug,
       templateType:
         page.templateId == 1
           ? 'Template 1'
@@ -122,19 +120,42 @@ export class LandingService {
           : page.domainType == DomainType.CUSTOM_DOMAIN
             ? `https://${page.domain}`
             : '-',
+      url1:
+        page.domainType == DomainType.SUBDOMAIN
+          ? `https://${page.nameSlug}.${this.config
+              .getFEUrl()
+              ?.replace('https://', '')}`
+          : page.domainType == DomainType.CUSTOM_DOMAIN
+            ? `https://${page.domain}`
+            : '-',
     };
   }
   async createPage(
     slug: string,
-    createPageDto: { name: string; templateId: number },
+    createPageDto: { name: string; templateId: number, nameSlug?: string },
     brandId: number,
     userId: number,
   ) {
     const timestamp = new Date();
+    if (!createPageDto?.nameSlug) {
+      createPageDto.nameSlug = createPageDto.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .replace(/-{2,}/g, '-');
+    }
+    // Check if page with nameSlug already exists
+    const existingPage = await this.lpPageRepository.findOne({
+      where: { nameSlug: createPageDto.nameSlug },
+    });
 
+    if (existingPage) {
+      throw new BadRequestException(`Page with nameSlug ${createPageDto.nameSlug} already exists`);
+    }
     const newPage = this.lpPageRepository.create({
       brandId,
       name: createPageDto.name,
+      nameSlug: createPageDto.nameSlug,
       brandSlug: slug,
       templateId: createPageDto.templateId,
       status: PageStatus.DRAFT,
@@ -307,13 +328,13 @@ export class LandingService {
     }
   }
 
-  async publishStatus(slug: string) {
+  async publishStatus(slug: string, lpId?: number) {
     const brand = await this.usersService.getBrandIdBySlug(slug);
     if (!brand) {
       throw new Error(`Brand not found for slug: ${slug}`);
     }
     const data = await this.lpPageRepository.find({
-      where: { brandSlug: slug, status: PageStatus.PUBLISH },
+      where: { brandSlug: slug, status: PageStatus.PUBLISH, id: lpId || Not(IsNull()) },
     });
     const res = data?.filter((item) => {
       return !item.deletedAt;
@@ -1010,6 +1031,31 @@ export class LandingService {
     } catch (error) {
       console.log('error', error);
       throw error;
+    }
+  }
+  async getLandingPageIdAndBrandSlugBasedOnNameSlug(nameSlug: string) {
+    const page = await this.lpPageRepository.findOne({
+      where: { nameSlug },
+    });
+
+    if (!page) {
+      throw new NotFoundException('Page not found');
+    }
+
+    return {
+      lpId: page.id,
+      brandSlug: page.brandSlug,
+    };
+  }
+  async checkUniqueNameSlug(nameSlug: string) {
+    const page = await this.lpPageRepository.findOne({
+      where: { nameSlug },
+    });
+
+    if (!page) {
+      return true;
+    } else {
+      return false;
     }
   }
 }
