@@ -73,6 +73,7 @@ export class LandingService {
         'lp_page.domain',
         'lp_page.deletedAt',
         'lp_page.domainType',
+        'lp_page.nameSlug',
         'template.name AS template_name',
       ]);
     const itemCount = await queryBuilder.getCount();
@@ -102,6 +103,7 @@ export class LandingService {
       id: page.id,
       name: page.name,
       templateId: page.templateId,
+      nameSlug: page.nameSlug,
       templateType:
         page.templateId == 1
           ? 'Template 1'
