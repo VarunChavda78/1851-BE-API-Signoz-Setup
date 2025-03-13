@@ -1031,7 +1031,7 @@ export class LandingService {
         where: {
           status: currentStatus,
           domainType: domain,
-          name: templateName,
+          nameSlug: templateName,
           deletedAt: IsNull(),
         },
       });
