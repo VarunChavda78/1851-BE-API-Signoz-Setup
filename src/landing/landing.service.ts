@@ -1094,4 +1094,49 @@ export class LandingService {
       return false;
     }
   }
+
+  async getLpGaCode(lpId: number, brandId: number) {
+    try {
+      const landingPage = await this.lpPageRepository.findOne({
+        where: {
+          id: lpId,
+          brandId,
+        },
+        select: ['id', 'gaCode'],
+      });
+  
+      if (!landingPage) {
+        throw new NotFoundException('Landing page not found');
+      }
+  
+      return { id: landingPage.id, gaCode: landingPage.gaCode };
+    } catch (error) {
+      throw error;
+    }
+  }
+  
+  async updateLpGaCode(lpId: number, brandId: number, gaCode: string, userId: number) {
+    try {
+      const landingPage = await this.lpPageRepository.findOne({
+        where: {
+          id: lpId,
+          brandId,
+        },
+      });
+  
+      if (!landingPage) {
+        throw new NotFoundException('Landing page not found');
+      }
+  
+      landingPage.gaCode = gaCode;
+      landingPage.updatedBy = userId;
+  
+      await this.lpPageRepository.save(landingPage);
+  
+      return { id: landingPage.id, gaCode: landingPage.gaCode };
+    } catch (error) {
+      throw error;
+    }
+  }
+  
 }
