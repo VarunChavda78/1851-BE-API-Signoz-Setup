@@ -13,6 +13,7 @@ import {
   Req,
   NotFoundException,
   Res,
+  Patch,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { LandingService } from './landing.service';
@@ -211,6 +212,43 @@ export class LandingController {
       };
     }
   }
+  @Protected()
+  @Patch(':slug/edit')
+  @HttpCode(HttpStatus.OK) // Sets the response code to 200
+  async editPage(
+    @Param('slug') slug: string,
+    @Body() editPageDto: { name: string; templateId: number, nameSlug?: string, lpId: number },
+    @Req() req,
+  ) {
+    try {
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
+      }
+      if (!this.authService.validateUser(brand.id, req.user)) {
+        throw new BadRequestException(
+          `Unauthorized to access resources for ${slug}`,
+        );
+      }
+      const newPage = await this.landingService.editPage(
+        editPageDto,
+        brand.id,
+        req.user.id,
+      );
+      if(!newPage){
+        throw new Error("Error updating page");
+      }
+      return {
+        status: true,
+        message: "Page updated successfully",
+      };
+    } catch (error) {
+      throw new HttpException(
+        error?.message || 'Failed to update page',
+        error?.status || 500,
+      );
+    }
+  }
 
   @Get(':slug/status')
   @HttpCode(HttpStatus.OK)
@@ -238,6 +276,9 @@ export class LandingController {
     @Req() req,
   ) {
     try {
+      if (!this.authService.validateAdmin(req.user)) {
+        throw new BadRequestException('Unauthorized to access resources');
+      }
       const userId = req.user.id; // Replace this with actual user ID from auth context
       const data = await this.landingService.updateLandingPageStatus(
         slug,
@@ -681,7 +722,7 @@ export class LandingController {
   ) {
     try {
       if (!this.authService.validateAdmin(req.user)) {
-        throw new BadRequestException('Unauthorized');
+        throw new BadRequestException('Unauthorized to access resources');
       }
       const data = await this.landingService.updateLandingBrandStatus(
         slug,

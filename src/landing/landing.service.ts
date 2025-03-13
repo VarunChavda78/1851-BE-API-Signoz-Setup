@@ -168,6 +168,37 @@ export class LandingService {
 
     return await this.lpPageRepository.save(newPage);
   }
+  async editPage(
+    editPageDto: { name: string; templateId: number, nameSlug?: string , lpId: number },
+    brandId: number,
+    userId: number,
+  ) {
+    const timestamp = new Date();
+    if (!editPageDto?.nameSlug) {
+      editPageDto.nameSlug = editPageDto.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .replace(/-{2,}/g, '-');
+    }
+    const page = await this.lpPageRepository.findOne({
+      where: { id: editPageDto.lpId, brandId: brandId },
+    });
+
+    if (!page) {
+      throw new NotFoundException(`Page not found with ID: ${editPageDto.lpId}`);
+    }
+    const isUnique = await this.checkUniqueNameSlug(editPageDto.nameSlug);
+    if (!isUnique) {
+      throw new BadRequestException(`Page with nameSlug ${editPageDto.nameSlug} already exists`);
+    }
+    page.name = editPageDto.name;
+    page.nameSlug = editPageDto.nameSlug;
+    page.updatedAt = timestamp;
+    page.updatedBy = userId;
+
+    return await this.lpPageRepository.save(page);
+  }
 
   async deletePage(brandId: number, lpId: number) {
     const page = await this.lpPageRepository.findOne({
