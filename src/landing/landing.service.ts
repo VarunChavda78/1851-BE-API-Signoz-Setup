@@ -31,7 +31,6 @@ import { LpInquiryRepository } from './lp-inquiry.repository';
 import { UpdateLpInquiryDto } from './dtos/lpInquiryDto';
 import { LpCrmFormRepository } from './lp-form.repository';
 import { Not, IsNull } from 'typeorm';
-
 @Injectable()
 export class LandingService {
   constructor(
@@ -1041,22 +1040,20 @@ export class LandingService {
   }
   async getTemplateSubDomainPublishedBrand(
     currentStatus: number,
-    domain: number,
     templateName: string,
   ) {
     try {
       const data = await this.lpPageRepository.find({
         where: {
           status: currentStatus,
-          domainType: domain,
           nameSlug: templateName,
           deletedAt: IsNull(),
         },
       });
-      let baseUrl = `https://${templateName}.${this.config
+      const baseUrl = `https://${templateName}.${this.config
         .getFEUrl()
         ?.replace('https://', '')}`;
-      let url = [
+      const url = [
         `${baseUrl}`,
         `${baseUrl}/services`,
         `${baseUrl}/what-is-franchising`,
@@ -1064,20 +1061,45 @@ export class LandingService {
       ];
 
       for (let i = 0; i < data.length; i++) {
-        if (data[i].templateId == 1) {
-          const dataUrl = await this.findSection(data[i].id, 't1-pageTitle');
-          if (!dataUrl) {
-            (data[i] as any).urls = [...url];
+        if (data[i].domainType == 1) {
+          if (data[i].templateId == 1) {
+            const dataUrl = await this.findSection(data[i].id, 't1-pageTitle');
+            if (!dataUrl) {
+              (data[i] as any).urls = [...url];
+            } else {
+              (data[i] as any).urls = [
+                `${baseUrl}`,
+                `${baseUrl}${dataUrl.content[1].url}`,
+                `${baseUrl}${dataUrl.content[2].url}`,
+                `${baseUrl}${dataUrl.content[3].url}`,
+              ];
+            }
           } else {
-            (data[i] as any).urls = [
-              `${baseUrl}`,
-              `${baseUrl}${dataUrl.content[1].url}`,
-              `${baseUrl}${dataUrl.content[2].url}`,
-              `${baseUrl}${dataUrl.content[3].url}`,
-            ];
+            (data[i] as any).urls = [`${baseUrl}`];
           }
         } else {
-          (data[i] as any).urls = [`${baseUrl}`];
+          const customDomainBaseUrl = `https://${data[i].domain}`;
+          const customDomainurl = [
+            `${customDomainBaseUrl}`,
+            `${customDomainBaseUrl}/services`,
+            `${customDomainBaseUrl}/what-is-franchising`,
+            `${customDomainBaseUrl}/meet-the-team`,
+          ];
+          if (data[i].templateId == 1) {
+            const dataUrl = await this.findSection(data[i].id, 't1-pageTitle');
+            if (!dataUrl) {
+              (data[i] as any).urls = [...customDomainurl];
+            } else {
+              (data[i] as any).urls = [
+                `${customDomainBaseUrl}`,
+                `${customDomainBaseUrl}${dataUrl.content[1].url}`,
+                `${customDomainBaseUrl}${dataUrl.content[2].url}`,
+                `${customDomainBaseUrl}${dataUrl.content[3].url}`,
+              ];
+            }
+          } else {
+            (data[i] as any).urls = [`${customDomainBaseUrl}`];
+          }
         }
       }
       return data;
@@ -1088,18 +1110,41 @@ export class LandingService {
   }
   async getSiteMapXml(data: any, templateName: string) {
     try {
-      let baseUrl = `https://${templateName}.${this.config
-        .getFEUrl()
-        ?.replace('https://', '')}`;
+      let baseUrl = '';
+      if (data[0].domainType == 1) {
+        baseUrl = `https://${templateName}.${this.config
+          .getFEUrl()
+          ?.replace('https://', '')}`;
+      } else {
+        baseUrl = `https://${data[0].domain}`;
+      }
       let urlContent = '<?xml version="1.0" encoding="UTF-8"?>';
       urlContent +=
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
       data.forEach((entry) => {
         entry.urls.forEach((url: any) => {
+          const date = new Date(entry.updatedAt);
+          // Format as ISO string with timezone offset (-05:00)
+          const formattedDate = date
+            .toLocaleString('sv-SE', { timeZone: 'America/Chicago' })
+            .replace(' ', 'T') // Convert space to 'T'
+            .slice(0, 19); // Remove milliseconds
+
+          // Get timezone offset (-05:00 format)
+          const offset = new Intl.DateTimeFormat('en-US', {
+            timeZone: 'America/Chicago',
+            timeZoneName: 'shortOffset',
+          })
+            .formatToParts(date)
+            .find((part) => part.type === 'timeZoneName')
+            .value.replace('GMT', '');
+
+          // Final lastmod format
+          const lastmod = `${formattedDate}${offset}`;
           urlContent += `
     <url>
 <loc>${url}</loc>
-<lastmod>${entry.updatedAt}</lastmod>
+<lastmod>${lastmod}</lastmod>
 <priority>${url === `${baseUrl}` ? 1 : 0.9}</priority>
     </url>`;
         });
