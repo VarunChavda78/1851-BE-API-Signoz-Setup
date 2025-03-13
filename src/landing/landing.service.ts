@@ -330,9 +330,9 @@ export class LandingService {
       });
       // If existingPublish and user is trying to change the domainType, then allow them
       
-      if (publishDto.publishStatus && totalPublishedPages >= totalPagesAllowed?.noOfPages) {
-        throw new BadRequestException('Maximum number of published pages reached');
-      }
+      // if (publishDto.publishStatus && totalPublishedPages >= totalPagesAllowed?.noOfPages) {
+      //   throw new BadRequestException('Maximum number of published pages reached');
+      // }
       if (existingPublish) {
         existingPublish.status = publishDto.publishStatus ? 2 : 1;
         existingPublish.customDomainStatus =
