@@ -802,11 +802,12 @@ async updateLpGaCode(
     }
   }
   @Get('info/:nameSlug')
-  async getLpInfo(@Param('nameSlug') nameSlug: string) {
+  async getLpInfo(@Param('nameSlug') nameSlug: string, @Query('custom') custom: boolean = false) {
     try {
       const { lpId, brandSlug } =
         await this.landingService.getLandingPageIdAndBrandSlugBasedOnNameSlug(
           nameSlug,
+          custom,
         );
       return {
         status: true,

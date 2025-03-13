@@ -1069,10 +1069,19 @@ export class LandingService {
       throw error;
     }
   }
-  async getLandingPageIdAndBrandSlugBasedOnNameSlug(nameSlug: string) {
-    const page = await this.lpPageRepository.findOne({
-      where: { nameSlug },
-    });
+  async getLandingPageIdAndBrandSlugBasedOnNameSlug(nameSlug: string, custom: boolean = false) {
+    // If custom is true, check page based on domainType 2 and nameSlug is domain
+    let page;
+    if (custom) {
+      page = await this.lpPageRepository.findOne({
+        where: { domainType: 2, domain: nameSlug },
+      });
+    }
+    else {
+      page = await this.lpPageRepository.findOne({
+        where: { nameSlug },
+      });
+    }
 
     if (!page) {
       throw new NotFoundException('Page not found');
