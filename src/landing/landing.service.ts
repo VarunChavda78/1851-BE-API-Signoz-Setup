@@ -421,6 +421,7 @@ export class LandingService {
           name: res[0]?.name,
           templateId: res[0]?.templateId,
           brandSlug: data[0]?.brandSlug,
+          domainType: res[0]?.domainType,
         },
         approved: brand.status === 'approve'
       };
