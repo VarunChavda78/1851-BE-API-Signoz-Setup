@@ -276,6 +276,9 @@ export class LandingController {
     @Req() req,
   ) {
     try {
+      if (!this.authService.validateAdmin(req.user)) {
+        throw new BadRequestException('Unauthorized to access resources');
+      }
       const userId = req.user.id; // Replace this with actual user ID from auth context
       const data = await this.landingService.updateLandingPageStatus(
         slug,
@@ -719,7 +722,7 @@ export class LandingController {
   ) {
     try {
       if (!this.authService.validateAdmin(req.user)) {
-        throw new BadRequestException('Unauthorized');
+        throw new BadRequestException('Unauthorized to access resources');
       }
       const data = await this.landingService.updateLandingBrandStatus(
         slug,
