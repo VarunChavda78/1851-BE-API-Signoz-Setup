@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { LpPageRepository } from './lp-page.repository';
 import { UsersService } from 'src/users/users.service';
 import { PageStatus, PageStatusName } from './landing.constant';
@@ -132,17 +137,17 @@ export class LandingService {
   }
   async createPage(
     slug: string,
-    createPageDto: { name: string; templateId: number, nameSlug?: string },
+    createPageDto: { name: string; templateId: number; nameSlug?: string },
     brandId: number,
     userId: number,
   ) {
     const timestamp = new Date();
     if (!createPageDto?.nameSlug) {
       createPageDto.nameSlug = createPageDto.name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-      .replace(/-{2,}/g, '-');
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .replace(/-{2,}/g, '-');
     }
     // Check if page with nameSlug already exists
     const existingPage = await this.lpPageRepository.findOne({
@@ -150,7 +155,9 @@ export class LandingService {
     });
 
     if (existingPage) {
-      throw new BadRequestException(`Page with nameSlug ${createPageDto.nameSlug} already exists`);
+      throw new BadRequestException(
+        `Page with nameSlug ${createPageDto.nameSlug} already exists`,
+      );
     }
     const newPage = this.lpPageRepository.create({
       brandId,
@@ -169,28 +176,37 @@ export class LandingService {
     return await this.lpPageRepository.save(newPage);
   }
   async editPage(
-    editPageDto: { name: string; templateId: number, nameSlug?: string , lpId: number },
+    editPageDto: {
+      name: string;
+      templateId: number;
+      nameSlug?: string;
+      lpId: number;
+    },
     brandId: number,
     userId: number,
   ) {
     const timestamp = new Date();
     if (!editPageDto?.nameSlug) {
       editPageDto.nameSlug = editPageDto.name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-      .replace(/-{2,}/g, '-');
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .replace(/-{2,}/g, '-');
     }
     const page = await this.lpPageRepository.findOne({
       where: { id: editPageDto.lpId, brandId: brandId },
     });
 
     if (!page) {
-      throw new NotFoundException(`Page not found with ID: ${editPageDto.lpId}`);
+      throw new NotFoundException(
+        `Page not found with ID: ${editPageDto.lpId}`,
+      );
     }
     const isUnique = await this.checkUniqueNameSlug(editPageDto.nameSlug);
     if (!isUnique) {
-      throw new BadRequestException(`Page with nameSlug ${editPageDto.nameSlug} already exists`);
+      throw new BadRequestException(
+        `Page with nameSlug ${editPageDto.nameSlug} already exists`,
+      );
     }
     page.name = editPageDto.name;
     page.nameSlug = editPageDto.nameSlug;
@@ -329,7 +345,7 @@ export class LandingService {
         where: { id: lpId, brandId },
       });
       // If existingPublish and user is trying to change the domainType, then allow them
-      
+
       // if (publishDto.publishStatus && totalPublishedPages >= totalPagesAllowed?.noOfPages) {
       //   throw new BadRequestException('Maximum number of published pages reached');
       // }
@@ -376,7 +392,11 @@ export class LandingService {
       throw new Error(`Brand not found for slug: ${slug}`);
     }
     const data = await this.lpPageRepository.find({
-      where: { brandSlug: slug, status: PageStatus.PUBLISH, id: lpId || Not(IsNull()) },
+      where: {
+        brandSlug: slug,
+        status: PageStatus.PUBLISH,
+        id: lpId || Not(IsNull()),
+      },
     });
     const res = data?.filter((item) => {
       return !item.deletedAt;
@@ -399,17 +419,16 @@ export class LandingService {
   }
 
   async publishStatusV2(slug: string) {
-
     const data = await this.lpPageRepository.find({
       where: { nameSlug: slug, status: PageStatus.PUBLISH },
     });
     if (!data || data.length === 0) {
-       throw new Error(`No published pages found for slug: ${slug}`);
-        }
+      throw new Error(`No published pages found for slug: ${slug}`);
+    }
     const brand = await this.usersService.getBrandIdBySlug(data[0]?.brandSlug);
-      if (!brand) {
-        throw new Error(`Brand not found for slug: ${slug}`);
-      }
+    if (!brand) {
+      throw new Error(`Brand not found for slug: ${slug}`);
+    }
     const res = data?.filter((item) => {
       return !item.deletedAt;
     });
@@ -422,12 +441,12 @@ export class LandingService {
           templateId: res[0]?.templateId,
           brandSlug: data[0]?.brandSlug,
         },
-        approved: brand.status === 'approve'
+        approved: brand.status === 'approve',
       };
     return {
       publishStatus: false,
       page: null,
-      approved: brand.status === 'approve'
+      approved: brand.status === 'approve',
     };
   }
   async createPdf(slug: string, brandId: number, pdfDto: any): Promise<any> {
@@ -1026,7 +1045,6 @@ export class LandingService {
     templateName: string,
   ) {
     try {
-
       const data = await this.lpPageRepository.find({
         where: {
           status: currentStatus,
@@ -1035,7 +1053,9 @@ export class LandingService {
           deletedAt: IsNull(),
         },
       });
-      let baseUrl = `https://${templateName}.${this.config.getFEUrl()?.replace('https://', '')}`;
+      let baseUrl = `https://${templateName}.${this.config
+        .getFEUrl()
+        ?.replace('https://', '')}`;
       let url = [
         `${baseUrl}`,
         `${baseUrl}/services`,
@@ -1051,21 +1071,13 @@ export class LandingService {
           } else {
             (data[i] as any).urls = [
               `${baseUrl}`,
-              `${baseUrl}${
-                dataUrl.content[1].url
-              }`,
-              `${baseUrl}${
-                dataUrl.content[2].url
-              }`,
-              `${baseUrl}${
-                dataUrl.content[3].url
-              }`,
+              `${baseUrl}${dataUrl.content[1].url}`,
+              `${baseUrl}${dataUrl.content[2].url}`,
+              `${baseUrl}${dataUrl.content[3].url}`,
             ];
           }
         } else {
-          (data[i] as any).urls = [
-            `${baseUrl}`,
-          ];
+          (data[i] as any).urls = [`${baseUrl}`];
         }
       }
       return data;
@@ -1076,7 +1088,9 @@ export class LandingService {
   }
   async getSiteMapXml(data: any, templateName: string) {
     try {
-      let baseUrl = `https://${templateName}.${this.config.getFEUrl()?.replace('https://', '')}`;
+      let baseUrl = `https://${templateName}.${this.config
+        .getFEUrl()
+        ?.replace('https://', '')}`;
       let urlContent = '<?xml version="1.0" encoding="UTF-8"?>';
       urlContent +=
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
@@ -1086,12 +1100,7 @@ export class LandingService {
     <url>
 <loc>${url}</loc>
 <lastmod>${entry.updatedAt}</lastmod>
-<priority>${
-            url ===
-            `${baseUrl}`
-              ? 1
-              : 0.9
-          }</priority>
+<priority>${url === `${baseUrl}` ? 1 : 0.9}</priority>
     </url>`;
         });
       });
@@ -1102,15 +1111,17 @@ export class LandingService {
       throw error;
     }
   }
-  async getLandingPageIdAndBrandSlugBasedOnNameSlug(nameSlug: string, custom: boolean = false) {
+  async getLandingPageIdAndBrandSlugBasedOnNameSlug(
+    nameSlug: string,
+    custom: boolean = false,
+  ) {
     // If custom is true, check page based on domainType 2 and nameSlug is domain
     let page;
     if (custom) {
       page = await this.lpPageRepository.findOne({
         where: { domainType: 2, domain: nameSlug },
       });
-    }
-    else {
+    } else {
       page = await this.lpPageRepository.findOne({
         where: { nameSlug },
       });
@@ -1146,18 +1157,23 @@ export class LandingService {
         },
         select: ['id', 'gaCode'],
       });
-  
+
       if (!landingPage) {
         throw new NotFoundException('Landing page not found');
       }
-  
+
       return { id: landingPage.id, gaCode: landingPage.gaCode };
     } catch (error) {
       throw error;
     }
   }
-  
-  async updateLpGaCode(lpId: number, brandId: number, gaCode: string, userId: number) {
+
+  async updateLpGaCode(
+    lpId: number,
+    brandId: number,
+    gaCode: string,
+    userId: number,
+  ) {
     try {
       const landingPage = await this.lpPageRepository.findOne({
         where: {
@@ -1165,20 +1181,19 @@ export class LandingService {
           brandId,
         },
       });
-  
+
       if (!landingPage) {
         throw new NotFoundException('Landing page not found');
       }
-  
+
       landingPage.gaCode = gaCode;
       landingPage.updatedBy = userId;
-  
+
       await this.lpPageRepository.save(landingPage);
-  
+
       return { id: landingPage.id, gaCode: landingPage.gaCode };
     } catch (error) {
       throw error;
     }
   }
-  
 }

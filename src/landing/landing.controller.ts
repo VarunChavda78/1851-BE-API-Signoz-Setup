@@ -52,7 +52,10 @@ export class LandingController {
           DomainType.SUBDOMAIN,
           templateName,
         );
-      const content = await this.landingService.getSiteMapXml(finaldata,templateName);
+      const content = await this.landingService.getSiteMapXml(
+        finaldata,
+        templateName,
+      );
       res.setHeader('Content-Type', 'application/xml; charset=utf-8');
       res.status(200).send(content);
     } catch (err) {
@@ -67,10 +70,10 @@ export class LandingController {
       // });
 
       const mappedDomains = await this.lpPageRepository
-      .createQueryBuilder('lpPage')
-      .where('lpPage.domainType = :domainType', { domainType: 2 })
-      .andWhere('lpPage.deletedAt IS NULL')
-      .getMany();
+        .createQueryBuilder('lpPage')
+        .where('lpPage.domainType = :domainType', { domainType: 2 })
+        .andWhere('lpPage.deletedAt IS NULL')
+        .getMany();
 
       const result: { [domain: string]: string } = {};
       mappedDomains.forEach((item) => {
@@ -93,17 +96,19 @@ export class LandingController {
       // });
 
       const mappedDomains = await this.lpPageRepository
-      .createQueryBuilder('lpPage')
-      .where('lpPage.domainType = :domainType', { domainType: 2 })
-      .andWhere('lpPage.deletedAt IS NULL')
-      .getMany();
+        .createQueryBuilder('lpPage')
+        .where('lpPage.domainType = :domainType', { domainType: 2 })
+        .andWhere('lpPage.deletedAt IS NULL')
+        .getMany();
 
-      const result: { [domain: string]: { brandSlug: string; nameSlug: string } } = {};
+      const result: {
+        [domain: string]: { brandSlug: string; nameSlug: string };
+      } = {};
       mappedDomains.forEach((item) => {
         if (item.domain && item.brandSlug && item.nameSlug) {
           result[item.domain] = {
             brandSlug: item.brandSlug,
-            nameSlug: item.nameSlug
+            nameSlug: item.nameSlug,
           };
         }
       });
@@ -178,7 +183,10 @@ export class LandingController {
   }
 
   @Get('publish-status/:slug')
-  async publishStatus(@Param('slug') slug: string, @Query('lpId') lpId?: number) {
+  async publishStatus(
+    @Param('slug') slug: string,
+    @Query('lpId') lpId?: number,
+  ) {
     try {
       const publishData = await this.landingService.publishStatus(slug, lpId);
       return {
@@ -224,7 +232,8 @@ export class LandingController {
   @HttpCode(HttpStatus.CREATED) // Sets the response code to 201
   async createPage(
     @Param('slug') slug: string,
-    @Body() createPageDto: { name: string; templateId: number, nameSlug?: string },
+    @Body()
+    createPageDto: { name: string; templateId: number; nameSlug?: string },
     @Req() req,
   ) {
     try {
@@ -259,7 +268,13 @@ export class LandingController {
   @HttpCode(HttpStatus.OK) // Sets the response code to 200
   async editPage(
     @Param('slug') slug: string,
-    @Body() editPageDto: { name: string; templateId: number, nameSlug?: string, lpId: number },
+    @Body()
+    editPageDto: {
+      name: string;
+      templateId: number;
+      nameSlug?: string;
+      lpId: number;
+    },
     @Req() req,
   ) {
     try {
@@ -277,12 +292,12 @@ export class LandingController {
         brand.id,
         req.user.id,
       );
-      if(!newPage){
-        throw new Error("Error updating page");
+      if (!newPage) {
+        throw new Error('Error updating page');
       }
       return {
         status: true,
-        message: "Page updated successfully",
+        message: 'Page updated successfully',
       };
     } catch (error) {
       throw new HttpException(
@@ -739,66 +754,66 @@ export class LandingController {
   }
 
   @Get('ga-code')
-async getLpGaCode(@Query('slug') slug: string, @Query('lpId') lpId: number) {
-  try {
-    if (!slug || !lpId) {
-      throw new BadRequestException('Slug and lpId are required');
-    }
-    const brand = await this.usersService.getBrandIdBySlug(slug);
-    if (!brand) {
-      throw new NotFoundException(`Brand not found for slug: ${slug}`);
-    }
-    const data = await this.landingService.getLpGaCode(lpId, brand.id);
-    return {
-      status: true,
-      data,
-    };
-  } catch (error) {
-    throw new HttpException(
-      error?.message || 'Failed to get Google Analytics code',
-      error?.status || 500,
-    );
-  }
-}
-
-@Protected()
-@Post('ga-code')
-async updateLpGaCode(
-  @Query('slug') slug: string,
-  @Query('lpId') lpId: number,
-  @Body() lpGaCodeDto: { gaCode: string },
-  @Req() req,
-) {
-  try {
-    if (!slug || !lpId) {
-      throw new BadRequestException('Slug and lpId are required');
-    }
-    const brand = await this.usersService.getBrandIdBySlug(slug);
-    if (!brand) {
-      throw new NotFoundException(`Brand not found for slug: ${slug}`);
-    }
-    if (!this.authService.validateUser(brand.id, req.user)) {
-      throw new BadRequestException(
-        `Unauthorized to access resources for ${slug}`,
+  async getLpGaCode(@Query('slug') slug: string, @Query('lpId') lpId: number) {
+    try {
+      if (!slug || !lpId) {
+        throw new BadRequestException('Slug and lpId are required');
+      }
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new NotFoundException(`Brand not found for slug: ${slug}`);
+      }
+      const data = await this.landingService.getLpGaCode(lpId, brand.id);
+      return {
+        status: true,
+        data,
+      };
+    } catch (error) {
+      throw new HttpException(
+        error?.message || 'Failed to get Google Analytics code',
+        error?.status || 500,
       );
     }
-    const data = await this.landingService.updateLpGaCode(
-      lpId,
-      brand.id,
-      lpGaCodeDto.gaCode,
-      req.user.id
-    );
-    return {
-      status: true,
-      data,
-    };
-  } catch (error) {
-    throw new HttpException(
-      error?.message || 'Failed to update Google Analytics code',
-      error?.status || 500,
-    );
   }
-}
+
+  @Protected()
+  @Post('ga-code')
+  async updateLpGaCode(
+    @Query('slug') slug: string,
+    @Query('lpId') lpId: number,
+    @Body() lpGaCodeDto: { gaCode: string },
+    @Req() req,
+  ) {
+    try {
+      if (!slug || !lpId) {
+        throw new BadRequestException('Slug and lpId are required');
+      }
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new NotFoundException(`Brand not found for slug: ${slug}`);
+      }
+      if (!this.authService.validateUser(brand.id, req.user)) {
+        throw new BadRequestException(
+          `Unauthorized to access resources for ${slug}`,
+        );
+      }
+      const data = await this.landingService.updateLpGaCode(
+        lpId,
+        brand.id,
+        lpGaCodeDto.gaCode,
+        req.user.id,
+      );
+      return {
+        status: true,
+        data,
+      };
+    } catch (error) {
+      throw new HttpException(
+        error?.message || 'Failed to update Google Analytics code',
+        error?.status || 500,
+      );
+    }
+  }
   @Get(':slug/promote')
   @HttpCode(HttpStatus.OK)
   async getLandingBrandStatus(@Param('slug') slug: string) {
@@ -844,7 +859,10 @@ async updateLpGaCode(
     }
   }
   @Get('info/:nameSlug')
-  async getLpInfo(@Param('nameSlug') nameSlug: string, @Query('custom') custom: boolean = false) {
+  async getLpInfo(
+    @Param('nameSlug') nameSlug: string,
+    @Query('custom') custom: boolean = false,
+  ) {
     try {
       const { lpId, brandSlug } =
         await this.landingService.getLandingPageIdAndBrandSlugBasedOnNameSlug(
