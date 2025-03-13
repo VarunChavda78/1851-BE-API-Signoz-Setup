@@ -57,4 +57,7 @@ export class LpPage {
 
   @ManyToOne(() => LpTemplate, (template) => template.id)
   template: LpTemplate; 
+
+  @Column({ length: 255, nullable: true })
+  gaCode: string;
 }

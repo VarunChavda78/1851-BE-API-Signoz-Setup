@@ -654,6 +654,68 @@ export class LandingController {
       );
     }
   }
+
+  @Get('ga-code')
+async getLpGaCode(@Query('slug') slug: string, @Query('lpId') lpId: number) {
+  try {
+    if (!slug || !lpId) {
+      throw new BadRequestException('Slug and lpId are required');
+    }
+    const brand = await this.usersService.getBrandIdBySlug(slug);
+    if (!brand) {
+      throw new NotFoundException(`Brand not found for slug: ${slug}`);
+    }
+    const data = await this.landingService.getLpGaCode(lpId, brand.id);
+    return {
+      status: true,
+      data,
+    };
+  } catch (error) {
+    throw new HttpException(
+      error?.message || 'Failed to get Google Analytics code',
+      error?.status || 500,
+    );
+  }
+}
+
+@Protected()
+@Post('ga-code')
+async updateLpGaCode(
+  @Query('slug') slug: string,
+  @Query('lpId') lpId: number,
+  @Body() lpGaCodeDto: { gaCode: string },
+  @Req() req,
+) {
+  try {
+    if (!slug || !lpId) {
+      throw new BadRequestException('Slug and lpId are required');
+    }
+    const brand = await this.usersService.getBrandIdBySlug(slug);
+    if (!brand) {
+      throw new NotFoundException(`Brand not found for slug: ${slug}`);
+    }
+    if (!this.authService.validateUser(brand.id, req.user)) {
+      throw new BadRequestException(
+        `Unauthorized to access resources for ${slug}`,
+      );
+    }
+    const data = await this.landingService.updateLpGaCode(
+      lpId,
+      brand.id,
+      lpGaCodeDto.gaCode,
+      req.user.id
+    );
+    return {
+      status: true,
+      data,
+    };
+  } catch (error) {
+    throw new HttpException(
+      error?.message || 'Failed to update Google Analytics code',
+      error?.status || 500,
+    );
+  }
+}
   @Get(':slug/promote')
   @HttpCode(HttpStatus.OK)
   async getLandingBrandStatus(@Param('slug') slug: string) {
