@@ -98,10 +98,13 @@ export class LandingController {
       .andWhere('lpPage.deletedAt IS NULL')
       .getMany();
 
-      const result: { [domain: string]: string } = {};
+      const result: { [domain: string]: { brandSlug: string; nameSlug: string } } = {};
       mappedDomains.forEach((item) => {
-        if (item.domain && item.brandSlug) {
-          result[item.domain] = item.nameSlug;
+        if (item.domain && item.brandSlug && item.nameSlug) {
+          result[item.domain] = {
+            brandSlug: item.brandSlug,
+            nameSlug: item.nameSlug
+          };
         }
       });
 
