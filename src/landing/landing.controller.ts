@@ -85,6 +85,32 @@ export class LandingController {
     }
   }
 
+  @Get('mapped-domain-v2')
+  async getMappedDomainsV2() {
+    try {
+      // const mappedDomains = await this.lpPageRepository.find({
+      //   where: { domainType: 2 },
+      // });
+
+      const mappedDomains = await this.lpPageRepository
+      .createQueryBuilder('lpPage')
+      .where('lpPage.domainType = :domainType', { domainType: 2 })
+      .andWhere('lpPage.deletedAt IS NULL')
+      .getMany();
+
+      const result: { [domain: string]: string } = {};
+      mappedDomains.forEach((item) => {
+        if (item.domain && item.brandSlug) {
+          result[item.domain] = item.nameSlug;
+        }
+      });
+
+      return { status: true, data: result };
+    } catch (error) {
+      return { status: false, error };
+    }
+  }
+
   @Protected()
   @Post('publish/:slug/:lpId')
   async createOrUpdatePublish(
@@ -152,6 +178,19 @@ export class LandingController {
   async publishStatus(@Param('slug') slug: string, @Query('lpId') lpId?: number) {
     try {
       const publishData = await this.landingService.publishStatus(slug, lpId);
+      return {
+        status: true,
+        data: publishData,
+      };
+    } catch (err) {
+      return { status: false, message: err?.message };
+    }
+  }
+
+  @Get('publish-status-v2/:slug')
+  async publishStatusv2(@Param('slug') slug: string) {
+    try {
+      const publishData = await this.landingService.publishStatusV2(slug);
       return {
         status: true,
         data: publishData,
