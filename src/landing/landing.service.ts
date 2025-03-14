@@ -708,6 +708,7 @@ export class LandingService {
         .select('lead.uid')
         .addSelect('MAX(lead.createdAt)', 'createdAt')
         .addSelect('MAX(lead.formType)', 'formType')
+        .addSelect('MAX(lead.lpId)', 'lpId')
         .where('lead.brandId = :brandId', { brandId })
         .andWhere('lead.deletedAt IS NULL')
         .groupBy('lead.uid');
@@ -823,6 +824,7 @@ export class LandingService {
           formType:
             leadFields[0]?.formType === 1 ? 'Inquiry Form' : 'Download PDF',
           uid,
+          lpId: leadFields[0]?.lpId,
         };
       });
 
