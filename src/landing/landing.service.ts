@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { LpPageRepository } from './lp-page.repository';
 import { UsersService } from 'src/users/users.service';
 import { PageStatus, PageStatusName } from './landing.constant';
@@ -26,7 +31,6 @@ import { LpInquiryRepository } from './lp-inquiry.repository';
 import { UpdateLpInquiryDto } from './dtos/lpInquiryDto';
 import { LpCrmFormRepository } from './lp-form.repository';
 import { Not, IsNull } from 'typeorm';
-
 @Injectable()
 export class LandingService {
   constructor(
@@ -132,17 +136,17 @@ export class LandingService {
   }
   async createPage(
     slug: string,
-    createPageDto: { name: string; templateId: number, nameSlug?: string },
+    createPageDto: { name: string; templateId: number; nameSlug?: string },
     brandId: number,
     userId: number,
   ) {
     const timestamp = new Date();
     if (!createPageDto?.nameSlug) {
       createPageDto.nameSlug = createPageDto.name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-      .replace(/-{2,}/g, '-');
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .replace(/-{2,}/g, '-');
     }
     // Check if page with nameSlug already exists
     const existingPage = await this.lpPageRepository.findOne({
@@ -150,7 +154,9 @@ export class LandingService {
     });
 
     if (existingPage) {
-      throw new BadRequestException(`Page with nameSlug ${createPageDto.nameSlug} already exists`);
+      throw new BadRequestException(
+        `Page with nameSlug ${createPageDto.nameSlug} already exists`,
+      );
     }
     const newPage = this.lpPageRepository.create({
       brandId,
@@ -169,28 +175,37 @@ export class LandingService {
     return await this.lpPageRepository.save(newPage);
   }
   async editPage(
-    editPageDto: { name: string; templateId: number, nameSlug?: string , lpId: number },
+    editPageDto: {
+      name: string;
+      templateId: number;
+      nameSlug?: string;
+      lpId: number;
+    },
     brandId: number,
     userId: number,
   ) {
     const timestamp = new Date();
     if (!editPageDto?.nameSlug) {
       editPageDto.nameSlug = editPageDto.name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-      .replace(/-{2,}/g, '-');
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .replace(/-{2,}/g, '-');
     }
     const page = await this.lpPageRepository.findOne({
       where: { id: editPageDto.lpId, brandId: brandId },
     });
 
     if (!page) {
-      throw new NotFoundException(`Page not found with ID: ${editPageDto.lpId}`);
+      throw new NotFoundException(
+        `Page not found with ID: ${editPageDto.lpId}`,
+      );
     }
     const isUnique = await this.checkUniqueNameSlug(editPageDto.nameSlug);
     if (!isUnique) {
-      throw new BadRequestException(`Page with nameSlug ${editPageDto.nameSlug} already exists`);
+      throw new BadRequestException(
+        `Page with nameSlug ${editPageDto.nameSlug} already exists`,
+      );
     }
     page.name = editPageDto.name;
     page.nameSlug = editPageDto.nameSlug;
@@ -329,7 +344,7 @@ export class LandingService {
         where: { id: lpId, brandId },
       });
       // If existingPublish and user is trying to change the domainType, then allow them
-      
+
       // if (publishDto.publishStatus && totalPublishedPages >= totalPagesAllowed?.noOfPages) {
       //   throw new BadRequestException('Maximum number of published pages reached');
       // }
@@ -376,7 +391,11 @@ export class LandingService {
       throw new Error(`Brand not found for slug: ${slug}`);
     }
     const data = await this.lpPageRepository.find({
-      where: { brandSlug: slug, status: PageStatus.PUBLISH, id: lpId || Not(IsNull()) },
+      where: {
+        brandSlug: slug,
+        status: PageStatus.PUBLISH,
+        id: lpId || Not(IsNull()),
+      },
     });
     const res = data?.filter((item) => {
       return !item.deletedAt;
@@ -399,17 +418,16 @@ export class LandingService {
   }
 
   async publishStatusV2(slug: string) {
-
     const data = await this.lpPageRepository.find({
       where: { nameSlug: slug, status: PageStatus.PUBLISH },
     });
     if (!data || data.length === 0) {
-       throw new Error(`No published pages found for slug: ${slug}`);
-        }
+      throw new Error(`No published pages found for slug: ${slug}`);
+    }
     const brand = await this.usersService.getBrandIdBySlug(data[0]?.brandSlug);
-      if (!brand) {
-        throw new Error(`Brand not found for slug: ${slug}`);
-      }
+    if (!brand) {
+      throw new Error(`Brand not found for slug: ${slug}`);
+    }
     const res = data?.filter((item) => {
       return !item.deletedAt;
     });
@@ -423,12 +441,12 @@ export class LandingService {
           brandSlug: data[0]?.brandSlug,
           domainType: res[0]?.domainType,
         },
-        approved: brand.status === 'approve'
+        approved: brand.status === 'approve',
       };
     return {
       publishStatus: false,
       page: null,
-      approved: brand.status === 'approve'
+      approved: brand.status === 'approve',
     };
   }
   async createPdf(slug: string, brandId: number, pdfDto: any): Promise<any> {
@@ -1032,21 +1050,20 @@ export class LandingService {
   }
   async getTemplateSubDomainPublishedBrand(
     currentStatus: number,
-    domain: number,
     templateName: string,
   ) {
     try {
-
       const data = await this.lpPageRepository.find({
         where: {
           status: currentStatus,
-          domainType: domain,
           nameSlug: templateName,
           deletedAt: IsNull(),
         },
       });
-      let baseUrl = `https://${templateName}.${this.config.getFEUrl()?.replace('https://', '')}`;
-      let url = [
+      const baseUrl = `https://${templateName}.${this.config
+        .getFEUrl()
+        ?.replace('https://', '')}`;
+      const url = [
         `${baseUrl}`,
         `${baseUrl}/services`,
         `${baseUrl}/what-is-franchising`,
@@ -1054,28 +1071,45 @@ export class LandingService {
       ];
 
       for (let i = 0; i < data.length; i++) {
-        if (data[i].templateId == 1) {
-          const dataUrl = await this.findSection(data[i].id, 't1-pageTitle');
-          if (!dataUrl) {
-            (data[i] as any).urls = [...url];
+        if (data[i].domainType == 1) {
+          if (data[i].templateId == 1) {
+            const dataUrl = await this.findSection(data[i].id, 't1-pageTitle');
+            if (!dataUrl) {
+              (data[i] as any).urls = [...url];
+            } else {
+              (data[i] as any).urls = [
+                `${baseUrl}`,
+                `${baseUrl}${dataUrl.content[1].url}`,
+                `${baseUrl}${dataUrl.content[2].url}`,
+                `${baseUrl}${dataUrl.content[3].url}`,
+              ];
+            }
           } else {
-            (data[i] as any).urls = [
-              `${baseUrl}`,
-              `${baseUrl}${
-                dataUrl.content[1].url
-              }`,
-              `${baseUrl}${
-                dataUrl.content[2].url
-              }`,
-              `${baseUrl}${
-                dataUrl.content[3].url
-              }`,
-            ];
+            (data[i] as any).urls = [`${baseUrl}`];
           }
         } else {
-          (data[i] as any).urls = [
-            `${baseUrl}`,
+          const customDomainBaseUrl = `https://${data[i].domain}`;
+          const customDomainurl = [
+            `${customDomainBaseUrl}`,
+            `${customDomainBaseUrl}/services`,
+            `${customDomainBaseUrl}/what-is-franchising`,
+            `${customDomainBaseUrl}/meet-the-team`,
           ];
+          if (data[i].templateId == 1) {
+            const dataUrl = await this.findSection(data[i].id, 't1-pageTitle');
+            if (!dataUrl) {
+              (data[i] as any).urls = [...customDomainurl];
+            } else {
+              (data[i] as any).urls = [
+                `${customDomainBaseUrl}`,
+                `${customDomainBaseUrl}${dataUrl.content[1].url}`,
+                `${customDomainBaseUrl}${dataUrl.content[2].url}`,
+                `${customDomainBaseUrl}${dataUrl.content[3].url}`,
+              ];
+            }
+          } else {
+            (data[i] as any).urls = [`${customDomainBaseUrl}`];
+          }
         }
       }
       return data;
@@ -1086,22 +1120,42 @@ export class LandingService {
   }
   async getSiteMapXml(data: any, templateName: string) {
     try {
-      let baseUrl = `https://${templateName}.${this.config.getFEUrl()?.replace('https://', '')}`;
+      let baseUrl = '';
+      if (data[0].domainType == 1) {
+        baseUrl = `https://${templateName}.${this.config
+          .getFEUrl()
+          ?.replace('https://', '')}`;
+      } else {
+        baseUrl = `https://${data[0].domain}`;
+      }
       let urlContent = '<?xml version="1.0" encoding="UTF-8"?>';
       urlContent +=
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
       data.forEach((entry) => {
         entry.urls.forEach((url: any) => {
+          const date = new Date(entry.updatedAt);
+          // Format as ISO string with timezone offset (-05:00)
+          const formattedDate = date
+            .toLocaleString('sv-SE', { timeZone: 'America/Chicago' })
+            .replace(' ', 'T') // Convert space to 'T'
+            .slice(0, 19); // Remove milliseconds
+
+          // Get timezone offset (-05:00 format)
+          const offset = new Intl.DateTimeFormat('en-US', {
+            timeZone: 'America/Chicago',
+            timeZoneName: 'shortOffset',
+          })
+            .formatToParts(date)
+            .find((part) => part.type === 'timeZoneName')
+            .value.replace('GMT', '');
+
+          // Final lastmod format
+          const lastmod = `${formattedDate}${offset}`;
           urlContent += `
     <url>
 <loc>${url}</loc>
-<lastmod>${entry.updatedAt}</lastmod>
-<priority>${
-            url ===
-            `${baseUrl}`
-              ? 1
-              : 0.9
-          }</priority>
+<lastmod>${lastmod}</lastmod>
+<priority>${url === `${baseUrl}` ? 1 : 0.9}</priority>
     </url>`;
         });
       });
@@ -1112,15 +1166,17 @@ export class LandingService {
       throw error;
     }
   }
-  async getLandingPageIdAndBrandSlugBasedOnNameSlug(nameSlug: string, custom: boolean = false) {
+  async getLandingPageIdAndBrandSlugBasedOnNameSlug(
+    nameSlug: string,
+    custom: boolean = false,
+  ) {
     // If custom is true, check page based on domainType 2 and nameSlug is domain
     let page;
     if (custom) {
       page = await this.lpPageRepository.findOne({
         where: { domainType: 2, domain: nameSlug },
       });
-    }
-    else {
+    } else {
       page = await this.lpPageRepository.findOne({
         where: { nameSlug },
       });
@@ -1156,18 +1212,23 @@ export class LandingService {
         },
         select: ['id', 'gaCode'],
       });
-  
+
       if (!landingPage) {
         throw new NotFoundException('Landing page not found');
       }
-  
+
       return { id: landingPage.id, gaCode: landingPage.gaCode };
     } catch (error) {
       throw error;
     }
   }
-  
-  async updateLpGaCode(lpId: number, brandId: number, gaCode: string, userId: number) {
+
+  async updateLpGaCode(
+    lpId: number,
+    brandId: number,
+    gaCode: string,
+    userId: number,
+  ) {
     try {
       const landingPage = await this.lpPageRepository.findOne({
         where: {
@@ -1175,20 +1236,19 @@ export class LandingService {
           brandId,
         },
       });
-  
+
       if (!landingPage) {
         throw new NotFoundException('Landing page not found');
       }
-  
+
       landingPage.gaCode = gaCode;
       landingPage.updatedBy = userId;
-  
+
       await this.lpPageRepository.save(landingPage);
-  
+
       return { id: landingPage.id, gaCode: landingPage.gaCode };
     } catch (error) {
       throw error;
     }
   }
-  
 }
