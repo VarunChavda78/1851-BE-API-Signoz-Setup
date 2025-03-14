@@ -488,6 +488,13 @@ export class LandingService {
       where: { brandId: brand.id },
     });
 
+    const totalPublishedPages = await this.lpPageRepository.count({
+      where: { brandId: brand.id, status: PageStatus.PUBLISH, deletedAt: IsNull() },
+    });
+    if (body?.noOfPages < totalPublishedPages) {
+      throw new BadRequestException('unpublish first');
+    }
+
     if (settings) {
       settings.status = status;
       settings.updatedBy = userId;
