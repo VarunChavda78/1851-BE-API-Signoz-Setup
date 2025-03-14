@@ -492,7 +492,7 @@ export class LandingService {
       where: { brandId: brand.id, status: PageStatus.PUBLISH, deletedAt: IsNull() },
     });
     if (body?.noOfPages < totalPublishedPages) {
-      throw new BadRequestException('unpublish first');
+      throw new BadRequestException(`unpublish first ${totalPublishedPages}`);
     }
 
     if (settings) {
