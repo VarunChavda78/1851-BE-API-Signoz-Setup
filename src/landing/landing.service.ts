@@ -509,6 +509,9 @@ export class LandingService {
     const totalPublishedPages = await this.lpPageRepository.count({
       where: { brandId: brand.id, status: PageStatus.PUBLISH, deletedAt: IsNull() },
     });
+    if(status == false && totalPublishedPages > 0){
+      throw new BadRequestException(`cannot disable`);
+    }
     if (body?.noOfPages < totalPublishedPages) {
       throw new BadRequestException(`unpublish first ${totalPublishedPages}`);
     }
