@@ -571,17 +571,36 @@ export class LandingService {
 
       if (leadDataDto.formType === 2) {
         // Handle PDF download case
-        leadFields = [
-          {
+        // leadFields = [
+        //   {
+        //     brandId,
+        //     lpId: leadDataDto.lpId || 1,
+        //     uid,
+        //     field: 'email',
+        //     value: leadDataDto.email,
+        //     type: leadDataDto.type || 1,
+        //     formType: 2, // PDF form type
+        //   },
+        // ];
+        leadFields = Object.entries(leadDataDto)
+          .filter(
+            ([key, value]) =>
+              value != null &&
+              key !== 'type' &&
+              key !== 'formType' &&
+              key !== 'gReCaptchaToken' &&
+              key !== 'lpId',
+          )
+          .map(([field, value]) => ({
             brandId,
             lpId: leadDataDto.lpId || 1,
             uid,
-            field: 'email',
-            value: leadDataDto.email,
+            field,
+            value: String(value),
             type: leadDataDto.type || 1,
-            formType: 2, // PDF form type
-          },
-        ];
+            formType: leadDataDto.formType || 2,
+          }));
+
       } else {
         // Handle regular lead case
         leadFields = Object.entries(leadDataDto)
