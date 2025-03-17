@@ -13,7 +13,7 @@ import {
   Req,
   NotFoundException,
   Res,
-  Patch,
+  Put,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { LandingService } from './landing.service';
@@ -262,7 +262,7 @@ export class LandingController {
     }
   }
   @Protected()
-  @Patch(':slug/edit')
+  @Put(':slug/edit')
   @HttpCode(HttpStatus.OK) // Sets the response code to 200
   async editPage(
     @Param('slug') slug: string,
