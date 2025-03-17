@@ -31,6 +31,11 @@ import { LpInquiryRepository } from './lp-inquiry.repository';
 import { UpdateLpInquiryDto } from './dtos/lpInquiryDto';
 import { LpCrmFormRepository } from './lp-form.repository';
 import { Not, IsNull } from 'typeorm';
+const dayjs = require('dayjs');
+const utc = require('dayjs/plugin/utc');
+const timezone = require('dayjs/plugin/timezone');
+dayjs.extend(utc);
+dayjs.extend(timezone);
 @Injectable()
 export class LandingService {
   constructor(
@@ -1150,12 +1155,13 @@ export class LandingService {
   }
   async getSiteMapXml(data: any, templateName: string) {
     try {
-      const user = await this.usersService.getBrandIdBySlug(data[0].brandSlug)
+      const user = await this.usersService.getBrandIdBySlug(data[0].brandSlug);
       if (data[0]?.status == PageStatus.DRAFT || user?.status == 'disapprove') {
         return `<?xml version="1.0" encoding="UTF-8"?>
         <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0">
 </urlset>`;
       }
+      const date = dayjs().tz('America/Chicago').format();
       let baseUrl = '';
       if (data[0].domainType == 1) {
         baseUrl = `https://${templateName}.${this.config
@@ -1169,28 +1175,11 @@ export class LandingService {
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0">';
       data.forEach((entry) => {
         entry.urls.forEach((url: any) => {
-          const date = new Date(entry.updatedAt);
-          // Format as ISO string with timezone offset (-05:00)
-          const formattedDate = date
-            .toLocaleString('sv-SE', { timeZone: 'America/Chicago' })
-            .replace(' ', 'T') // Convert space to 'T'
-            .slice(0, 19); // Remove milliseconds
-
-          // Get timezone offset (-05:00 format)
-          const offset = new Intl.DateTimeFormat('en-US', {
-            timeZone: 'America/Chicago',
-            timeZoneName: 'shortOffset',
-          })
-            .formatToParts(date)
-            .find((part) => part.type === 'timeZoneName')
-            .value.replace('GMT', '');
-
-          // Final lastmod format
-          const lastmod = `${formattedDate}${offset}`;
+         
           urlContent += `
     <url>
 <loc>${url}</loc>
-<lastmod>${lastmod}</lastmod>
+<lastmod>${date}</lastmod>
 <priority>${url === `${baseUrl}` ? 1.0 : 0.9}</priority>
     </url>`;
         });
