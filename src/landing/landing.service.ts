@@ -1055,14 +1055,10 @@ export class LandingService {
         : 'Landing Brand promoted successfully',
     };
   }
-  async getTemplateSubDomainPublishedBrand(
-    currentStatus: number,
-    templateName: string,
-  ) {
+  async getTemplateSubDomainPublishedBrand(templateName: string) {
     try {
       const data = await this.lpPageRepository.find({
         where: {
-          status: currentStatus,
           nameSlug: templateName,
           deletedAt: IsNull(),
         },
@@ -1127,12 +1123,10 @@ export class LandingService {
   }
   async getSiteMapXml(data: any, templateName: string) {
     try {
-      const { isEnabled } = await this.getLandingBrandStatus(data[0].brandSlug);
-      if (isEnabled) {
+      if (data[0]?.status == 1) {
         return `<?xml version="1.0" encoding="UTF-8"?>
-  <error>
-    <message>The brand is an outsider. No sitemap data available.</message>
-  </error>`;
+        <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0">
+</urlset>`;
       }
       let baseUrl = '';
       if (data[0].domainType == 1) {
@@ -1144,7 +1138,7 @@ export class LandingService {
       }
       let urlContent = '<?xml version="1.0" encoding="UTF-8"?>';
       urlContent +=
-        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0">';
       data.forEach((entry) => {
         entry.urls.forEach((url: any) => {
           const date = new Date(entry.updatedAt);

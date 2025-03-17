@@ -48,7 +48,6 @@ export class LandingController {
     try {
       const finaldata =
         await this.landingService.getTemplateSubDomainPublishedBrand(
-          PageStatus.PUBLISH,
           templateName,
         );
       const content = await this.landingService.getSiteMapXml(
