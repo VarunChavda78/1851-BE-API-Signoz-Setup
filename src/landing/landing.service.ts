@@ -1150,7 +1150,8 @@ export class LandingService {
   }
   async getSiteMapXml(data: any, templateName: string) {
     try {
-      if (data[0]?.status == 1) {
+      const user = await this.usersService.getBrandIdBySlug(data[0].brandSlug)
+      if (data[0]?.status == PageStatus.DRAFT || user?.status == 'disapprove') {
         return `<?xml version="1.0" encoding="UTF-8"?>
         <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0">
 </urlset>`;
