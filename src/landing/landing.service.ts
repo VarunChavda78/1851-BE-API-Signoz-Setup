@@ -507,9 +507,13 @@ export class LandingService {
     });
 
     const totalPublishedPages = await this.lpPageRepository.count({
-      where: { brandId: brand.id, status: PageStatus.PUBLISH, deletedAt: IsNull() },
+      where: {
+        brandId: brand.id,
+        status: PageStatus.PUBLISH,
+        deletedAt: IsNull(),
+      },
     });
-    if(status == false && totalPublishedPages > 0){
+    if (status == false && totalPublishedPages > 0) {
       throw new BadRequestException(`cannot disable`);
     }
     if (body?.noOfPages < totalPublishedPages) {
@@ -1142,6 +1146,13 @@ export class LandingService {
   }
   async getSiteMapXml(data: any, templateName: string) {
     try {
+      const { isEnabled } = await this.getLandingBrandStatus(data[0].brandSlug);
+      if (isEnabled) {
+        return `<?xml version="1.0" encoding="UTF-8"?>
+  <error>
+    <message>The brand is an outsider. No sitemap data available.</message>
+  </error>`;
+      }
       let baseUrl = '';
       if (data[0].domainType == 1) {
         baseUrl = `https://${templateName}.${this.config
@@ -1177,7 +1188,7 @@ export class LandingService {
     <url>
 <loc>${url}</loc>
 <lastmod>${lastmod}</lastmod>
-<priority>${url === `${baseUrl}` ? 1 : 0.9}</priority>
+<priority>${url === `${baseUrl}` ? 1.0 : 0.9}</priority>
     </url>`;
         });
       });
