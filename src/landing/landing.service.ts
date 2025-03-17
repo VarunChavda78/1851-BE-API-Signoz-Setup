@@ -631,12 +631,20 @@ export class LandingService {
 
       // Transform saved leads back to flat object for email service
       const leadForEmail = savedLeads.reduce(
-        (acc, curr) => ({
+      (acc, curr) => {
+        // Skip adding the field if it's "inquiryEmail"
+        if (curr.field === "inquiryEmail") {
+          return acc;
+        }
+        
+        // Otherwise, add the field-value pair to the accumulator
+        return {
           ...acc,
           [curr.field]: curr.value,
-        }),
-        {},
-      );
+        };
+      },
+      {},
+    );
       const inquiryEmails = await this.getInquiryEmails(
         leadDataDto.lpId,
         brandId,
