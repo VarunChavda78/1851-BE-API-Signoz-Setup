@@ -30,6 +30,7 @@ import { VerifyCaptchaService } from 'src/shared/services/verify-captcha.service
 import { LpInquiryRepository } from './lp-inquiry.repository';
 import { UpdateLpInquiryDto } from './dtos/lpInquiryDto';
 import { LpCrmFormRepository } from './lp-form.repository';
+import { LpNameRepository } from './lp-name-history.repository';
 import { Not, IsNull } from 'typeorm';
 const dayjs = require('dayjs');
 const utc = require('dayjs/plugin/utc');
@@ -50,6 +51,7 @@ export class LandingService {
     private readonly lpLeadsRepository: LpLeadsRepository,
     private lpInquiryRepository: LpInquiryRepository,
     private lpCrmFormRepository: LpCrmFormRepository,
+    private readonly lpNameRepository:LpNameRepository,
     private s3Service: S3Service,
     private envService: EnvironmentConfigService,
     private commonService: CommonService,
@@ -214,6 +216,18 @@ export class LandingService {
         `Page with nameSlug ${editPageDto.nameSlug} already exists`,
       );
     }
+    
+      // Store previous editPageDto data into lp_name_history before update 
+      const lpHistory = this.lpNameRepository.create({
+        lpId: editPageDto.lpId,
+        name: page.name,
+        nameSlug: page.nameSlug,
+        createdAt: timestamp,
+        createdBy: userId,
+      });
+
+      await this.lpNameRepository.save(lpHistory);
+    
     page.name = editPageDto.name;
     page.nameSlug = editPageDto.nameSlug;
     page.updatedAt = timestamp;
@@ -425,9 +439,11 @@ export class LandingService {
   }
 
   async publishStatusV2(slug: string) {
-    const data = await this.lpPageRepository.find({
+    let data = await this.lpPageRepository.find({
       where: { nameSlug: slug, status: PageStatus.PUBLISH },
     });
+     
+
     if (!data || data.length === 0) {
       throw new Error(`No published pages found for slug: ${slug}`);
     }
@@ -456,6 +472,39 @@ export class LandingService {
       approved: brand.status === 'approve',
     };
   }
+
+
+  async getLpNameHistory(slug:string){
+    const slugData= await this.lpNameRepository.find({
+      where: { nameSlug: slug},
+    })
+
+    if(slugData && slugData.length>0){
+      const data= await this.lpNameRepository.find({
+        where: { lpId: slugData[0].lpId},
+      })
+
+      let newData  = await this.lpPageRepository.find({
+        where: { id:slugData[0].lpId},
+      });
+      
+      return {
+        redirect:true,
+        lpNameSlug:data,
+        nameSlug:newData[0].nameSlug
+      }
+    }
+
+    return {
+      redirect:false,
+      lpNameSlug:[],
+      nameSlug: null
+    };
+  }
+
+
+
+
   async createPdf(slug: string, brandId: number, pdfDto: any): Promise<any> {
     try {
       const newLead = this.lpPdfRepository.create({
