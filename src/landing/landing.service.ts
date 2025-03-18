@@ -85,6 +85,7 @@ export class LandingService {
         'lp_page.domainType',
         'lp_page.nameSlug',
         'template.name AS template_name',
+        'lp_page.metaIndex'
       ]);
     const itemCount = await queryBuilder.getCount();
     const validOrder = order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
@@ -137,6 +138,7 @@ export class LandingService {
           : page.domainType == DomainType.CUSTOM_DOMAIN
             ? `https://${page.domain}`
             : '-',
+      metaIndex: page.metaIndex,
     };
   }
   async createPage(
