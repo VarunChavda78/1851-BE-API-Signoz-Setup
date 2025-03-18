@@ -442,13 +442,6 @@ export class LandingService {
     });
      
 
-      // if(lpId){
-      //   data =await this.lpPageRepository.find({
-      //     where: { id: lpId, status: PageStatus.PUBLISH },
-      //   });
-      // }
-  
-
     if (!data || data.length === 0) {
       throw new Error(`No published pages found for slug: ${slug}`);
     }
@@ -483,7 +476,7 @@ export class LandingService {
     const slugData= await this.lpNameRepository.find({
       where: { nameSlug: slug},
     })
-    
+
     if(slugData && slugData.length>0){
       const data= await this.lpNameRepository.find({
         where: { lpId: slugData[0].lpId},
