@@ -205,7 +205,12 @@ export class LandingController {
         data: publishData,
       };
     } catch (err) {
-      return { status: false, message: err?.message };
+      const LpNameHistory= await this.landingService.getLpNameHistory(slug)
+      return { 
+        status: false, 
+        message: err?.message,
+        redirect:LpNameHistory
+      };
     }
   }
 

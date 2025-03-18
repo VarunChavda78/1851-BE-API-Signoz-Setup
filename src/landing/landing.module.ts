@@ -24,6 +24,7 @@ import { S3Module } from 'src/s3/s3.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LpInquiryRepository } from './lp-inquiry.repository';
 import { LpCrmFormRepository } from './lp-form.repository';
+import { LpNameRepository } from './lp-name-history.repository';
 
 @Module({
   imports: [TypeOrmModule.forFeature([LpLeads]), UsersModule, SharedModule, S3Module, HttpModule],
@@ -46,7 +47,8 @@ import { LpCrmFormRepository } from './lp-form.repository';
     AuthService,
     VerifyCaptchaService,
     LpLeadsRepository,
-    S3Service
+    S3Service,
+    LpNameRepository
   ],
 })
 export class LandingModule {}
