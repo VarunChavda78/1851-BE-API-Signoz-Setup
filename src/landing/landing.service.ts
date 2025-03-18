@@ -1029,6 +1029,48 @@ export class LandingService {
     }
   }
 
+  async getMetaIndex(lpId: number, brandId: number) {
+    try {
+         const landingPage = await this.lpPageRepository.findOne({
+           where: {
+             id:lpId,
+             brandId
+           },
+           select:['id','metaIndex']
+         })
+      if (!landingPage) {
+        throw new NotFoundException('Landing page not found');
+      }
+
+      return { id: landingPage.id, metaIndex: landingPage.metaIndex };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateMetaIndex(lpId: number, brandId: number, metaIndex: boolean, userId: number) {
+    try {
+      const landingPage = await this.lpPageRepository.findOne({
+        where: {
+          id: lpId,
+          brandId,
+        },
+      });
+
+      if (!landingPage) {
+        throw new NotFoundException('Landing page not found');
+      }
+
+      landingPage.metaIndex = metaIndex;
+      landingPage.updatedBy = userId;
+
+      await this.lpPageRepository.save(landingPage);
+
+      return { id: landingPage.id, metaIndex: landingPage.metaIndex };
+    } catch (error) {
+      throw error;
+    }
+  }
   async createOrUpdateLpCrmForm(lpId: number, brandId: number, content) {
     const existingForm = await this.lpCrmFormRepository.findOne({
       where: {

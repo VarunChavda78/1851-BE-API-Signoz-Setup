@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
 } from 'typeorm';
-import { LpTemplate } from './lp-template.entity'; 
+import { LpTemplate } from './lp-template.entity';
 
 @Entity('lp_pages')
 export class LpPage {
@@ -53,11 +53,14 @@ export class LpPage {
   updatedAt: Date;
 
   @Column({ type: 'timestamp', nullable: true })
-  deletedAt: Date; 
+  deletedAt: Date;
 
   @ManyToOne(() => LpTemplate, (template) => template.id)
-  template: LpTemplate; 
+  template: LpTemplate;
 
   @Column({ length: 255, nullable: true })
   gaCode: string;
+
+  @Column({ type: 'boolean', default: true })
+  metaIndex: boolean;
 }
