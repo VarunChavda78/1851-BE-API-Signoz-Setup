@@ -960,8 +960,8 @@ export class LandingController {
       };
     }
   }
-  @Get(':lpId/brandSlug')
-  async findBrandSlugFromLpId(@Param('lpId') lpId: number) {
+  @Get('/details')
+  async findBrandSlugFromLpId(@Query('lpId') lpId: number) {
     try {
       const data = await this.landingService.checkPagesBrandSlug(lpId);
       return {
