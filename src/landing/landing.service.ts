@@ -494,7 +494,7 @@ export class LandingService {
       
       return {
         redirect:true,
-        lpNameSlug:data,
+        lpNameSlug:data?.map(item=>item?.nameSlug),
         nameSlug:newData[0].nameSlug
       }
     }

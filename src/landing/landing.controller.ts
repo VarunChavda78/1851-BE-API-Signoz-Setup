@@ -205,11 +205,13 @@ export class LandingController {
         data: publishData,
       };
     } catch (err) {
-      const LpNameHistory= await this.landingService.getLpNameHistory(slug)
+      const lpNameHistory= await this.landingService.getLpNameHistory(slug)
       return { 
         status: false, 
         message: err?.message,
-        redirect:LpNameHistory
+        redirect:lpNameHistory?.redirect,
+        lpNameSlug:lpNameHistory?.lpNameSlug,
+        namSlug:lpNameHistory?.nameSlug
       };
     }
   }
