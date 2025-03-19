@@ -205,11 +205,11 @@ export class LandingController {
         data: publishData,
       };
     } catch (err) {
-      const LpNameHistory= await this.landingService.getLpNameHistory(slug)
-      return { 
-        status: false, 
+      const LpNameHistory = await this.landingService.getLpNameHistory(slug);
+      return {
+        status: false,
         message: err?.message,
-        redirect:LpNameHistory
+        redirect: LpNameHistory,
       };
     }
   }
@@ -949,6 +949,21 @@ export class LandingController {
   async checkUniqueNameSlug(@Query('nameSlug') nameSlug: string) {
     try {
       const data = await this.landingService.checkUniqueNameSlug(nameSlug);
+      return {
+        status: true,
+        data,
+      };
+    } catch (error) {
+      return {
+        status: false,
+        message: error.message,
+      };
+    }
+  }
+  @Get(':lpId/brandSlug')
+  async findBrandSlugFromLpId(@Param('lpId') lpId: number) {
+    try {
+      const data = await this.landingService.checkPagesBrandSlug(lpId);
       return {
         status: true,
         data,
