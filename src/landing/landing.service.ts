@@ -1158,9 +1158,10 @@ export class LandingService {
         {
           where:{
             id:lpId,
+            
             deletedAt:IsNull()
           },
-          select:['brandSlug'],
+          select:['brandSlug','templateId'],
         },
       );
       if(!data){
