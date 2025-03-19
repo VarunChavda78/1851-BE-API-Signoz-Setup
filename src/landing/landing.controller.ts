@@ -211,7 +211,7 @@ export class LandingController {
         message: err?.message,
         redirect:lpNameHistory?.redirect,
         lpNameSlug:lpNameHistory?.lpNameSlug,
-        namSlug:lpNameHistory?.nameSlug
+        nameSlug:lpNameHistory?.nameSlug
       };
     }
   }
