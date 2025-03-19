@@ -87,7 +87,9 @@ export class LandingService {
         'lp_page.domainType',
         'lp_page.nameSlug',
         'template.name AS template_name',
-        'lp_page.metaIndex'
+        'lp_page.metaIndex',
+        'lp_page.createdAt',
+        'lp_page.updatedAt',
       ]);
     const itemCount = await queryBuilder.getCount();
     const validOrder = order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
@@ -141,6 +143,8 @@ export class LandingService {
             ? `https://${page.domain}`
             : '-',
       metaIndex: page.metaIndex,
+      createdAt: page.createdAt,
+      updatedAt: page.updatedAt,
     };
   }
   async createPage(
