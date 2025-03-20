@@ -146,6 +146,7 @@ export class LandingController {
         brand?.id,
         publishDto,
         slug,
+        req.user.id,
       );
       return {
         status: true,

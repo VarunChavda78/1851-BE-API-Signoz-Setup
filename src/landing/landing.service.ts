@@ -32,6 +32,7 @@ import { UpdateLpInquiryDto } from './dtos/lpInquiryDto';
 import { LpCrmFormRepository } from './lp-form.repository';
 import { LpNameRepository } from './lp-name-history.repository';
 import { Not, IsNull } from 'typeorm';
+import { LpStatusRepository } from './lp-status.repository';
 const dayjs = require('dayjs');
 const utc = require('dayjs/plugin/utc');
 const timezone = require('dayjs/plugin/timezone');
@@ -56,6 +57,7 @@ export class LandingService {
     private envService: EnvironmentConfigService,
     private commonService: CommonService,
     private verifyCaptchaService: VerifyCaptchaService,
+    private readonly lpStatusRepository: LpStatusRepository,
   ) {}
 
   async getPagesBySlug(slug: string, pageOptions: PageOptionsDto) {
@@ -184,8 +186,16 @@ export class LandingService {
       updatedAt: timestamp,
       deletedAt: null,
     });
-
-    return await this.lpPageRepository.save(newPage);
+    const response = await this.lpPageRepository.save(newPage);
+    if(response){
+      await this.lpStatusRepository.save({
+        landingPageId: response.id,
+        status: 1,
+        createdBy: userId,
+        createdAt: timestamp
+      });
+    }
+    return response
   }
   async editPage(
     editPageDto: {
@@ -356,6 +366,7 @@ export class LandingService {
     brandId: number,
     publishDto: any,
     slug: string,
+    userId: number,
   ) {
     try {
       const totalPublishedPages = await this.lpPageRepository.count({
@@ -386,8 +397,15 @@ export class LandingService {
           : null; // Map to integer
         existingPublish.domain = publishDto.domain || null;
         (existingPublish.brandSlug = slug || null),
-          (existingPublish.updatedBy = 1); // Assuming constant value for now
+          (existingPublish.updatedBy = userId);
         const data = await this.lpPageRepository.save(existingPublish);
+        const statusHistory = await this.lpStatusRepository.findOne({
+          where: { landingPageId: lpId },
+        });
+        if (statusHistory) {
+          statusHistory.status = publishDto.publishStatus ? 2 : 1;
+          await this.lpStatusRepository.save(statusHistory);
+        }
         return { ...data, status: data.status == 2 };
       } else {
         return existingPublish;
