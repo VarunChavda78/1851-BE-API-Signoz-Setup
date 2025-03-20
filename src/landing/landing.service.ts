@@ -1054,14 +1054,17 @@ export class LandingService {
     const inquiry = await this.lpInquiryRepository.findOne({
       where: { lpId, brandId: brand.id },
     });
-    // if (!inquiry) {
-    //   return null;
-    // }
+    if (!inquiry) {
+      return {
+        email: [],
+        brandEmail: this.emailStringToArray(brand?.email),
+      };
+    }
 
     return {
       ...inquiry,
       email: this.emailStringToArray(inquiry?.email),
-      brandEmail: this.emailStringToArray(brand.email),
+      brandEmail: this.emailStringToArray(brand?.email),
     };
   }
 
