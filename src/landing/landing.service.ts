@@ -190,7 +190,7 @@ export class LandingService {
     if(response){
       await this.lpStatusRepository.save({
         landingPageId: response.id,
-        status: 1,
+        status: PageStatus.DRAFT,
         createdBy: userId,
         createdAt: timestamp
       });
@@ -403,7 +403,7 @@ export class LandingService {
           where: { landingPageId: lpId },
         });
         if (statusHistory) {
-          statusHistory.status = publishDto.publishStatus ? 2 : 1;
+          statusHistory.status = publishDto.publishStatus ? PageStatus.PUBLISH : PageStatus.DRAFT;
           await this.lpStatusRepository.save(statusHistory);
         }
         return { ...data, status: data.status == 2 };
