@@ -962,4 +962,19 @@ export class LandingController {
       };
     }
   }
+  @Get('/details')
+  async findBrandSlugFromLpId(@Query('lpId') lpId: number) {
+    try {
+      const data = await this.landingService.checkPagesBrandSlug(lpId);
+      return {
+        status: true,
+        data,
+      };
+    } catch (error) {
+      return {
+        status: false,
+        message: error.message,
+      };
+    }
+  }
 }

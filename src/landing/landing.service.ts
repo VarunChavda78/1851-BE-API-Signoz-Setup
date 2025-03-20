@@ -1160,6 +1160,28 @@ export class LandingService {
       throw error;
     }
   }
+  async checkPagesBrandSlug(lpId:number){
+    try {
+      const data = await this.lpPageRepository.findOne(
+        {
+          where:{
+            id:lpId,
+            
+            deletedAt:IsNull()
+          },
+          select:['brandSlug','templateId'],
+        },
+      );
+      if(!data){
+        throw new NotFoundException('landing Page not found');
+      }
+      return data;
+
+    }
+    catch(error){
+      throw error;
+    }
+  }
   async getLandingBrandStatus(slug: string) {
     const brand = await this.usersService.getBrandIdBySlug(slug);
     if (!brand) {
