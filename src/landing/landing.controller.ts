@@ -205,11 +205,13 @@ export class LandingController {
         data: publishData,
       };
     } catch (err) {
-      const LpNameHistory = await this.landingService.getLpNameHistory(slug);
-      return {
-        status: false,
+      const lpNameHistory= await this.landingService.getLpNameHistory(slug)
+      return { 
+        status: false, 
         message: err?.message,
-        redirect: LpNameHistory,
+        redirect:lpNameHistory?.redirect,
+        lpNameSlug:lpNameHistory?.lpNameSlug,
+        nameSlug:lpNameHistory?.nameSlug
       };
     }
   }
@@ -620,7 +622,7 @@ export class LandingController {
       }
       const response = await this.landingService.getInquiryEmails(
         lpId,
-        brand.id,
+        brand,
       );
       return {
         status: true,

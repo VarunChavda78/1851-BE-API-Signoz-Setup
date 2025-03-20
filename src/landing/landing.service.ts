@@ -87,7 +87,9 @@ export class LandingService {
         'lp_page.domainType',
         'lp_page.nameSlug',
         'template.name AS template_name',
-        'lp_page.metaIndex'
+        'lp_page.metaIndex',
+        'lp_page.createdAt',
+        'lp_page.updatedAt',
       ]);
     const itemCount = await queryBuilder.getCount();
     const validOrder = order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
@@ -141,6 +143,8 @@ export class LandingService {
             ? `https://${page.domain}`
             : '-',
       metaIndex: page.metaIndex,
+      createdAt: page.createdAt,
+      updatedAt: page.updatedAt,
     };
   }
   async createPage(
@@ -490,7 +494,7 @@ export class LandingService {
       
       return {
         redirect:true,
-        lpNameSlug:data,
+        lpNameSlug:data?.map(item=>item?.nameSlug),
         nameSlug:newData[0].nameSlug
       }
     }
@@ -1046,17 +1050,21 @@ export class LandingService {
     return emailString ? emailString.split(',') : [];
   }
 
-  async getInquiryEmails(lpId: number, brandId: number): Promise<any> {
+  async getInquiryEmails(lpId: number, brand: any): Promise<any> {
     const inquiry = await this.lpInquiryRepository.findOne({
-      where: { lpId, brandId },
+      where: { lpId, brandId: brand.id },
     });
     if (!inquiry) {
-      return null;
+      return {
+        email: [],
+        brandEmail: this.emailStringToArray(brand?.email),
+      };
     }
 
     return {
       ...inquiry,
-      email: this.emailStringToArray(inquiry.email),
+      email: this.emailStringToArray(inquiry?.email),
+      brandEmail: this.emailStringToArray(brand?.email),
     };
   }
 
