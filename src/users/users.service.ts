@@ -715,7 +715,7 @@ export class UsersService {
 
   async getBrandIdBySlug(slug: string){
     try {
-      const user = await this.usersRepository.findOne({ where: { brand_url: slug }, select: ["id", "status"] });
+      const user = await this.usersRepository.findOne({ where: { brand_url: slug }, select: ["id", "status", 'email'] });
       return user;
     } catch (error) {
       this.logger.error('Error fetching brand by slug', error);

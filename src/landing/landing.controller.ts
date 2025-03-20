@@ -622,7 +622,7 @@ export class LandingController {
       }
       const response = await this.landingService.getInquiryEmails(
         lpId,
-        brand.id,
+        brand,
       );
       return {
         status: true,
