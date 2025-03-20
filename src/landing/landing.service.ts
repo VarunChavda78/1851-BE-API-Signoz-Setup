@@ -1050,17 +1050,18 @@ export class LandingService {
     return emailString ? emailString.split(',') : [];
   }
 
-  async getInquiryEmails(lpId: number, brandId: number): Promise<any> {
+  async getInquiryEmails(lpId: number, brand: any): Promise<any> {
     const inquiry = await this.lpInquiryRepository.findOne({
-      where: { lpId, brandId },
+      where: { lpId, brandId: brand.id },
     });
-    if (!inquiry) {
-      return null;
-    }
+    // if (!inquiry) {
+    //   return null;
+    // }
 
     return {
       ...inquiry,
-      email: this.emailStringToArray(inquiry.email),
+      email: this.emailStringToArray(inquiry?.email),
+      brandEmail: this.emailStringToArray(brand.email),
     };
   }
 
