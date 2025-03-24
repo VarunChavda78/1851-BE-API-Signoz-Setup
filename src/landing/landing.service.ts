@@ -613,16 +613,16 @@ export class LandingService {
     try {
       // Verify reCAPTCHA
       if (leadDataDto?.formType !== 2) {
-        const recaptcha = await this.verifyCaptchaService.verifyCaptcha(
-          leadDataDto?.gReCaptchaToken,
-        );
+        // const recaptcha = await this.verifyCaptchaService.verifyCaptcha(
+        //   leadDataDto?.gReCaptchaToken,
+        // );
 
-        if (!recaptcha) {
-          return {
-            status: false,
-            message: 'Invalid Captcha response',
-          };
-        }
+        // if (!recaptcha) {
+        //   return {
+        //     status: false,
+        //     message: 'Invalid Captcha response',
+        //   };
+        // }
 
         // Remove captcha token from data
         delete leadDataDto?.gReCaptchaToken;
