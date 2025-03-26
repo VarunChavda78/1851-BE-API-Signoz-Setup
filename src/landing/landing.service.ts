@@ -1169,7 +1169,7 @@ export class LandingService {
             
             deletedAt:IsNull()
           },
-          select:['brandSlug','templateId'],
+          select:['brandSlug','templateId', 'name'],
         },
       );
       if(!data){
