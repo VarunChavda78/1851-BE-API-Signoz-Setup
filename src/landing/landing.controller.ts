@@ -27,6 +27,7 @@ import { Protected } from 'src/auth/auth.decorator';
 import { UpdateLpInquiryDto } from './dtos/lpInquiryDto';
 import { DomainType } from 'src/shared/constants/constants';
 import { PageStatus } from './landing.constant';
+import { UpdateLeadDto } from './dtos/updateLeadDto';
 
 @Controller({
   version: '1',
@@ -969,6 +970,36 @@ export class LandingController {
       return {
         status: true,
         data,
+      };
+    } catch (error) {
+      return {
+        status: false,
+        message: error.message,
+      };
+    }
+  }
+  @Get('leads/:uid')
+  async getLeadByUid(@Param('uid') uid: string) {
+    try {
+      const lead = await this.landingService.getLeadByUid(uid);
+      return {
+        status: true,
+        lead,
+      };
+    } catch (error) {
+      return {
+        status: false,
+        message: error.message,
+      };
+    }
+  }
+  @Put('leads/:uid')
+  async updateLeadByUid(@Param('uid') uid: string, @Body() updateLeadDto: UpdateLeadDto) {
+    try {
+      await this.landingService.updateLeadByUid(uid, updateLeadDto);
+      return {
+        status: true,
+        message: 'Lead updated successfully',
       };
     } catch (error) {
       return {

@@ -32,6 +32,7 @@ import { UpdateLpInquiryDto } from './dtos/lpInquiryDto';
 import { LpCrmFormRepository } from './lp-form.repository';
 import { LpNameRepository } from './lp-name-history.repository';
 import { Not, IsNull } from 'typeorm';
+import { UpdateLeadDto } from './dtos/updateLeadDto';
 const dayjs = require('dayjs');
 const utc = require('dayjs/plugin/utc');
 const timezone = require('dayjs/plugin/timezone');
@@ -1397,6 +1398,59 @@ export class LandingService {
       return { id: landingPage.id, gaCode: landingPage.gaCode };
     } catch (error) {
       throw error;
+    }
+  }
+  async getLeadByUid(uid: string) {
+    try {
+      const leadFields = await this.lpLeadsRepository.createQueryBuilder('lead')
+      .where('lead.uid = :uid', { uid })
+      .andWhere('lead.deletedAt IS NULL')
+      .getMany();
+  
+    if (!leadFields || leadFields.length === 0) {
+      throw new NotFoundException('Lead not found');
+    }
+  
+    // Take the first record for common properties
+    const firstField = leadFields[0];
+    
+    // Initialize the transformed lead object with common properties
+    const transformedLead = {
+      brandId: firstField.brandId,
+      lpId: firstField.lpId,
+      uid: firstField.uid,
+      type: firstField.type,
+      formType: firstField.formType,
+      createdAt: firstField.createdAt,
+      deletedAt: firstField.deletedAt
+    };
+  
+    // Add each field as a direct property
+    leadFields.forEach(fieldData => {
+      transformedLead[fieldData.field] = fieldData.value;
+    });
+  
+    return transformedLead;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async updateLeadByUid(uid: string, updateLeadDto: UpdateLeadDto) {
+    try {
+      const leadFields = await this.lpLeadsRepository.createQueryBuilder('lead')
+      .where('lead.uid = :uid', { uid })
+      .andWhere('lead.deletedAt IS NULL')
+      .getMany();
+      if (!leadFields || leadFields.length === 0) {
+        throw new NotFoundException('Lead not found');
+      }
+      leadFields.forEach(async (fieldData) => {
+        fieldData.value = updateLeadDto[fieldData.field];
+        await this.lpLeadsRepository.save(fieldData);
+      });
+      
+    } catch (error) {
+      
     }
   }
 }
