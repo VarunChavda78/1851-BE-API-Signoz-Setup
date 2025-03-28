@@ -689,10 +689,10 @@ export class LandingController {
         data,
       };
     } catch (error) {
-      throw new HttpException(
-        error?.message || 'Failed to get form',
-        error?.status || 500,
-      );
+      return {
+        status: false,
+        message: error.message,
+      };
     }
   }
 
