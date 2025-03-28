@@ -52,7 +52,7 @@ export class LandingService {
     private readonly lpLeadsRepository: LpLeadsRepository,
     private lpInquiryRepository: LpInquiryRepository,
     private lpCrmFormRepository: LpCrmFormRepository,
-    private readonly lpNameRepository:LpNameRepository,
+    private readonly lpNameRepository: LpNameRepository,
     private s3Service: S3Service,
     private envService: EnvironmentConfigService,
     private commonService: CommonService,
@@ -221,18 +221,18 @@ export class LandingService {
         `Page with nameSlug ${editPageDto.nameSlug} already exists`,
       );
     }
-    
-      // Store previous editPageDto data into lp_name_history before update 
-      const lpHistory = this.lpNameRepository.create({
-        lpId: editPageDto.lpId,
-        name: page.name,
-        nameSlug: page.nameSlug,
-        createdAt: timestamp,
-        createdBy: userId,
-      });
 
-      await this.lpNameRepository.save(lpHistory);
-    
+    // Store previous editPageDto data into lp_name_history before update
+    const lpHistory = this.lpNameRepository.create({
+      lpId: editPageDto.lpId,
+      name: page.name,
+      nameSlug: page.nameSlug,
+      createdAt: timestamp,
+      createdBy: userId,
+    });
+
+    await this.lpNameRepository.save(lpHistory);
+
     page.name = editPageDto.name;
     page.nameSlug = editPageDto.nameSlug;
     page.updatedAt = timestamp;
@@ -282,6 +282,7 @@ export class LandingService {
     sectionSlug: string,
     createLandingPageDto: any,
     userId: number,
+    isUpdated: string,
   ) {
     try {
       const section = await this.lpSectionRepository.findOne({
@@ -297,6 +298,9 @@ export class LandingService {
 
       if (existingPage) {
         // Update existing customization
+        if (isUpdated === 'true'){
+          existingPage.publishedContent = createLandingPageDto?.data || '';
+        }
         existingPage.content = createLandingPageDto?.data || '';
         existingPage.updatedAt = timestamp;
         return {
@@ -447,7 +451,6 @@ export class LandingService {
     let data = await this.lpPageRepository.find({
       where: { nameSlug: slug, status: PageStatus.PUBLISH },
     });
-     
 
     if (!data || data.length === 0) {
       throw new Error(`No published pages found for slug: ${slug}`);
@@ -478,37 +481,33 @@ export class LandingService {
     };
   }
 
+  async getLpNameHistory(slug: string) {
+    const slugData = await this.lpNameRepository.find({
+      where: { nameSlug: slug },
+    });
 
-  async getLpNameHistory(slug:string){
-    const slugData= await this.lpNameRepository.find({
-      where: { nameSlug: slug},
-    })
-
-    if(slugData && slugData.length>0){
-      const data= await this.lpNameRepository.find({
-        where: { lpId: slugData[0].lpId},
-      })
-
-      let newData  = await this.lpPageRepository.find({
-        where: { id:slugData[0].lpId},
+    if (slugData && slugData.length > 0) {
+      const data = await this.lpNameRepository.find({
+        where: { lpId: slugData[0].lpId },
       });
-      
+
+      let newData = await this.lpPageRepository.find({
+        where: { id: slugData[0].lpId },
+      });
+
       return {
-        redirect:true,
-        lpNameSlug:data?.map(item=>item?.nameSlug),
-        nameSlug:newData[0].nameSlug
-      }
+        redirect: true,
+        lpNameSlug: data?.map((item) => item?.nameSlug),
+        nameSlug: newData[0].nameSlug,
+      };
     }
 
     return {
-      redirect:false,
-      lpNameSlug:[],
-      nameSlug: null
+      redirect: false,
+      lpNameSlug: [],
+      nameSlug: null,
     };
   }
-
-
-
 
   async createPdf(slug: string, brandId: number, pdfDto: any): Promise<any> {
     try {
@@ -665,7 +664,6 @@ export class LandingService {
             type: leadDataDto.type || 1,
             formType: leadDataDto.formType || 2,
           }));
-
       } else {
         // Handle regular lead case
         leadFields = Object.entries(leadDataDto)
@@ -695,21 +693,18 @@ export class LandingService {
       const brand = await this.usersService.getBrandDetails(brandId);
 
       // Transform saved leads back to flat object for email service
-      const leadForEmail = savedLeads.reduce(
-      (acc, curr) => {
+      const leadForEmail = savedLeads.reduce((acc, curr) => {
         // Skip adding the field if it's "inquiryEmail"
-        if (curr.field === "inquiryEmail") {
+        if (curr.field === 'inquiryEmail') {
           return acc;
         }
-        
+
         // Otherwise, add the field-value pair to the accumulator
         return {
           ...acc,
           [curr.field]: curr.value,
         };
-      },
-      {},
-    );
+      }, {});
       const inquiryEmails = await this.getInquiryEmails(
         leadDataDto.lpId,
         brandId,
@@ -1091,13 +1086,13 @@ export class LandingService {
 
   async getMetaIndex(lpId: number, brandId: number) {
     try {
-         const landingPage = await this.lpPageRepository.findOne({
-           where: {
-             id:lpId,
-             brandId
-           },
-           select:['id','metaIndex']
-         })
+      const landingPage = await this.lpPageRepository.findOne({
+        where: {
+          id: lpId,
+          brandId,
+        },
+        select: ['id', 'metaIndex'],
+      });
       if (!landingPage) {
         throw new NotFoundException('Landing page not found');
       }
@@ -1108,7 +1103,12 @@ export class LandingService {
     }
   }
 
-  async updateMetaIndex(lpId: number, brandId: number, metaIndex: boolean, userId: number) {
+  async updateMetaIndex(
+    lpId: number,
+    brandId: number,
+    metaIndex: boolean,
+    userId: number,
+  ) {
     try {
       const landingPage = await this.lpPageRepository.findOne({
         where: {
@@ -1161,25 +1161,21 @@ export class LandingService {
       throw error;
     }
   }
-  async checkPagesBrandSlug(lpId:number){
+  async checkPagesBrandSlug(lpId: number) {
     try {
-      const data = await this.lpPageRepository.findOne(
-        {
-          where:{
-            id:lpId,
-            
-            deletedAt:IsNull()
-          },
-          select:['brandSlug','templateId', 'name'],
+      const data = await this.lpPageRepository.findOne({
+        where: {
+          id: lpId,
+
+          deletedAt: IsNull(),
         },
-      );
-      if(!data){
+        select: ['brandSlug', 'templateId', 'name'],
+      });
+      if (!data) {
         throw new NotFoundException('landing Page not found');
       }
       return data;
-
-    }
-    catch(error){
+    } catch (error) {
       throw error;
     }
   }
@@ -1299,7 +1295,6 @@ export class LandingService {
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0">';
       data.forEach((entry) => {
         entry.urls.forEach((url: any) => {
-         
           urlContent += `
     <url>
 <loc>${url}</loc>
