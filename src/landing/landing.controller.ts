@@ -205,13 +205,13 @@ export class LandingController {
         data: publishData,
       };
     } catch (err) {
-      const lpNameHistory= await this.landingService.getLpNameHistory(slug)
-      return { 
-        status: false, 
+      const lpNameHistory = await this.landingService.getLpNameHistory(slug);
+      return {
+        status: false,
         message: err?.message,
-        redirect:lpNameHistory?.redirect,
-        lpNameSlug:lpNameHistory?.lpNameSlug,
-        nameSlug:lpNameHistory?.nameSlug
+        redirect: lpNameHistory?.redirect,
+        lpNameSlug: lpNameHistory?.lpNameSlug,
+        nameSlug: lpNameHistory?.nameSlug,
       };
     }
   }
@@ -398,6 +398,7 @@ export class LandingController {
     @Param('sectionSlug') sectionSlug: string,
     @Body() createLandingPageDto: any,
     @Req() req,
+    @Query('isUpdated') isUpdated: string = 'false',
   ) {
     try {
       const brand = await this.usersService.getBrandIdBySlug(slug);
@@ -415,6 +416,7 @@ export class LandingController {
         sectionSlug,
         createLandingPageDto,
         req.user.id,
+        isUpdated
       );
       return {
         status: true,
@@ -620,10 +622,7 @@ export class LandingController {
       if (!brand) {
         throw new BadRequestException(`Brand not found for slug: ${slug}`);
       }
-      const response = await this.landingService.getInquiryEmails(
-        lpId,
-        brand,
-      );
+      const response = await this.landingService.getInquiryEmails(lpId, brand);
       return {
         status: true,
         data: response || {},
