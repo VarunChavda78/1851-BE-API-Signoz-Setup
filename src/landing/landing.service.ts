@@ -281,7 +281,7 @@ export class LandingService {
     sectionSlug: string,
     createLandingPageDto: any,
     userId: number,
-    isUpdated: boolean,
+    isUpdated: string,
   ) {
     try {
       const section = await this.lpSectionRepository.findOne({
@@ -297,7 +297,7 @@ export class LandingService {
 
       if (existingPage) {
         // Update existing customization
-        if (isUpdated) {
+        if (isUpdated === 'true'){
           existingPage.publishedContent = createLandingPageDto?.data || '';
         }
         existingPage.content = createLandingPageDto?.data || '';
