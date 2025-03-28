@@ -398,7 +398,7 @@ export class LandingController {
     @Param('sectionSlug') sectionSlug: string,
     @Body() createLandingPageDto: any,
     @Req() req,
-    @Query('isUpdated') isUpdated: boolean,
+    @Query('isUpdated') isUpdated: boolean = false,
   ) {
     try {
       const brand = await this.usersService.getBrandIdBySlug(slug);
