@@ -312,7 +312,10 @@ export class LandingService {
           landingPageId: lpId,
           section: section,
           content: createLandingPageDto?.data || '',
-          publishedContent: outsideUpdate ? createLandingPageDto?.data : '',
+          publishedContent:
+            outsideUpdate && createLandingPageDto?.data
+              ? createLandingPageDto.data
+              : {},
           createdBy: userId,
           updatedBy: userId,
           createdAt: timestamp,
