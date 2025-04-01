@@ -291,13 +291,13 @@ export class LandingService {
       if (!section) {
         throw new Error(`Section not found for slug: ${sectionSlug}`);
       }
-
+      const outsideUpdate = isUpdated === 'true';
       const existingPage = await this.findSection(lpId, sectionSlug);
       const timestamp = new Date();
 
       if (existingPage) {
         // Update existing customization
-        if (isUpdated === 'true'){
+        if (outsideUpdate) {
           existingPage.publishedContent = createLandingPageDto?.data || '';
         }
         existingPage.content = createLandingPageDto?.data || '';
@@ -312,6 +312,7 @@ export class LandingService {
           landingPageId: lpId,
           section: section,
           content: createLandingPageDto?.data || '',
+          publishedContent: outsideUpdate ? createLandingPageDto?.data : '',
           createdBy: userId,
           updatedBy: userId,
           createdAt: timestamp,
