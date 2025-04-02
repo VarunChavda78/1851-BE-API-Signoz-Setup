@@ -37,21 +37,22 @@ export class VerifyCaptchaService {
         this.httpService.post(url, formData, { headers }),
       );
       
-      console.log('reCAPTCHA response:', response?.data);
+      console.log('reCAPTCHA response:', JSON.stringify(response?.data));
       
-      // For custom domains, handle domain mismatch errors differently
+      // For custom domains, be more lenient with verification
       if (isCustomDomain) {
-        // Check if the error is specifically a hostname mismatch
-        const hasHostnameMismatch = response?.data['error-codes']?.includes('hostname-mismatch');
+        // Check for specific error types that we want to bypass for custom domains
+        const hasDomainError = 
+          response?.data['error-codes']?.includes('hostname-mismatch') ||
+          response?.data['error-codes']?.includes('browser-error');
         
-        // For custom domains, accept the token despite hostname mismatch
-        // This is the key part that allows custom domains to work
+        // Accept the token despite certain errors for custom domains
         if (response?.data?.success === true || 
-            (response?.data?.success === false && hasHostnameMismatch)) {
+            (response?.data?.success === false && hasDomainError)) {
           
-          // Optionally, log this for audit purposes
-          if (hasHostnameMismatch) {
-            console.log(`reCAPTCHA hostname mismatch accepted for custom domain: ${hostname}`);
+          // Log for audit purposes
+          if (hasDomainError) {
+            console.log(`reCAPTCHA error bypassed for custom domain ${hostname}: ${JSON.stringify(response?.data['error-codes'])}`);
           }
           
           return true;
@@ -63,12 +64,13 @@ export class VerifyCaptchaService {
         }
       }
       
-      // Log the failure reason for debugging
+      // Log the failure reason
       console.log(`reCAPTCHA verification failed: ${JSON.stringify(response?.data)}`);
       return false;
     } catch (error) {
-      console.error('Error verifying captcha. Please try again later', error);
+      console.error('Error verifying captcha:', error);
       throw error;
     }
   }
+
 }
