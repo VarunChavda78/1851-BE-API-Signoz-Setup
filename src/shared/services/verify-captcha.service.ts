@@ -21,6 +21,8 @@ export class VerifyCaptchaService {
       const response: AxiosResponse = await firstValueFrom(
         this.httpService.post(url, formData, { headers }),
       );
+      console.log('mmm response', response);
+      console.log('mmm data', response?.data);
 
       if (response && response?.data?.success && response?.data?.score > 0.5) {
         return true;
