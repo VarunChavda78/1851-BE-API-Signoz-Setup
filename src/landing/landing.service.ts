@@ -616,20 +616,26 @@ export class LandingService {
     try {
       // Verify reCAPTCHA
       if (leadDataDto?.formType !== 2) {
-        const recaptcha = await this.verifyCaptchaService.verifyCaptcha(
-          leadDataDto?.gReCaptchaToken,
-        );
-        console.log('mmm recaptcha', recaptcha);
+        // Extract hostname from the request data
+      const hostname = leadDataDto?.hostname;
+      
+      // Pass hostname to the verification service
+      const recaptcha = await this.verifyCaptchaService.verifyCaptcha(
+        leadDataDto?.gReCaptchaToken,
+        hostname
+      );
+      console.log('recaptcha verification result:', recaptcha);
 
-        if (!recaptcha) {
-          return {
-            status: false,
-            message: 'Invalid Captcha response',
-          };
-        }
+      if (!recaptcha) {
+        return {
+          status: false,
+          message: 'Invalid Captcha response',
+        };
+      }
 
-        // Remove captcha token from data
-        delete leadDataDto?.gReCaptchaToken;
+      // Remove captcha token and hostname from data
+      delete leadDataDto?.gReCaptchaToken;
+      delete leadDataDto?.hostname;
       }
 
       // Generate unique ID for this submission

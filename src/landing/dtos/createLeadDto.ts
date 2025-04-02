@@ -22,4 +22,7 @@ export class CreateLeadDto {
   email?: string;
 
   [key: string]: any;
+
+  @IsString()
+  hostname?: string;
 }
