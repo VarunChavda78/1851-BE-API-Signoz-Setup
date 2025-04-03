@@ -616,7 +616,7 @@ export class LandingService {
   ): Promise<any> {
     try {
       // Verify reCAPTCHA
-      if (leadDataDto?.formType !== 2) {
+      if (leadDataDto?.formType !== 2 && leadDataDto?.type != 5) {
         // Extract hostname from the request data
       const hostname = leadDataDto?.hostname;
       
@@ -827,6 +827,7 @@ export class LandingService {
         .select('lead.uid')
         .addSelect('MAX(lead.createdAt)', 'createdAt')
         .addSelect('MAX(lead.formType)', 'formType')
+        .addSelect('MAX(lead.type)', 'type')
         .addSelect('MAX(lead.lpId)', 'lpId')
         .where('lead.brandId = :brandId', { brandId })
         .andWhere('lead.deletedAt IS NULL')
@@ -944,6 +945,7 @@ export class LandingService {
             leadFields[0]?.formType === 1 ? 'Inquiry Form' : 'Download PDF',
           uid,
           lpId: leadFields[0]?.lpId,
+          type: leadFields[0]?.type,
         };
       });
 
@@ -1444,19 +1446,48 @@ export class LandingService {
   async updateLeadByUid(uid: string, updateLeadDto: UpdateLeadDto) {
     try {
       const leadFields = await this.lpLeadsRepository.createQueryBuilder('lead')
-      .where('lead.uid = :uid', { uid })
-      .andWhere('lead.deletedAt IS NULL')
-      .getMany();
+        .where('lead.uid = :uid', { uid })
+        .andWhere('lead.deletedAt IS NULL')
+        .getMany();
+
       if (!leadFields || leadFields.length === 0) {
         throw new NotFoundException('Lead not found');
       }
-      leadFields.forEach(async (fieldData) => {
-        fieldData.value = updateLeadDto[fieldData.field];
-        await this.lpLeadsRepository.save(fieldData);
+
+      // Create a map of existing fields
+      const existingFieldsMap = new Map();
+      leadFields.forEach(field => {
+        existingFieldsMap.set(field.field, field);
       });
+
+      // Process all fields from the DTO
+      const updatePromises = [];
+      for (const [fieldName, fieldValue] of Object.entries(updateLeadDto)) {
+        if (existingFieldsMap.has(fieldName)) {
+          // Update existing field
+          const fieldData = existingFieldsMap.get(fieldName);
+          fieldData.value = fieldValue;
+          updatePromises.push(this.lpLeadsRepository.save(fieldData));
+        } else {
+          // Create new field
+          const newField = this.lpLeadsRepository.create({
+            uid,
+            field: fieldName,
+            value: fieldValue,
+            brandId : updateLeadDto.brandId,
+            lpId: updateLeadDto.lpId || 1,
+            type: updateLeadDto.type || 1,
+            formType: updateLeadDto.formType || 1,
+          });
+          updatePromises.push(this.lpLeadsRepository.save(newField));
+        }
+      }
+
+      // Wait for all updates/inserts to complete
+      await Promise.all(updatePromises);
       
     } catch (error) {
-      
+      throw error;
     }
   }
 }
