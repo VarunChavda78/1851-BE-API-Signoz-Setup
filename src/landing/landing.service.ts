@@ -413,6 +413,13 @@ export class LandingService {
         if (statusHistory) {
           statusHistory.status = publishDto.publishStatus ? PageStatus.PUBLISH : PageStatus.DRAFT;
           await this.lpStatusRepository.save(statusHistory);
+        } else{
+          await this.lpStatusRepository.save({
+            landingPageId: lpId,
+            status: publishDto.publishStatus ? PageStatus.PUBLISH : PageStatus.DRAFT,
+            createdBy: userId,
+            createdAt: new Date(),
+          });
         }
         return { ...data, status: data.status == 2 };
       } else {
