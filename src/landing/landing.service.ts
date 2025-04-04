@@ -724,7 +724,13 @@ export class LandingService {
 
       // Create and save all fields
       const savedLeads = await this.lpLeadsRepository.save(leadFields);
-
+      if(leadDataDto.type === 5){
+        return {
+          status: true,
+          id: uid,
+          message: 'Lead has been added successfully',
+        };
+      }
       // Get brand details for email
       const brand = await this.usersService.getBrandDetails(brandId);
 
