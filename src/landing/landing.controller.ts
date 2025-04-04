@@ -993,6 +993,7 @@ export class LandingController {
       };
     }
   }
+  @Protected()
   @Put('leads/:uid')
   async updateLeadByUid(@Param('uid') uid: string, @Body() updateLeadDto: UpdateLeadDto) {
     try {
