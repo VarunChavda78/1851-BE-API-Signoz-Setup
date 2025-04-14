@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  1851-admin-be:
+    image: 025212946569.dkr.ecr.us-east-1.amazonaws.com/1851-admin-be-api:d1bb763db29e735b8471ecaedf7b1265bb7ee9e0
+    env_file:
+      - .env.production.local
+    ports:
+      - "3005:3000"
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: "2048MB"
+        reservations:
+          cpus: "1.5"
+          memory: "1536MB"
+
+networks:
+   default:
+    driver: overlay
