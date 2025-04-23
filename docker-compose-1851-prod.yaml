@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   1851-admin-be:
-    image: 580880756845.dkr.ecr.us-east-1.amazonaws.com/1851-admin-be-api:d1bb763db29e735b8471ecaedf7b1265bb7ee9e0
+    image: 025212946569.dkr.ecr.us-east-1.amazonaws.com/1851-admin-be-api:d1bb763db29e735b8471ecaedf7b1265bb7ee9e0
     env_file:
       - .env.production.local
     ports:
