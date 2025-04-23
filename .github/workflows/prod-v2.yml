@@ -12,19 +12,12 @@ env:
   APP_REPOSITORY: 1851-admin-be-api
 
 jobs:
-  Build-App:
-    name: "Build App"
-    uses: ./.github/workflows/docker-build.yml
-    secrets:
-      AWS_ROLE_TO_ASSUME_PROD: ${{ secrets.AWS_ROLE_TO_ASSUME_PROD }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
 
       
           
   Deployment:
     name: "Deployment"
     runs-on: "ubuntu-latest"
-    needs: [Build-App]
     
     steps:
       - name: "Checkout Code"
@@ -59,7 +52,7 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             set -e
-            sh /home/ubuntu/prod-ecr-login.sh
+            sh /home/ubuntu/dev-ecr-login.sh
             cd /srv/1851-prod/admin-be-api
             sh env/prod.sh
             docker stack deploy --with-registry-auth -c docker-compose-1851-prod.yaml 1851_prod_admin-be-api
