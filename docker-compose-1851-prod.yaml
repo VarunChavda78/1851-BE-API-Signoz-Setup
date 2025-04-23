@@ -6,7 +6,7 @@ services:
     env_file:
       - .env.production.local
     ports:
-      - "3005:3000"
+      - "3009:3000"
     deploy:
       mode: replicated
       replicas: 1
