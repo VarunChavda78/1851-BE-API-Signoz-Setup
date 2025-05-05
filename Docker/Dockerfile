@@ -16,7 +16,7 @@ RUN yarn run build
 FROM node:18-slim
 
 WORKDIR /app
-
+RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/* 
 RUN mkdir -p /app && chown node:node /app
 
 COPY --from=builder --chown=node:node /app/node_modules ./node_modules
