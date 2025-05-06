@@ -172,7 +172,7 @@ export class LandingController {
       if (!brand) {
         throw new Error(`Brand not found for slug: ${slug}`);
       }
-      const publishData = await this.landingService.getPublishData(lpId);
+      const publishData = await this.landingService.getPublishData(lpId, slug);
       return {
         status: true,
         data: publishData,

@@ -432,10 +432,10 @@ export class LandingService {
     }
   }
 
-  async getPublishData(lpId: number) {
+  async getPublishData(lpId: number, slug: string) {
     try {
       const data = await this.lpPageRepository.findOne({
-        where: { id: lpId },
+        where: { id: lpId, brandSlug: slug },
       });
       return { ...data, status: data.status == 2 };
     } catch (error) {
