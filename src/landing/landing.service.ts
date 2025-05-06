@@ -1521,4 +1521,17 @@ export class LandingService {
       throw error;
     }
   }
+  async validateLandingPage(slug: string, lpId: number) {
+    try {
+      const data = await this.lpPageRepository.findOne({
+        where: { id: lpId, brandSlug: slug },
+      });
+      if(!data){
+        throw new NotFoundException('Landing Page not found');
+      }
+      return true;
+    } catch (error) {
+      throw error;      
+    }
+  }
 }
