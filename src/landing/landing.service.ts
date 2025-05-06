@@ -1526,10 +1526,10 @@ export class LandingService {
       const data = await this.lpPageRepository.findOne({
         where: { id: lpId, brandSlug: slug },
       });
-      if(data?.templateId){
-        return true;
+      if(!data){
+        throw new NotFoundException('Landing Page not found');
       }
-      return false;
+      return true;
     } catch (error) {
       throw error;      
     }
