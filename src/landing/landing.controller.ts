@@ -217,7 +217,21 @@ export class LandingController {
       };
     }
   }
-
+  @Get('validate/:slug/:lpId')
+  async validateLandingPage(@Param('slug') slug: string, @Param('lpId') lpId: number) {
+    try {
+      const data = await this.landingService.validateLandingPage(slug, lpId);
+      return {
+        status: true,
+        data,
+      };
+    } catch (error) {
+      return {
+        status: false,
+        message: error.message,
+      };
+    }
+  }
   @Get(':slug/pages')
   @HttpCode(HttpStatus.OK) // Sets the response code to 200
   async getPages(
