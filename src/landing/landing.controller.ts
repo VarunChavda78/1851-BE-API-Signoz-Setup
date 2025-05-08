@@ -34,13 +34,11 @@ import { UpdateLeadDto } from './dtos/updateLeadDto';
   path: 'landing',
 })
 export class LandingController {
-
   constructor(
     private readonly landingService: LandingService,
     private readonly usersService: UsersService,
     private readonly lpPageRepository: LpPageRepository,
     private readonly authService: AuthService,
-
   ) {}
 
   @Get(':templateName/sitemap.xml')
