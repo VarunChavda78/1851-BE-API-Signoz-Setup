@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { LpPageRepository } from './lp-page.repository';
@@ -34,6 +35,7 @@ import { LpNameRepository } from './lp-name-history.repository';
 import { Not, IsNull } from 'typeorm';
 import { LpStatusRepository } from './lp-status.repository';
 import { UpdateLeadDto } from './dtos/updateLeadDto';
+import { RollbarLogger } from 'nestjs-rollbar';
 const dayjs = require('dayjs');
 const utc = require('dayjs/plugin/utc');
 const timezone = require('dayjs/plugin/timezone');
@@ -41,6 +43,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 @Injectable()
 export class LandingService {
+  private logger = new Logger(LandingService.name)
   constructor(
     private readonly lpPageRepository: LpPageRepository,
     private readonly usersService: UsersService,
@@ -59,6 +62,7 @@ export class LandingService {
     private commonService: CommonService,
     private verifyCaptchaService: VerifyCaptchaService,
     private readonly lpStatusRepository: LpStatusRepository,
+    private readonly rollbar: RollbarLogger,
   ) {}
 
   async getPagesBySlug(slug: string, pageOptions: PageOptionsDto) {
@@ -281,7 +285,11 @@ export class LandingService {
       });
       return customization;
     } catch (error) {
-      console.log('error', error);
+      this.logger.error('Error finding section', error);
+      this.rollbar.error(
+        `${this.constructor.name}.${this.findSection.name} - ${error.message}`,
+        error,
+      );
       throw error;
     }
   }
@@ -338,7 +346,11 @@ export class LandingService {
         };
       }
     } catch (error) {
-      console.log('error', error);
+      this.logger.error('Error while creating/updating section', error);
+      this.rollbar.error(
+        `${this.constructor.name}.${this.createOrUpdateSection.name} - ${error.message}`,
+        error,
+      );
       throw error;
     }
   }
@@ -365,7 +377,11 @@ export class LandingService {
         message: `updated successfully`,
       };
     } catch (error) {
-      console.error(error);
+      this.logger.error('Error updating published content', error);
+      this.rollbar.error(
+        `${this.constructor.name}.${this.publishedContent.name} - ${error.message}`,
+        error,
+      );
       throw error;
     }
   }
@@ -427,7 +443,8 @@ export class LandingService {
         return existingPublish;
       }
     } catch (error) {
-      console.log('error', error);
+      this.logger.error('Error updating publish data', error);
+      this.rollbar.error(`${this.constructor.name}.${this.UpdatePublishData.name} - ${error.message}`, error);
       throw error;
     }
   }
@@ -439,7 +456,8 @@ export class LandingService {
       });
       return { ...data, status: data.status == 2 };
     } catch (error) {
-      console.log('error', error);
+      this.logger.error('Error fetching publish data', error);
+      this.rollbar.error(`${this.constructor.name}.${this.getPublishData.name} - ${error.message}`, error);
       throw error;
     }
   }
@@ -560,6 +578,8 @@ export class LandingService {
         return page?.content?.pdf;
       }
     } catch (error) {
+      this.logger.error('Error creating PDF Inquiry', error);
+      this.rollbar.error(`${this.constructor.name}.${this.createPdf.name} - ${error.message}`, error);
       throw error;
     }
   }
@@ -799,6 +819,8 @@ export class LandingService {
             : 'Lead has been added successfully',
       };
     } catch (error) {
+      this.logger.error('Error creating lead', error);
+      this.rollbar.error(`${this.constructor.name}.${this.createLpLead.name} - ${error.message}`, error);
       throw error;
     }
   }
@@ -831,9 +853,12 @@ export class LandingService {
       };
     } catch (error) {
       if (error instanceof NotFoundException) {
+        this.logger.error('Error deleting lead', error);
+        this.rollbar.error(`${this.constructor.name}.${this.deleteLpLead.name} - ${error.message}`, error);
         throw error;
       }
-
+      this.logger.error('Error deleting lead', error);
+      this.rollbar.error(`${this.constructor.name}.${this.deleteLpLead.name} - ${error.message}`, error);
       throw new InternalServerErrorException('Failed to delete leads');
     }
   }
@@ -981,12 +1006,13 @@ export class LandingService {
       });
 
       const pagination = this.commonService.getPagination(total, limit, page);
-
       return {
         data: transformedLeads,
         pagination,
       };
     } catch (error) {
+      this.logger.error('Error fetching leads', error);
+      this.rollbar.error(`${this.constructor.name}.${this.getLpLeads.name} - ${error.message}`, error);
       throw error;
     }
   }
@@ -1046,6 +1072,8 @@ export class LandingService {
         name: filename,
       };
     } catch (error) {
+      this.logger.error('Error exporting lead to CSV', error);
+      this.rollbar.error(`${this.constructor.name}.${this.exportToCsv.name} - ${error.message}`, error);
       throw new Error(`Failed to export CSV: ${error.message}`);
     }
   }
@@ -1143,6 +1171,8 @@ export class LandingService {
 
       return { id: landingPage.id, metaIndex: landingPage.metaIndex };
     } catch (error) {
+      this.logger.error('Error fetching meta index', error);
+      this.rollbar.error(`${this.constructor.name}.${this.getMetaIndex.name} - ${error.message}`, error);
       throw error;
     }
   }
@@ -1172,6 +1202,8 @@ export class LandingService {
 
       return { id: landingPage.id, metaIndex: landingPage.metaIndex };
     } catch (error) {
+      this.logger.error('Error updating meta index', error);
+      this.rollbar.error(`${this.constructor.name}.${this.updateMetaIndex.name} - ${error.message}`, error);
       throw error;
     }
   }
@@ -1202,6 +1234,8 @@ export class LandingService {
       const data = await this.usersService.checkLandingBrand(brandId);
       return data;
     } catch (error) {
+      this.logger.error('Error validating landing brand', error);
+      this.rollbar.error(`${this.constructor.name}.${this.checkLandingBrand.name} - ${error.message}`, error);
       throw error;
     }
   }
@@ -1220,6 +1254,8 @@ export class LandingService {
       }
       return data;
     } catch (error) {
+      this.logger.error(`Could not get Pages Brand Slug: ${error.message}`, error.stack);
+      this.rollbar.warning('Error in checkPagesBrandSlug service', error);
       throw error;
     }
   }
@@ -1313,7 +1349,8 @@ export class LandingService {
       }
       return data;
     } catch (error) {
-      console.log('error', error);
+      this.logger.error('Error fetching Template Domain Data', error);
+        this.rollbar.error(`${this.constructor.name}.${this.getTemplateSubDomainPublishedBrand.name} - ${error.message}`, error);
       throw error;
     }
   }
@@ -1350,7 +1387,8 @@ export class LandingService {
       urlContent += '</urlset>';
       return urlContent;
     } catch (error) {
-      console.log('error', error);
+      this.logger.error('Error fetching sitemap', error);
+      this.rollbar.error(`${this.constructor.name}.${this.getSiteMapXml.name} - ${error.message}`, error);
       throw error;
     }
   }
@@ -1380,15 +1418,15 @@ export class LandingService {
     };
   }
   async checkUniqueNameSlug(nameSlug: string) {
-    const page = await this.lpPageRepository.findOne({
-      where: { nameSlug },
-    });
-
-    if (!page) {
-      return true;
-    } else {
-      return false;
-    }
+      const page = await this.lpPageRepository.findOne({
+        where: { nameSlug },
+      });
+  
+      if (!page) {
+        return true;
+      } else {
+        return false;
+      }
   }
 
   async getLpGaCode(lpId: number, brandId: number) {
@@ -1407,6 +1445,8 @@ export class LandingService {
 
       return { id: landingPage.id, gaCode: landingPage.gaCode };
     } catch (error) {
+      this.logger.error('Error fetching GA Code', error);
+      this.rollbar.error(`${this.constructor.name}.${this.getLpGaCode.name} - ${error.message}`, error);
       throw error;
     }
   }
@@ -1436,6 +1476,8 @@ export class LandingService {
 
       return { id: landingPage.id, gaCode: landingPage.gaCode };
     } catch (error) {
+      this.logger.error('Error updating GA Code', error);
+        this.rollbar.error(`${this.constructor.name}.${this.updateLpGaCode.name} - ${error.message}`, error);
       throw error;
     }
   }
@@ -1471,6 +1513,8 @@ export class LandingService {
   
     return transformedLead;
     } catch (error) {
+      this.logger.error('Error fetching lead details', error);
+        this.rollbar.error(`${this.constructor.name}.${this.getLeadByUid.name} - ${error.message}`, error);
       throw error;
     }
   }
@@ -1518,6 +1562,8 @@ export class LandingService {
       await Promise.all(updatePromises);
       
     } catch (error) {
+      this.logger.error('Error updating lead', error);
+      this.rollbar.error(`${this.constructor.name}.${this.updateLeadByUid.name} - ${error.message}`, error);
       throw error;
     }
   }
@@ -1531,6 +1577,8 @@ export class LandingService {
       }
       return true;
     } catch (error) {
+      this.logger.error('Error validating landing page', error);
+      this.rollbar.error(`${this.constructor.name}.${this.validateLandingPage.name} - ${error.message}`, error);
       throw error;      
     }
   }
