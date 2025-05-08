@@ -14,7 +14,6 @@ import {
   NotFoundException,
   Res,
   Put,
-  Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { LandingService } from './landing.service';
@@ -29,21 +28,18 @@ import { UpdateLpInquiryDto } from './dtos/lpInquiryDto';
 import { DomainType } from 'src/shared/constants/constants';
 import { PageStatus } from './landing.constant';
 import { UpdateLeadDto } from './dtos/updateLeadDto';
-import { RollbarLogger } from 'nestjs-rollbar';
 
 @Controller({
   version: '1',
   path: 'landing',
 })
 export class LandingController {
-  private logger = new Logger(LandingService.name)
 
   constructor(
     private readonly landingService: LandingService,
     private readonly usersService: UsersService,
     private readonly lpPageRepository: LpPageRepository,
     private readonly authService: AuthService,
-    private readonly rollbar: RollbarLogger,
 
   ) {}
 
@@ -200,11 +196,6 @@ export class LandingController {
         data: publishData,
       };
     } catch (err) {
-      this.logger.error('Error fetching publish status', err);
-      this.rollbar.error(
-        `${LandingService.name}.${this.publishStatus.name} - ${err.message}`,
-        err,
-      );
       return { status: false, message: err?.message };
     }
   }
@@ -219,13 +210,6 @@ export class LandingController {
       };
     } catch (err) {
       const lpNameHistory = await this.landingService.getLpNameHistory(slug);
-      if (!lpNameHistory?.redirect) {
-        this.logger.error('Error fetching publish status', err);
-        this.rollbar.error(
-          `${LandingService.name}.${this.publishStatusv2.name} - ${err.message}`,
-          err,
-        );
-      }
       return {
         status: false,
         message: err?.message,
@@ -259,11 +243,6 @@ export class LandingController {
     try {
       return await this.landingService.getPagesBySlug(slug, pageOptionsDto);
     } catch (error) {
-      this.logger.error('Error fetching pages', error);
-      this.rollbar.error(
-        `${LandingService.name}.${this.getPages.name} - ${error.message}`,
-        error,
-      );
       return {
         status: false,
         message: error.message,
@@ -301,11 +280,6 @@ export class LandingController {
         data: newPage,
       };
     } catch (error) {
-      this.logger.error('Error creating page', error);
-      this.rollbar.error(
-        `${LandingService.name}.${this.createPage.name} - ${error.message}`,
-        error,
-      );
       return {
         status: false,
         message: error.message,
@@ -349,11 +323,6 @@ export class LandingController {
         message: 'Page updated successfully',
       };
     } catch (error) {
-      this.logger.error('Error updating page', error);
-      this.rollbar.error(
-        `${LandingService.name}.${this.editPage.name} - ${error.message}`,
-        error,
-      );
       throw new HttpException(
         error?.message || 'Failed to update page',
         error?.status || 500,
@@ -371,11 +340,6 @@ export class LandingController {
         data,
       };
     } catch (error) {
-      this.logger.error('Error fetching landing page status', error);
-      this.rollbar.error(
-        `${LandingService.name}.${this.getLandingPageStatus.name} - ${error.message}`,
-        error,
-      );
       return {
         status: false,
         message: error.message,
@@ -407,11 +371,6 @@ export class LandingController {
         data,
       };
     } catch (error) {
-      this.logger.error('Error updating landing page status', error);
-      this.rollbar.error(
-        `${LandingService.name}.${this.updateLandingPageStatus.name} - ${error.message}`,
-        error,
-      );
       return {
         status: false,
         message: error.message,
@@ -442,11 +401,6 @@ export class LandingController {
         message: 'Page deleted successfully',
       };
     } catch (error) {
-      this.logger.error('Error deleting page', error);
-      this.rollbar.error(
-        `${LandingService.name}.${this.deletePage.name} - ${error.message}`,
-        error,
-      );
       return {
         status: false,
         message: error.message,
@@ -692,11 +646,6 @@ export class LandingController {
         data: response || {},
       };
     } catch (error) {
-      this.logger.error('Error fetching inquiry emails', error);
-      this.rollbar.error(
-        `${LandingService.name}.${this.getInquiryEmails.name} - ${error.message}`,
-        error,
-      );
       throw new HttpException(
         error?.message || 'Failed to get emails',
         error?.status || 500,
@@ -735,11 +684,6 @@ export class LandingController {
         ...response,
       };
     } catch (error) {
-      this.logger.error('Error creating/updating inquiry emails', error);
-      this.rollbar.error(
-        `${LandingService.name}.${this.updateInquiryEmails.name} - ${error.message}`,
-        error,
-      );
       throw new HttpException(
         error?.message || 'Failed to update emails',
         error?.status || 500,
@@ -801,11 +745,6 @@ export class LandingController {
         data,
       };
     } catch (error) {
-      this.logger.error('Error creating/updating CRM Form', error);
-      this.rollbar.error(
-        `${LandingService.name}.${this.createOrUpdateLpCrmForm.name} - ${error.message}`,
-        error,
-      );
       throw new HttpException(
         error?.message || 'Failed to update form',
         error?.status || 500,
@@ -968,11 +907,6 @@ export class LandingController {
         data,
       };
     } catch (error) {
-      this.logger.error('Error fetching landing brand status', error);
-      this.rollbar.error(
-        `${LandingService.name}.${this.getLandingBrandStatus.name} - ${error.message}`,
-        error,
-      );
       return {
         status: false,
         message: error.message,
@@ -1001,11 +935,6 @@ export class LandingController {
         data,
       };
     } catch (error) {
-      this.logger.error('Error updating landing brand status', error);
-      this.rollbar.error(
-        `${LandingService.name}.${this.updateLandingBrandStatus.name} - ${error.message}`,
-        error,
-      );
       return {
         status: false,
         message: error.message,
@@ -1029,11 +958,6 @@ export class LandingController {
         brandSlug,
       };
     } catch (error) {
-      this.logger.error('Error fetching landing page info', error);
-      this.rollbar.error(
-        `${LandingService.name}.${this.getLpInfo.name} - ${error.message}`,
-        error,
-      );
       return {
         status: false,
         message: error.message,
@@ -1049,11 +973,6 @@ export class LandingController {
         data,
       };
     } catch (error) {
-      this.logger.error('Error checking landing page name slug', error);
-      this.rollbar.error(
-        `${LandingService.name}.${this.checkUniqueNameSlug.name} - ${error.message}`,
-        error,
-      );
       return {
         status: false,
         message: error.message,
