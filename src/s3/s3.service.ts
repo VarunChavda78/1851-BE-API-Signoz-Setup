@@ -232,7 +232,11 @@ export class S3Service {
         url: fileUrl,
       };
     } catch (error) {
-      this.logger.error('Error uploading CSV to S3', error);
+      this.logger.error('Error uploading csv file', error);
+      this.rollbar.error(
+        `${S3Service.name}.${this.uploadCsvToS3.name} - ${error.message}`,
+        error,
+      );
       throw error;
     }
   }

@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { LpPageRepository } from './lp-page.repository';
@@ -34,6 +35,7 @@ import { LpNameRepository } from './lp-name-history.repository';
 import { Not, IsNull } from 'typeorm';
 import { LpStatusRepository } from './lp-status.repository';
 import { UpdateLeadDto } from './dtos/updateLeadDto';
+import { RollbarLogger } from 'nestjs-rollbar';
 const dayjs = require('dayjs');
 const utc = require('dayjs/plugin/utc');
 const timezone = require('dayjs/plugin/timezone');
@@ -41,6 +43,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 @Injectable()
 export class LandingService {
+  private logger = new Logger(LandingService.name)
   constructor(
     private readonly lpPageRepository: LpPageRepository,
     private readonly usersService: UsersService,
@@ -59,62 +62,72 @@ export class LandingService {
     private commonService: CommonService,
     private verifyCaptchaService: VerifyCaptchaService,
     private readonly lpStatusRepository: LpStatusRepository,
+    private readonly rollbar: RollbarLogger,
   ) {}
 
   async getPagesBySlug(slug: string, pageOptions: PageOptionsDto) {
-    const {
-      page = 1,
-      limit = 10,
-      order = 'DESC',
-      sort = 'id',
-    }: any = pageOptions;
-    const skip = (page - 1) * limit;
-
-    const brand = await this.usersService.getBrandIdBySlug(slug);
-    if (!brand) {
-      throw new Error(`Brand not found for slug: ${slug}`);
-    }
-    const queryBuilder = await this.lpPageRepository
-      .createQueryBuilder('lp_page')
-      .leftJoinAndSelect('lp_page.template', 'template')
-      .where('lp_page.brandId = :brandId', { brandId: brand?.id })
-      .andWhere('lp_page.deletedAt IS NULL')
-      .select([
-        'lp_page.id',
-        'lp_page.name',
-        'lp_page.templateId',
-        'lp_page.status',
-        'lp_page.brandSlug',
-        'lp_page.domain',
-        'lp_page.deletedAt',
-        'lp_page.domainType',
-        'lp_page.nameSlug',
-        'template.name AS template_name',
-        'lp_page.metaIndex',
-        'lp_page.createdAt',
-        'lp_page.updatedAt',
-      ]);
-    const itemCount = await queryBuilder.getCount();
-    const validOrder = order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
-    const lpPages = await queryBuilder
-      .orderBy(`lp_page.${sort}`, validOrder)
-      .skip(skip)
-      .take(limit)
-      .getMany();
-    const details = [];
-    if (lpPages.length) {
-      for (const data of lpPages) {
-        details.push(await this.getDetails(data));
+    try {
+      const {
+        page = 1,
+        limit = 10,
+        order = 'DESC',
+        sort = 'id',
+      }: any = pageOptions;
+      const skip = (page - 1) * limit;
+  
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
       }
+      const queryBuilder = await this.lpPageRepository
+        .createQueryBuilder('lp_page')
+        .leftJoinAndSelect('lp_page.template', 'template')
+        .where('lp_page.brandId = :brandId', { brandId: brand?.id })
+        .andWhere('lp_page.deletedAt IS NULL')
+        .select([
+          'lp_page.id',
+          'lp_page.name',
+          'lp_page.templateId',
+          'lp_page.status',
+          'lp_page.brandSlug',
+          'lp_page.domain',
+          'lp_page.deletedAt',
+          'lp_page.domainType',
+          'lp_page.nameSlug',
+          'template.name AS template_name',
+          'lp_page.metaIndex',
+          'lp_page.createdAt',
+          'lp_page.updatedAt',
+        ]);
+      const itemCount = await queryBuilder.getCount();
+      const validOrder = order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+      const lpPages = await queryBuilder
+        .orderBy(`lp_page.${sort}`, validOrder)
+        .skip(skip)
+        .take(limit)
+        .getMany();
+      const details = [];
+      if (lpPages.length) {
+        for (const data of lpPages) {
+          details.push(await this.getDetails(data));
+        }
+      }
+  
+      const pageOptionsDto = {
+        page,
+        limit,
+      };
+      const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+  
+      return new PageDto(details, pageMetaDto);
+    } catch (error) {
+      this.logger.error('Error finding landing page', error);
+      this.rollbar.error(
+        `${this.constructor.name}.${this.getPagesBySlug.name} - ${error.message}`,
+        error,
+      );
+      throw error;
     }
-
-    const pageOptionsDto = {
-      page,
-      limit,
-    };
-    const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
-
-    return new PageDto(details, pageMetaDto);
   }
   async getDetails(page) {
     return {
@@ -156,47 +169,56 @@ export class LandingService {
     brandId: number,
     userId: number,
   ) {
-    const timestamp = new Date();
-    if (!createPageDto?.nameSlug) {
-      createPageDto.nameSlug = createPageDto.name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '')
-        .replace(/-{2,}/g, '-');
-    }
-    // Check if page with nameSlug already exists
-    const existingPage = await this.lpPageRepository.findOne({
-      where: { nameSlug: createPageDto.nameSlug },
-    });
-
-    if (existingPage) {
-      throw new BadRequestException(
-        `Page with nameSlug ${createPageDto.nameSlug} already exists`,
-      );
-    }
-    const newPage = this.lpPageRepository.create({
-      brandId,
-      name: createPageDto.name,
-      nameSlug: createPageDto.nameSlug,
-      brandSlug: slug,
-      templateId: createPageDto.templateId,
-      status: PageStatus.DRAFT,
-      updatedBy: userId,
-      createdBy: userId,
-      createdAt: timestamp,
-      updatedAt: timestamp,
-      deletedAt: null,
-    });
-    const response = await this.lpPageRepository.save(newPage);
-    if(response){
-      await this.lpStatusRepository.save({
-        landingPageId: response.id,
-        status: PageStatus.DRAFT,
-        createdBy: userId,
-        createdAt: timestamp
+    try {
+      const timestamp = new Date();
+      if (!createPageDto?.nameSlug) {
+        createPageDto.nameSlug = createPageDto.name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '')
+          .replace(/-{2,}/g, '-');
+      }
+      // Check if page with nameSlug already exists
+      const existingPage = await this.lpPageRepository.findOne({
+        where: { nameSlug: createPageDto.nameSlug },
       });
+  
+      if (existingPage) {
+        throw new BadRequestException(
+          `Page with nameSlug ${createPageDto.nameSlug} already exists`,
+        );
+      }
+      const newPage = this.lpPageRepository.create({
+        brandId,
+        name: createPageDto.name,
+        nameSlug: createPageDto.nameSlug,
+        brandSlug: slug,
+        templateId: createPageDto.templateId,
+        status: PageStatus.DRAFT,
+        updatedBy: userId,
+        createdBy: userId,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+        deletedAt: null,
+      });
+      const response = await this.lpPageRepository.save(newPage);
+      if(response){
+        await this.lpStatusRepository.save({
+          landingPageId: response.id,
+          status: PageStatus.DRAFT,
+          createdBy: userId,
+          createdAt: timestamp
+        });
+      }
+      return response
+    } catch (error) {
+      this.logger.error('Error creating page', error);
+      this.rollbar.error(
+        `${this.constructor.name}.${this.createPage.name} - ${error.message}`,
+        error,
+      );
+      throw error;
     }
-    return response
   }
   async editPage(
     editPageDto: {
@@ -208,62 +230,79 @@ export class LandingService {
     brandId: number,
     userId: number,
   ) {
-    const timestamp = new Date();
-    if (!editPageDto?.nameSlug) {
-      editPageDto.nameSlug = editPageDto.name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '')
-        .replace(/-{2,}/g, '-');
-    }
-    const page = await this.lpPageRepository.findOne({
-      where: { id: editPageDto.lpId, brandId: brandId },
-    });
-
-    if (!page) {
-      throw new NotFoundException(
-        `Page not found with ID: ${editPageDto.lpId}`,
+    try {
+      const timestamp = new Date();
+      if (!editPageDto?.nameSlug) {
+        editPageDto.nameSlug = editPageDto.name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '')
+          .replace(/-{2,}/g, '-');
+      }
+      const page = await this.lpPageRepository.findOne({
+        where: { id: editPageDto.lpId, brandId: brandId },
+      });
+  
+      if (!page) {
+        throw new NotFoundException(
+          `Page not found with ID: ${editPageDto.lpId}`,
+        );
+      }
+      const isUnique = await this.checkUniqueNameSlug(editPageDto.nameSlug);
+      if (!isUnique) {
+        throw new BadRequestException(
+          `Page with nameSlug ${editPageDto.nameSlug} already exists`,
+        );
+      }
+  
+      // Store previous editPageDto data into lp_name_history before update
+      const lpHistory = this.lpNameRepository.create({
+        lpId: editPageDto.lpId,
+        name: page.name,
+        nameSlug: page.nameSlug,
+        createdAt: timestamp,
+        createdBy: userId,
+      });
+  
+      await this.lpNameRepository.save(lpHistory);
+  
+      page.name = editPageDto.name;
+      page.nameSlug = editPageDto.nameSlug;
+      page.updatedAt = timestamp;
+      page.updatedBy = userId;
+  
+      return await this.lpPageRepository.save(page);
+    } catch (error) {
+      this.logger.error('Error updating page', error);
+      this.rollbar.error(
+        `${this.constructor.name}.${this.editPage.name} - ${error.message}`,
+        error,
       );
+      throw error;
     }
-    const isUnique = await this.checkUniqueNameSlug(editPageDto.nameSlug);
-    if (!isUnique) {
-      throw new BadRequestException(
-        `Page with nameSlug ${editPageDto.nameSlug} already exists`,
-      );
-    }
-
-    // Store previous editPageDto data into lp_name_history before update
-    const lpHistory = this.lpNameRepository.create({
-      lpId: editPageDto.lpId,
-      name: page.name,
-      nameSlug: page.nameSlug,
-      createdAt: timestamp,
-      createdBy: userId,
-    });
-
-    await this.lpNameRepository.save(lpHistory);
-
-    page.name = editPageDto.name;
-    page.nameSlug = editPageDto.nameSlug;
-    page.updatedAt = timestamp;
-    page.updatedBy = userId;
-
-    return await this.lpPageRepository.save(page);
   }
 
   async deletePage(brandId: number, lpId: number) {
-    const page = await this.lpPageRepository.findOne({
-      where: { id: lpId, brandId: brandId },
-    });
-
-    if (!page) {
-      throw new NotFoundException(`Page not found with ID: ${lpId}`);
+    try {
+      const page = await this.lpPageRepository.findOne({
+        where: { id: lpId, brandId: brandId },
+      });
+  
+      if (!page) {
+        throw new NotFoundException(`Page not found with ID: ${lpId}`);
+      }
+  
+      // Soft delete - set the deletedAt field to the current timestamp
+      page.deletedAt = new Date();
+  
+      await this.lpPageRepository.save(page);
+    } catch (error) {
+      this.logger.error('Error deleting page', error);
+      this.rollbar.error(
+        `${this.constructor.name}.${this.deletePage.name} - ${error.message}`,
+        error,
+      );
     }
-
-    // Soft delete - set the deletedAt field to the current timestamp
-    page.deletedAt = new Date();
-
-    await this.lpPageRepository.save(page);
   }
 
   async findSection(lpId: number, sectionSlug: string) {
@@ -281,7 +320,11 @@ export class LandingService {
       });
       return customization;
     } catch (error) {
-      console.log('error', error);
+      this.logger.error('Error finding section', error);
+      this.rollbar.error(
+        `${this.constructor.name}.${this.findSection.name} - ${error.message}`,
+        error,
+      );
       throw error;
     }
   }
@@ -338,7 +381,11 @@ export class LandingService {
         };
       }
     } catch (error) {
-      console.log('error', error);
+      this.logger.error('Error while creating/updating section', error);
+      this.rollbar.error(
+        `${this.constructor.name}.${this.createOrUpdateSection.name} - ${error.message}`,
+        error,
+      );
       throw error;
     }
   }
@@ -365,7 +412,11 @@ export class LandingService {
         message: `updated successfully`,
       };
     } catch (error) {
-      console.error(error);
+      this.logger.error('Error updating published content', error);
+      this.rollbar.error(
+        `${this.constructor.name}.${this.publishedContent.name} - ${error.message}`,
+        error,
+      );
       throw error;
     }
   }
@@ -427,7 +478,8 @@ export class LandingService {
         return existingPublish;
       }
     } catch (error) {
-      console.log('error', error);
+      this.logger.error('Error updating publish data', error);
+      this.rollbar.error(`${this.constructor.name}.${this.UpdatePublishData.name} - ${error.message}`, error);
       throw error;
     }
   }
@@ -439,75 +491,94 @@ export class LandingService {
       });
       return { ...data, status: data.status == 2 };
     } catch (error) {
-      console.log('error', error);
+      this.logger.error('Error fetching publish data', error);
+      this.rollbar.error(`${this.constructor.name}.${this.getPublishData.name} - ${error.message}`, error);
       throw error;
     }
   }
 
   async publishStatus(slug: string, lpId?: number) {
-    const brand = await this.usersService.getBrandIdBySlug(slug);
-    if (!brand) {
-      throw new Error(`Brand not found for slug: ${slug}`);
-    }
-    const data = await this.lpPageRepository.find({
-      where: {
-        brandSlug: slug,
-        status: PageStatus.PUBLISH,
-        id: lpId || Not(IsNull()),
-      },
-    });
-    const res = data?.filter((item) => {
-      return !item.deletedAt;
-    });
-    if (res[0])
-      return {
-        publishStatus: true,
-        page: {
-          id: res[0]?.id,
-          name: res[0]?.name,
-          templateId: res[0]?.templateId,
+    try {
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
+      }
+      const data = await this.lpPageRepository.find({
+        where: {
+          brandSlug: slug,
+          status: PageStatus.PUBLISH,
+          id: lpId || Not(IsNull()),
         },
+      });
+      const res = data?.filter((item) => {
+        return !item.deletedAt;
+      });
+      if (res[0])
+        return {
+          publishStatus: true,
+          page: {
+            id: res[0]?.id,
+            name: res[0]?.name,
+            templateId: res[0]?.templateId,
+          },
+          approved: brand.status === 'approve',
+        };
+      return {
+        publishStatus: false,
+        page: null,
         approved: brand.status === 'approve',
       };
-    return {
-      publishStatus: false,
-      page: null,
-      approved: brand.status === 'approve',
-    };
+    } catch (error) {
+      this.logger.error('Error fetching publish status', error);
+      this.rollbar.error(
+        `${this.constructor.name}.${this.publishStatus.name} - ${error.message}`,
+        error,
+      );
+      throw error;
+    }
   }
 
   async publishStatusV2(slug: string) {
-    let data = await this.lpPageRepository.find({
-      where: { nameSlug: slug, status: PageStatus.PUBLISH },
-    });
-
-    if (!data || data.length === 0) {
-      throw new Error(`No published pages found for slug: ${slug}`);
-    }
-    const brand = await this.usersService.getBrandIdBySlug(data[0]?.brandSlug);
-    if (!brand) {
-      throw new Error(`Brand not found for slug: ${slug}`);
-    }
-    const res = data?.filter((item) => {
-      return !item.deletedAt;
-    });
-    if (res[0])
+    try {
+      let data = await this.lpPageRepository.find({
+        where: { nameSlug: slug, status: PageStatus.PUBLISH },
+      });
+  
+      if (!data || data.length === 0) {
+        throw new Error(`No published pages found for slug: ${slug}`);
+      }
+      const brand = await this.usersService.getBrandIdBySlug(data[0]?.brandSlug);
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
+      }
+      const res = data?.filter((item) => {
+        return !item.deletedAt;
+      });
+      if (res[0])
+        return {
+          publishStatus: true,
+          page: {
+            id: res[0]?.id,
+            name: res[0]?.name,
+            templateId: res[0]?.templateId,
+            brandSlug: data[0]?.brandSlug,
+            domainType: res[0]?.domainType,
+          },
+          approved: brand.status === 'approve',
+        };
       return {
-        publishStatus: true,
-        page: {
-          id: res[0]?.id,
-          name: res[0]?.name,
-          templateId: res[0]?.templateId,
-          brandSlug: data[0]?.brandSlug,
-          domainType: res[0]?.domainType,
-        },
+        publishStatus: false,
+        page: null,
         approved: brand.status === 'approve',
       };
-    return {
-      publishStatus: false,
-      page: null,
-      approved: brand.status === 'approve',
-    };
+    } catch (error) {
+      this.logger.error('Error finding section', error);
+      this.rollbar.error(
+        `${this.constructor.name}.${this.findSection.name} - ${error.message}`,
+        error,
+      );
+      throw error;
+    }
   }
 
   async getLpNameHistory(slug: string) {
@@ -560,24 +631,35 @@ export class LandingService {
         return page?.content?.pdf;
       }
     } catch (error) {
+      this.logger.error('Error creating PDF Inquiry', error);
+      this.rollbar.error(`${this.constructor.name}.${this.createPdf.name} - ${error.message}`, error);
       throw error;
     }
   }
 
   async getLandingPageStatus(slug: string) {
-    const brand = await this.usersService.getBrandIdBySlug(slug);
-    if (!brand) {
-      throw new Error(`Brand not found for slug: ${slug}`);
+    try {
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
+      }
+  
+      const settings = await this.lpSettingsRepository.findOne({
+        where: { brandId: brand.id },
+      });
+      return {
+        isEnabled: settings ? settings.status : false,
+        noOfPages: settings ? settings.noOfPages : 1,
+        templateConfig: settings ? settings.templateConfig : {},
+      };
+    } catch (error) {
+      this.logger.error('Error fetching landing page status', error);
+      this.rollbar.error(
+        `${this.constructor.name}.${this.getLandingPageStatus.name} - ${error.message}`,
+        error,
+      );
+      throw error;
     }
-
-    const settings = await this.lpSettingsRepository.findOne({
-      where: { brandId: brand.id },
-    });
-    return {
-      isEnabled: settings ? settings.status : false,
-      noOfPages: settings ? settings.noOfPages : 1,
-      templateConfig: settings ? settings.templateConfig : {},
-    };
   }
 
   async updateLandingPageStatus(
@@ -586,52 +668,61 @@ export class LandingService {
     userId: number,
     body: any,
   ) {
-    const brand = await this.usersService.getBrandIdBySlug(slug);
-    if (!brand) {
-      throw new Error(`Brand not found for slug: ${slug}`);
-    }
-
-    let settings = await this.lpSettingsRepository.findOne({
-      where: { brandId: brand.id },
-    });
-
-    const totalPublishedPages = await this.lpPageRepository.count({
-      where: {
-        brandId: brand.id,
-        status: PageStatus.PUBLISH,
-        deletedAt: IsNull(),
-      },
-    });
-    if (status == false && totalPublishedPages > 0) {
-      throw new BadRequestException(`cannot disable`);
-    }
-    if (body?.noOfPages < totalPublishedPages) {
-      throw new BadRequestException(`unpublish first ${totalPublishedPages}`);
-    }
-
-    if (settings) {
-      settings.status = status;
-      settings.updatedBy = userId;
-      settings.templateConfig = body?.templateConfig || {};
-      settings.noOfPages = body?.noOfPages || 1;
-    } else {
-      settings = this.lpSettingsRepository.create({
-        brandId: brand.id,
-        status,
-        createdBy: userId,
-        updatedBy: userId,
-        templateConfig: body.templateConfig,
-        noOfPages: body.noOfPages,
+    try {
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
+      }
+  
+      let settings = await this.lpSettingsRepository.findOne({
+        where: { brandId: brand.id },
       });
+  
+      const totalPublishedPages = await this.lpPageRepository.count({
+        where: {
+          brandId: brand.id,
+          status: PageStatus.PUBLISH,
+          deletedAt: IsNull(),
+        },
+      });
+      if (status == false && totalPublishedPages > 0) {
+        throw new BadRequestException(`cannot disable`);
+      }
+      if (body?.noOfPages < totalPublishedPages) {
+        throw new BadRequestException(`unpublish first ${totalPublishedPages}`);
+      }
+  
+      if (settings) {
+        settings.status = status;
+        settings.updatedBy = userId;
+        settings.templateConfig = body?.templateConfig || {};
+        settings.noOfPages = body?.noOfPages || 1;
+      } else {
+        settings = this.lpSettingsRepository.create({
+          brandId: brand.id,
+          status,
+          createdBy: userId,
+          updatedBy: userId,
+          templateConfig: body.templateConfig,
+          noOfPages: body.noOfPages,
+        });
+      }
+  
+      await this.lpSettingsRepository.save(settings);
+  
+      return {
+        message: status
+          ? 'Landing page enabled successfully'
+          : 'Landing page disabled successfully',
+      };
+    } catch (error) {
+      this.logger.error('Error Updating Landing Page status', error);
+      this.rollbar.error(
+        `${this.constructor.name}.${this.updateLandingPageStatus.name} - ${error.message}`,
+        error,
+      );
+      throw error;
     }
-
-    await this.lpSettingsRepository.save(settings);
-
-    return {
-      message: status
-        ? 'Landing page enabled successfully'
-        : 'Landing page disabled successfully',
-    };
   }
 
   async createLpLead(
@@ -799,6 +890,8 @@ export class LandingService {
             : 'Lead has been added successfully',
       };
     } catch (error) {
+      this.logger.error('Error creating lead', error);
+      this.rollbar.error(`${this.constructor.name}.${this.createLpLead.name} - ${error.message}`, error);
       throw error;
     }
   }
@@ -831,9 +924,12 @@ export class LandingService {
       };
     } catch (error) {
       if (error instanceof NotFoundException) {
+        this.logger.error('Error deleting lead', error);
+        this.rollbar.error(`${this.constructor.name}.${this.deleteLpLead.name} - ${error.message}`, error);
         throw error;
       }
-
+      this.logger.error('Error deleting lead', error);
+      this.rollbar.error(`${this.constructor.name}.${this.deleteLpLead.name} - ${error.message}`, error);
       throw new InternalServerErrorException('Failed to delete leads');
     }
   }
@@ -981,12 +1077,13 @@ export class LandingService {
       });
 
       const pagination = this.commonService.getPagination(total, limit, page);
-
       return {
         data: transformedLeads,
         pagination,
       };
     } catch (error) {
+      this.logger.error('Error fetching leads', error);
+      this.rollbar.error(`${this.constructor.name}.${this.getLpLeads.name} - ${error.message}`, error);
       throw error;
     }
   }
@@ -1046,44 +1143,55 @@ export class LandingService {
         name: filename,
       };
     } catch (error) {
+      this.logger.error('Error exporting lead to CSV', error);
+      this.rollbar.error(`${this.constructor.name}.${this.exportToCsv.name} - ${error.message}`, error);
       throw new Error(`Failed to export CSV: ${error.message}`);
     }
   }
 
   async updateOrCreateInquiry(lpId, brandId, emails) {
-    if (!emails) return { data: null };
-    // Find the existing record
-    const existingInquiry = await this.lpInquiryRepository.findOne({
-      where: {
-        lpId,
-        brandId,
-      },
-    });
-
-    // Convert array of emails to comma-separated string
-    const emailString = emails.join(',');
-
-    let result;
-    let isNewRecord = false;
-
-    if (!existingInquiry) {
-      // Create new record
-      const newInquiry = this.lpInquiryRepository.create({
-        lpId,
-        brandId,
-        email: emailString,
+    try {
+      if (!emails) return { data: null };
+      // Find the existing record
+      const existingInquiry = await this.lpInquiryRepository.findOne({
+        where: {
+          lpId,
+          brandId,
+        },
       });
-      result = await this.lpInquiryRepository.save(newInquiry);
-      isNewRecord = true;
-    } else {
-      // Update existing record
-      existingInquiry.email = emailString;
-      result = await this.lpInquiryRepository.save(existingInquiry);
+  
+      // Convert array of emails to comma-separated string
+      const emailString = emails.join(',');
+  
+      let result;
+      let isNewRecord = false;
+  
+      if (!existingInquiry) {
+        // Create new record
+        const newInquiry = this.lpInquiryRepository.create({
+          lpId,
+          brandId,
+          email: emailString,
+        });
+        result = await this.lpInquiryRepository.save(newInquiry);
+        isNewRecord = true;
+      } else {
+        // Update existing record
+        existingInquiry.email = emailString;
+        result = await this.lpInquiryRepository.save(existingInquiry);
+      }
+  
+      return {
+        data: result,
+      };
+    } catch (error) {
+      this.logger.error('Error creating/updating inquiry', error);
+      this.rollbar.error(
+        `${this.constructor.name}.${this.updateOrCreateInquiry.name} - ${error.message}`,
+        error,
+      );
+      throw error;
     }
-
-    return {
-      data: result,
-    };
   }
 
   private emailStringToArray(emailString: string): string[] {
@@ -1091,21 +1199,30 @@ export class LandingService {
   }
 
   async getInquiryEmails(lpId: number, brand: any): Promise<any> {
-    const inquiry = await this.lpInquiryRepository.findOne({
-      where: { lpId, brandId: brand.id },
-    });
-    if (!inquiry) {
+    try {
+      const inquiry = await this.lpInquiryRepository.findOne({
+        where: { lpId, brandId: brand.id },
+      });
+      if (!inquiry) {
+        return {
+          email: [],
+          brandEmail: this.emailStringToArray(brand?.email),
+        };
+      }
+  
       return {
-        email: [],
+        ...inquiry,
+        email: this.emailStringToArray(inquiry?.email),
         brandEmail: this.emailStringToArray(brand?.email),
       };
+    } catch (error) {
+      this.logger.error('Error fetching inquiry emails', error);
+      this.rollbar.error(
+        `${this.constructor.name}.${this.getInquiryEmails.name} - ${error.message}`,
+        error,
+      );
+      throw error;
     }
-
-    return {
-      ...inquiry,
-      email: this.emailStringToArray(inquiry?.email),
-      brandEmail: this.emailStringToArray(brand?.email),
-    };
   }
 
   async getLpCrmForm(lpId: number, brandId: number) {
@@ -1143,6 +1260,8 @@ export class LandingService {
 
       return { id: landingPage.id, metaIndex: landingPage.metaIndex };
     } catch (error) {
+      this.logger.error('Error fetching meta index', error);
+      this.rollbar.error(`${this.constructor.name}.${this.getMetaIndex.name} - ${error.message}`, error);
       throw error;
     }
   }
@@ -1172,29 +1291,40 @@ export class LandingService {
 
       return { id: landingPage.id, metaIndex: landingPage.metaIndex };
     } catch (error) {
+      this.logger.error('Error updating meta index', error);
+      this.rollbar.error(`${this.constructor.name}.${this.updateMetaIndex.name} - ${error.message}`, error);
       throw error;
     }
   }
   async createOrUpdateLpCrmForm(lpId: number, brandId: number, content) {
-    const existingForm = await this.lpCrmFormRepository.findOne({
-      where: {
+    try {
+      const existingForm = await this.lpCrmFormRepository.findOne({
+        where: {
+          lpId,
+          brandId,
+        },
+      });
+  
+      if (existingForm) {
+        existingForm.content = content;
+        return await this.lpCrmFormRepository.save(existingForm);
+      }
+  
+      const newForm = this.lpCrmFormRepository.create({
         lpId,
         brandId,
-      },
-    });
-
-    if (existingForm) {
-      existingForm.content = content;
-      return await this.lpCrmFormRepository.save(existingForm);
+        content,
+      });
+  
+      return await this.lpCrmFormRepository.save(newForm);
+    } catch (error) {
+      this.logger.error('Error creating/updating publish CRM Form', error);
+      this.rollbar.error(
+        `${this.constructor.name}.${this.createOrUpdateLpCrmForm.name} - ${error.message}`,
+        error,
+      );
+      throw error;
     }
-
-    const newForm = this.lpCrmFormRepository.create({
-      lpId,
-      brandId,
-      content,
-    });
-
-    return await this.lpCrmFormRepository.save(newForm);
   }
 
   async checkLandingBrand(brandId: number) {
@@ -1202,6 +1332,8 @@ export class LandingService {
       const data = await this.usersService.checkLandingBrand(brandId);
       return data;
     } catch (error) {
+      this.logger.error('Error validating landing brand', error);
+      this.rollbar.error(`${this.constructor.name}.${this.checkLandingBrand.name} - ${error.message}`, error);
       throw error;
     }
   }
@@ -1220,36 +1352,56 @@ export class LandingService {
       }
       return data;
     } catch (error) {
+      this.logger.error(`Could not get Pages Brand Slug: ${error.message}`, error.stack);
+      this.rollbar.warning('Error in checkPagesBrandSlug service', error);
       throw error;
     }
   }
   async getLandingBrandStatus(slug: string) {
-    const brand = await this.usersService.getBrandIdBySlug(slug);
-    if (!brand) {
-      throw new Error(`Brand not found for slug: ${slug}`);
+    try {
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
+      }
+  
+      const settings = await this.usersService.checkLandingBrand(brand.id);
+      return {
+        isEnabled: settings ? settings.isLandingBrand : false,
+      };
+    } catch (error) {
+      this.logger.error('Error fetching landing brand status', error);
+      this.rollbar.error(
+        `${this.constructor.name}.${this.getLandingBrandStatus.name} - ${error.message}`,
+        error,
+      );
+      throw error;
     }
-
-    const settings = await this.usersService.checkLandingBrand(brand.id);
-    return {
-      isEnabled: settings ? settings.isLandingBrand : false,
-    };
   }
 
   async updateLandingBrandStatus(slug: string, status: boolean) {
-    const brand = await this.usersService.getBrandIdBySlug(slug);
-    if (!brand) {
-      throw new Error(`Brand not found for slug: ${slug}`);
+    try {
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
+      }
+  
+      let settings = await this.usersService.updateLandingBrandStatus(
+        brand.id,
+        status,
+      );
+      return {
+        message: status
+          ? 'Landing Brand enabled successfully'
+          : 'Landing Brand promoted successfully',
+      };
+    } catch (error) {
+      this.logger.error('Error updating landing brand status', error);
+      this.rollbar.error(
+        `${this.constructor.name}.${this.updateLandingBrandStatus.name} - ${error.message}`,
+        error,
+      );
+      throw error;
     }
-
-    let settings = await this.usersService.updateLandingBrandStatus(
-      brand.id,
-      status,
-    );
-    return {
-      message: status
-        ? 'Landing Brand enabled successfully'
-        : 'Landing Brand promoted successfully',
-    };
   }
   async getTemplateSubDomainPublishedBrand(templateName: string) {
     try {
@@ -1313,7 +1465,8 @@ export class LandingService {
       }
       return data;
     } catch (error) {
-      console.log('error', error);
+      this.logger.error('Error fetching Template Domain Data', error);
+        this.rollbar.error(`${this.constructor.name}.${this.getTemplateSubDomainPublishedBrand.name} - ${error.message}`, error);
       throw error;
     }
   }
@@ -1350,7 +1503,8 @@ export class LandingService {
       urlContent += '</urlset>';
       return urlContent;
     } catch (error) {
-      console.log('error', error);
+      this.logger.error('Error fetching sitemap', error);
+      this.rollbar.error(`${this.constructor.name}.${this.getSiteMapXml.name} - ${error.message}`, error);
       throw error;
     }
   }
@@ -1359,36 +1513,54 @@ export class LandingService {
     custom: boolean = false,
   ) {
     // If custom is true, check page based on domainType 2 and nameSlug is domain
-    let page;
-    if (custom) {
-      page = await this.lpPageRepository.findOne({
-        where: { domainType: 2, domain: nameSlug },
-      });
-    } else {
-      page = await this.lpPageRepository.findOne({
-        where: { nameSlug },
-      });
+    try {
+      let page;
+      if (custom) {
+        page = await this.lpPageRepository.findOne({
+          where: { domainType: 2, domain: nameSlug },
+        });
+      } else {
+        page = await this.lpPageRepository.findOne({
+          where: { nameSlug },
+        });
+      }
+  
+      if (!page) {
+        throw new NotFoundException('Page not found');
+      }
+  
+      return {
+        lpId: page.id,
+        brandSlug: page.brandSlug,
+      };
+    } catch (error) {
+      this.logger.error('Error fetching landing page ID', error);
+      this.rollbar.error(
+        `${this.constructor.name}.${this.getLandingPageIdAndBrandSlugBasedOnNameSlug.name} - ${error.message}`,
+        error,
+      );
+      throw error;
     }
-
-    if (!page) {
-      throw new NotFoundException('Page not found');
-    }
-
-    return {
-      lpId: page.id,
-      brandSlug: page.brandSlug,
-    };
   }
   async checkUniqueNameSlug(nameSlug: string) {
-    const page = await this.lpPageRepository.findOne({
-      where: { nameSlug },
-    });
-
-    if (!page) {
-      return true;
-    } else {
-      return false;
-    }
+      try {
+        const page = await this.lpPageRepository.findOne({
+          where: { nameSlug },
+        });
+    
+        if (!page) {
+          return true;
+        } else {
+          return false;
+        }
+      } catch (error) {
+        this.logger.error('Error checking uniqueness of page name', error);
+      this.rollbar.error(
+        `${this.constructor.name}.${this.checkUniqueNameSlug.name} - ${error.message}`,
+        error,
+      );
+      throw error;
+      }
   }
 
   async getLpGaCode(lpId: number, brandId: number) {
@@ -1407,6 +1579,8 @@ export class LandingService {
 
       return { id: landingPage.id, gaCode: landingPage.gaCode };
     } catch (error) {
+      this.logger.error('Error fetching GA Code', error);
+      this.rollbar.error(`${this.constructor.name}.${this.getLpGaCode.name} - ${error.message}`, error);
       throw error;
     }
   }
@@ -1436,6 +1610,8 @@ export class LandingService {
 
       return { id: landingPage.id, gaCode: landingPage.gaCode };
     } catch (error) {
+      this.logger.error('Error updating GA Code', error);
+        this.rollbar.error(`${this.constructor.name}.${this.updateLpGaCode.name} - ${error.message}`, error);
       throw error;
     }
   }
@@ -1471,6 +1647,8 @@ export class LandingService {
   
     return transformedLead;
     } catch (error) {
+      this.logger.error('Error fetching lead details', error);
+        this.rollbar.error(`${this.constructor.name}.${this.getLeadByUid.name} - ${error.message}`, error);
       throw error;
     }
   }
@@ -1518,6 +1696,8 @@ export class LandingService {
       await Promise.all(updatePromises);
       
     } catch (error) {
+      this.logger.error('Error updating lead', error);
+      this.rollbar.error(`${this.constructor.name}.${this.updateLeadByUid.name} - ${error.message}`, error);
       throw error;
     }
   }
@@ -1531,6 +1711,8 @@ export class LandingService {
       }
       return true;
     } catch (error) {
+      this.logger.error('Error validating landing page', error);
+      this.rollbar.error(`${this.constructor.name}.${this.validateLandingPage.name} - ${error.message}`, error);
       throw error;      
     }
   }
