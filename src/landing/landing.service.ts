@@ -291,9 +291,11 @@ export class LandingService {
       if (!page) {
         throw new NotFoundException(`Page not found with ID: ${lpId}`);
       }
-  
       // Soft delete - set the deletedAt field to the current timestamp
       page.deletedAt = new Date();
+
+      // Also delete the page from the lp_name_history table
+      await this.lpNameRepository.softDelete({ lpId: lpId });
   
       await this.lpPageRepository.save(page);
     } catch (error) {
@@ -1545,10 +1547,12 @@ export class LandingService {
   async checkUniqueNameSlug(nameSlug: string) {
       try {
         const page = await this.lpPageRepository.findOne({
-          where: { nameSlug },
+          where: { nameSlug, deletedAt: IsNull()},
         });
-    
-        if (!page) {
+        const history = await this.lpNameRepository.findBy({
+          nameSlug, deletedAt: IsNull()
+        })
+        if (!page && history.length == 0) {
           return true;
         } else {
           return false;
