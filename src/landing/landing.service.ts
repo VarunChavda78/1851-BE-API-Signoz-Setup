@@ -140,7 +140,9 @@ export class LandingService {
           ? 'Template 1'
           : page.templateId == 2
             ? 'Template 2'
-            : 'Template 3',
+            : page.templateId == 3
+            ? 'Template 3'
+            : 'Template 4',
       status: PageStatusName[page.status],
       url:
         page.domainType == DomainType.SUBDOMAIN
