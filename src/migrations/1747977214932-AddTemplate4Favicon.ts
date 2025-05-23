@@ -7,7 +7,7 @@ export class AddTemplate4Favicon1747977214932 implements MigrationInterface {
     await queryRunner.query(`
             INSERT INTO lp_sections (id, "lpTemplatePageId", name, slug)
             VALUES 
-            (106,7, 'T4 Favicon', 't4-favicon'),
+            (106,7, 'T4 Favicon', 't4-favicon')
             ON CONFLICT (id) DO NOTHING;
           `);
   }
