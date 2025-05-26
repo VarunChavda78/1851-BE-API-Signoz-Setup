@@ -443,11 +443,11 @@ export class LandingService {
       const existingPublish = await this.lpPageRepository.findOne({
         where: { id: lpId, brandId },
       });
-      // If existingPublish and user is trying to change the domainType, then allow them
-
-      // if (publishDto.publishStatus && totalPublishedPages >= totalPagesAllowed?.noOfPages) {
-      //   throw new BadRequestException('Maximum number of published pages reached');
-      // }
+      if (publishDto?.publishStatus) {
+        if (totalPublishedPages >= totalPagesAllowed.noOfPages) {
+          throw new BadRequestException('Limit reached');
+        }
+      }
       if (existingPublish) {
         existingPublish.status = publishDto.publishStatus ? 2 : 1;
         existingPublish.customDomainStatus =
@@ -482,8 +482,10 @@ export class LandingService {
         return existingPublish;
       }
     } catch (error) {
-      this.logger.error('Error updating publish data', error);
-      this.rollbar.error(`${this.constructor.name}.${this.UpdatePublishData.name} - ${error.message}`, error);
+      if(error.message !== 'Limit reached'){ 
+        this.logger.error('Error updating publish data', error);
+        this.rollbar.error(`${this.constructor.name}.${this.UpdatePublishData.name} - ${error.message}`, error);
+      }
       throw error;
     }
   }
