@@ -181,11 +181,8 @@ export class LandingService {
           .replace(/-{2,}/g, '-');
       }
       // Check if page with nameSlug already exists
-      const existingPage = await this.lpPageRepository.findOne({
-        where: { nameSlug: createPageDto.nameSlug },
-      });
-  
-      if (existingPage) {
+      const uniqueName = await this.checkUniqueNameSlug(createPageDto.nameSlug)
+      if (!uniqueName) {
         throw new BadRequestException(
           `Page with nameSlug ${createPageDto.nameSlug} already exists`,
         );
