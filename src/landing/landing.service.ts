@@ -445,7 +445,7 @@ export class LandingService {
       });
       if (publishDto?.publishStatus) {
         if (totalPublishedPages >= totalPagesAllowed.noOfPages) {
-          throw new Error('Limit reached');
+          throw new BadRequestException('Limit reached');
         }
       }
       if (existingPublish) {
