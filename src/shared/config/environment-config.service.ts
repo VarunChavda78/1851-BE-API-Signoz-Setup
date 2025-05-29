@@ -51,4 +51,14 @@ export class EnvironmentConfigService extends ConfigService {
   getSiteId(): string {
     return this.get<string>('siteId');
   }
+  getGoogleClientId(): string {
+    return this.get<string>('google.clientId');
+  }
+  getGoogleClientSecret(): string {
+    return this.get<string>('google.clientSecret');
+  }
+  getGoogleRedirectUrl(): string {
+    return this.get<string>('google.redirectUrl');
+  }
+  
 }
