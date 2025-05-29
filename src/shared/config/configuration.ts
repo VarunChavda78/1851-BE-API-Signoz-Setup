@@ -73,4 +73,9 @@ export default (): any => ({
   },
   siteId: process.env.SITE_ID,
   appUrl: process.env.APP_URL,
+  google: {
+    clientId: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    redirectUrl: process.env.GOOGLE_REDIRECT_URL,
+  },
 });
