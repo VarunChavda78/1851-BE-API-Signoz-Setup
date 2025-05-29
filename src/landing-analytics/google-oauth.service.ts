@@ -167,7 +167,12 @@ async refreshToken(credentialId: number): Promise<boolean> {
       
       return true;
     } catch (refreshError) {
-      this.logger.error(`Error during token refresh for credential ${credentialId}`, refreshError);
+      this.logger.error(`Error during token refresh for credential ${credentialId}: ${refreshError.message}`, refreshError);
+      
+      // Log the full error details for debugging
+      if (refreshError.response) {
+        this.logger.error(`Error details: ${JSON.stringify(refreshError.response.data || {})}`);
+      }
       
       // If refresh fails due to invalid_grant, the refresh token is no longer valid
       // This can happen if the user revoked access or the token was revoked by Google
@@ -182,7 +187,7 @@ async refreshToken(credentialId: number): Promise<boolean> {
       return false;
     }
   } catch (error) {
-    this.logger.error(`Error refreshing token for credential ${credentialId}`, error);
+    this.logger.error(`Error refreshing token for credential ${credentialId}: ${error.message}`, error);
     return false;
   }
 }

@@ -1,4 +1,4 @@
-import { Controller, Put, Body, Param, Logger, Get, Query } from '@nestjs/common';
+import { Controller, Put, Body, Param, Logger, Get, Query, Post } from '@nestjs/common';
 import { GACredentialsRepository } from './ga-credentials.repository';
 import { GoogleOAuthService } from './google-oauth.service';
 import { google } from 'googleapis';
@@ -89,4 +89,31 @@ export class GAPropertyController {
       this.logger.error(`Error listing properties for brand ${brandId}`, error);
       return { success: false, message: 'Failed to list properties', error: error.message };
     }
-  }}
+  }
+
+  @Post('reconnect')
+async forceReconnect(@Body() body: { brandId: number }) {
+  try {
+    const { brandId } = body;
+    
+    // Find all credentials for this brand
+    const credentials = await this.gaCredentialsRepository.findByBrandId(brandId);
+    
+    // Mark all as inactive
+    for (const credential of credentials) {
+      credential.isActive = false;
+      await this.gaCredentialsRepository.save(credential);
+    }
+    
+    return { 
+      success: true, 
+      message: 'Google Analytics credentials deactivated. Please reconnect your account.' 
+    };
+  } catch (error) {
+    this.logger.error(`Error forcing reconnection for brand ${body.brandId}:`, error.message);
+    return { success: false, message: 'Failed to process reconnection request' };
+  }
+}
+
+
+}
