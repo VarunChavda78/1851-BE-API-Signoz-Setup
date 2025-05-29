@@ -1,5 +1,5 @@
 
-import { LessThan, Repository } from 'typeorm';
+import { IsNull, LessThan, Not, Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { GACredential } from './ga-credential.entity';
@@ -44,5 +44,15 @@ export class GACredentialsRepository {
   async create(credential: Partial<GACredential>): Promise<GACredential> {
     const newCredential = this.repository.create(credential);
     return this.repository.save(newCredential);
+  }
+
+  async findActiveWithPropertyId() {
+    return this.repository.find({ 
+      where: { 
+        isActive: true,
+        propertyId: Not(IsNull())
+      },
+      relations: ['landingPage']
+    });
   }
 }
