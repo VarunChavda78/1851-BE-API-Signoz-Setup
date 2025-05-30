@@ -7,13 +7,11 @@ import { UsersModule } from 'src/users/users.module';
 import { GoogleOAuthController } from './controllers/ga-oauth.controller';
 import { LandingAnalyticsStatusController } from './controllers/landing-analytics-status.controller';
 import { GAPropertyController } from './controllers/ga-property.controller';
-import { GADataController } from './controllers/ga-data.controller';
 import { LandingAnalyticsController } from './controllers/landing-analytics.controller';
 
 // Services
 import { GoogleOAuthService } from './services/google-oauth.service';
 import { TokenRefreshService } from './services/token-refresh.service';
-import { GADataService } from './services/ga-data.service';
 import { LandingAnalyticsService } from './services/landing-analytics.service';
 
 // Repositories
@@ -38,12 +36,10 @@ import { LpGaSyncStatus } from './lp-ga-sync-status.entity';
     GoogleOAuthController,
     LandingAnalyticsStatusController,
     GAPropertyController,
-    GADataController,
   ],
   providers: [
     GoogleOAuthService,
     TokenRefreshService,
-    GADataService,
     LandingAnalyticsService,
     GACredentialsRepository,
     LpPageRepository,
@@ -53,7 +49,6 @@ import { LpGaSyncStatus } from './lp-ga-sync-status.entity';
   exports: [
     GoogleOAuthService,
     TokenRefreshService,
-    GADataService,
     LandingAnalyticsService,
   ],
 })
