@@ -14,11 +14,16 @@ export class LandingAnalyticsStatusController {
     @Query('landingPageId') landingPageId: number,
   ) {
     if (!brandId || !landingPageId) {
-      throw new BadRequestException('Both Brand ID and Landing Page ID are required');
+      throw new BadRequestException(
+        'Both Brand ID and Landing Page ID are required',
+      );
     }
 
-    const credentials = await this.gaCredentialsRepository.findByLandingPageId(landingPageId);
-    
+    const credentials = await this.gaCredentialsRepository.findByBrandAndPage(
+      brandId,
+      landingPageId,
+    );
+
     return {
       connected: credentials.length > 0,
       hasPropertyId: credentials.length > 0 && !!credentials[0].propertyId,

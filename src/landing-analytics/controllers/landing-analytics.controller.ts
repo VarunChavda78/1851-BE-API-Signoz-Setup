@@ -52,7 +52,7 @@ export class LandingAnalyticsController {
   @Post('sync')
   async triggerSync(
     @Query('brandId') brandId: number,
-    @Query('landingPageId') landingPageId: number, // Now required
+    @Query('landingPageId') landingPageId: number,
   ) {
     if (!brandId || !landingPageId) {
       throw new BadRequestException(
