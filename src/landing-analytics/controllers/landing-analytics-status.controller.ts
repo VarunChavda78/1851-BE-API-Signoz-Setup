@@ -1,5 +1,5 @@
 import { Controller, Get, Query, Logger } from '@nestjs/common';
-import { GACredentialsRepository } from './ga-credentials.repository';
+import { GACredentialsRepository } from '../repositories/ga-credentials.repository';
 
 @Controller({
   version: '1',

@@ -1,6 +1,6 @@
 // src/landing-analytics/ga-data.controller.ts
 import { Controller, Get, Query, Logger } from '@nestjs/common';
-import { GADataService } from './ga-data.service';
+import { GADataService } from '../services/ga-data.service';
 
 @Controller({
   version: '1',

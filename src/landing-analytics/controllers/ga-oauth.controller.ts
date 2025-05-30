@@ -1,7 +1,7 @@
 import { Controller, Get, Query, Redirect, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { GoogleOAuthService } from './google-oauth.service';
-import { GACredentialsRepository } from './ga-credentials.repository';
+import { GoogleOAuthService } from '../services/google-oauth.service';
+import { GACredentialsRepository } from '../repositories/ga-credentials.repository';
 
 @Controller({
   version: '1',

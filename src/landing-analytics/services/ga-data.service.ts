@@ -1,6 +1,6 @@
 // src/landing-analytics/ga-data.service.ts
 import { Injectable, Logger } from '@nestjs/common';
-import { GACredentialsRepository } from './ga-credentials.repository';
+import { GACredentialsRepository } from '../repositories/ga-credentials.repository';
 import { GoogleOAuthService } from './google-oauth.service';
 import { google } from 'googleapis';
 

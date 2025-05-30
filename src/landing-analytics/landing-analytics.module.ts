@@ -5,21 +5,21 @@ import { SharedModule } from 'src/shared/shared.module';
 import { UsersModule } from 'src/users/users.module';
 
 // Controllers
-import { LandingAnalyticsController } from './landing-analytics.controller';
-import { GoogleOAuthController } from './ga-oauth.controller';
-import { LandingAnalyticsStatusController } from './landing-analytics-status.controller';
-import { GAPropertyController } from './ga-property.controller';
-import { GADataController } from './ga-data.controller';
+import { LandingAnalyticsController } from './controllers/landing-analytics.controller';
+import { GoogleOAuthController } from './controllers/ga-oauth.controller';
+import { LandingAnalyticsStatusController } from './controllers/landing-analytics-status.controller';
+import { GAPropertyController } from './controllers/ga-property.controller';
+import { GADataController } from './controllers/ga-data.controller';
 import { LandingAnalyticsDataController } from './controllers/landing-analytics-data.controller';
 
 // Services
-import { GoogleOAuthService } from './google-oauth.service';
-import { TokenRefreshService } from './token-refresh.service';
-import { GADataService } from './ga-data.service';
+import { GoogleOAuthService } from './services/google-oauth.service';
+import { TokenRefreshService } from './services/token-refresh.service';
+import { GADataService } from './services/ga-data.service';
 import { LandingAnalyticsService } from './services/landing-analytics.service';
 
 // Repositories
-import { GACredentialsRepository } from './ga-credentials.repository';
+import { GACredentialsRepository } from './repositories/ga-credentials.repository';
 import { LpPageRepository } from 'src/landing/lp-page.repository';
 import { LpGaSummaryRepository } from './repositories/lp-ga-summary.repository';
 import { LpGaSyncStatusRepository } from './repositories/lp-ga-sync-status.repository';
