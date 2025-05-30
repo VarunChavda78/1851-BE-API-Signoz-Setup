@@ -1,4 +1,11 @@
-import { Controller, Get, Query, Redirect, Logger, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  Redirect,
+  Logger,
+  BadRequestException,
+} from '@nestjs/common';
 import { GoogleOAuthService } from '../services/google-oauth.service';
 import { GACredentialsRepository } from '../repositories/ga-credentials.repository';
 import { EnvironmentConfigService } from 'src/shared/config/environment-config.service';
@@ -18,12 +25,11 @@ export class GoogleOAuthController {
 
   @Get('connect')
   @Redirect()
-  connect(
-    @Query('brandId') brandId: number,
-    @Query('pageId') pageId: number,
-  ) {
+  connect(@Query('brandId') brandId: number, @Query('pageId') pageId: number) {
     if (!brandId || !pageId) {
-      throw new BadRequestException('Both Brand ID and Landing Page ID are required');
+      throw new BadRequestException(
+        'Both Brand ID and Landing Page ID are required',
+      );
     }
 
     const url = this.googleOAuthService.getAuthUrl(brandId, pageId);
@@ -40,17 +46,26 @@ export class GoogleOAuthController {
     const decodedState = JSON.parse(Buffer.from(state, 'base64').toString());
     const { brandId, pageId } = decodedState;
 
-    const redirectUrl = `${this.env.getBrandPortalUrl()}/v2/landing/site-analytics?brandId=${brandId}&pageId=${pageId}`;
+    if (!brandId || !pageId) {
+      throw new BadRequestException('Missing brandId or pageId in state');
+    }
+
+    const redirectUrl = `${this.env.getBrandPortalUrl()}/v2/landing/site-analytics`;
 
     if (error) {
       return {
-        url: `${redirectUrl}&connection=error&message=${encodeURIComponent(error)}`,
+        url: `${redirectUrl}?brandId=${brandId}&landingPageId=${pageId}&connection=error&message=${encodeURIComponent(
+          error,
+        )}`,
       };
     }
 
     const result = await this.googleOAuthService.handleCallback(code, state);
+
     return {
-      url: `${redirectUrl}&connection=${result.success ? 'success' : 'error'}`,
+      url: `${redirectUrl}?brandId=${brandId}&landingPageId=${pageId}&connection=${
+        result.success ? 'success' : 'error'
+      }`,
     };
   }
 
@@ -61,7 +76,9 @@ export class GoogleOAuthController {
     @Query('pageId') pageId: number,
   ) {
     if (!brandId || !pageId) {
-      throw new BadRequestException('Both Brand ID and Landing Page ID are required');
+      throw new BadRequestException(
+        'Both Brand ID and Landing Page ID are required',
+      );
     }
 
     await this.gaCredentialsRepository.deactivateByLandingPage(pageId);

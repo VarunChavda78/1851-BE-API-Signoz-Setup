@@ -35,24 +35,23 @@ export class GACredentialsRepository {
 
   async findByLandingPageId(pageId: number): Promise<GACredential[]> {
     return this.repository.find({
-      where: { 
+      where: {
         landingPage: { id: pageId },
-        isActive: true 
-      },
-      relations: ['landingPage'],
-    });
-  }  
-  
-  async findByBrandId(brandId: number): Promise<GACredential[]> {
-    return this.repository.find({
-      where: { 
-        brandId,
-        isActive: true 
+        isActive: true,
       },
       relations: ['landingPage'],
     });
   }
-  
+
+  async findByBrandId(brandId: number): Promise<GACredential[]> {
+    return this.repository.find({
+      where: {
+        brandId,
+        isActive: true,
+      },
+      relations: ['landingPage'],
+    });
+  }
 
   async findActiveWithPropertyId(landingPageId?: number) {
     const where: any = {
@@ -73,7 +72,21 @@ export class GACredentialsRepository {
   async deactivateByLandingPage(pageId: number): Promise<void> {
     await this.repository.update(
       { landingPage: { id: pageId } },
-      { isActive: false }
+      { isActive: false },
     );
+  }
+
+  async findByBrandAndPage(
+    brandId: number,
+    pageId: number,
+  ): Promise<GACredential[]> {
+    return this.repository.find({
+      where: {
+        brandId,
+        landingPage: { id: pageId },
+        isActive: true,
+      },
+      relations: ['landingPage'],
+    });
   }
 }
