@@ -18,41 +18,20 @@ export class LandingAnalyticsService {
     private lpGaSyncStatusRepository: LpGaSyncStatusRepository,
   ) {}
 
-  @Cron('0 1 * * *') // Run daily at 1 AM
+  @Cron('0 1 * * *') // Daily at 1 AM
   async dailySyncAllLandingPages() {
-    this.logger.log(
-      'Starting daily Google Analytics sync for all landing pages',
-    );
+    const credentials =
+      await this.gaCredentialsRepository.findActiveWithPropertyId();
 
-    try {
-      // Get all active credentials with property IDs
-      const credentials =
-        await this.gaCredentialsRepository.findActiveWithPropertyId();
-      this.logger.log(
-        `Found ${credentials.length} landing pages with GA credentials`,
-      );
-
-      // Process in batches to avoid overloading
-      for (let i = 0; i < credentials.length; i++) {
-        const credential = credentials[i];
-        try {
-          await this.fetchAndStoreLandingPageData(credential);
-
-          // Add small delay between requests to avoid rate limiting
-          if (i < credentials.length - 1) {
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-          }
-        } catch (error) {
-          this.logger.error(
-            `Error processing credential ${credential.id}:`,
-            error.message,
-          );
-        }
+    for (const credential of credentials) {
+      try {
+        await this.fetchAndStoreLandingPageData(credential);
+      } catch (error) {
+        this.logger.error(
+          `Sync failed for credential ${credential.id}:`,
+          error,
+        );
       }
-
-      this.logger.log('Completed daily Google Analytics sync');
-    } catch (error) {
-      this.logger.error('Error in daily Google Analytics sync:', error.message);
     }
   }
 
@@ -61,6 +40,10 @@ export class LandingAnalyticsService {
     query: { startDate?: string; endDate?: string } = {},
   ) {
     try {
+
+      if (!credential.brandId || !credential.propertyId) {
+        throw new Error('Invalid credential data - missing brandId or propertyId');
+      }
       // Refresh token if needed
       if (new Date(credential.expiresAt) <= new Date()) {
         this.logger.log(
@@ -130,15 +113,17 @@ export class LandingAnalyticsService {
         endDate,
       );
 
-      // Clear existing data for this date range
+      const landingPageId = credential.landingPage?.id;
+
+      // Clear existing data for this page (or brand if no page)
       await this.lpGaSummaryRepository.deleteByDateRange(
         startDate,
         endDate,
         credential.brandId,
-        credential.landingPage?.id,
+        landingPageId,
       );
 
-      // Store fetched data
+      // Store new data
       for (const item of data) {
         await this.lpGaSummaryRepository.save({
           ...item,
@@ -149,9 +134,9 @@ export class LandingAnalyticsService {
 
       // Update sync status
       await this.lpGaSyncStatusRepository.updateSyncStatus(
-        credential.brandId,
+        credential.brandId, // Ensure this is always passed
         credential.landingPage?.id,
-        'success',
+        'success'
       );
 
       this.logger.log(
@@ -320,64 +305,72 @@ export class LandingAnalyticsService {
 
   async triggerManualSync(brandId: number, landingPageId?: number) {
     try {
-      // Find credentials
-      let credentials;
-
-      if (landingPageId) {
-        const credential =
-          await this.gaCredentialsRepository.findByLandingPageId(landingPageId);
-        credentials = credential ? [credential] : [];
-      } else {
-        credentials = await this.gaCredentialsRepository.findByBrandId(brandId);
+      // Validate IDs - landingPageId is now required
+      if (!brandId || !landingPageId) {
+        throw new Error('Both Brand ID and Landing Page ID are required');
       }
-
-      if (!credentials || credentials.length === 0) {
+  
+      console.log('Fetching credentials for:', { brandId, landingPageId });
+      
+      // Only look for landing-page-specific credentials
+      const credentials = await this.gaCredentialsRepository.findByLandingPageId(landingPageId);
+      console.log('Found credentials:', credentials);
+  
+      if (!credentials.length) {
         return {
           success: false,
-          message: 'No Google Analytics credentials found',
+          message: 'No GA connection found for this landing page',
         };
       }
-
-      // Process each credential (usually just one)
-      const results = [];
-
-      for (const credential of credentials) {
-        if (!credential.propertyId) {
-          results.push({
-            credentialId: credential.id,
-            success: false,
-            message: 'Missing property ID',
-          });
-          continue;
-        }
-
-        const result = await this.fetchAndStoreLandingPageData(credential);
-        results.push({
-          credentialId: credential.id,
-          ...result,
-        });
-      }
-
-      // Determine overall success
-      const allSuccessful = results.every((r) => r.success);
-
+  
+      // Process sync for each credential (should typically be just one)
+      const results = await Promise.all(
+        credentials.map(async (credential) => {
+          try {
+            console.log('Processing credential:', credential.id);
+            
+            // Validate credential data
+            if (!credential.propertyId) {
+              throw new Error('Missing propertyId in GA connection');
+            }
+            if (!credential.isActive) {
+              throw new Error('GA connection is not active');
+            }
+  
+            const result = await this.fetchAndStoreLandingPageData({
+              ...credential,
+              brandId: credential.brandId // Ensure brandId is from credential
+            });
+  
+            return {
+              credentialId: credential.id,
+              ...result,
+            };
+          } catch (error) {
+            this.logger.error(`Sync failed for credential ${credential.id}`, error);
+            return {
+              credentialId: credential.id,
+              success: false,
+              message: error.message,
+            };
+          }
+        })
+      );
+  
       return {
-        success: allSuccessful,
-        message: allSuccessful
+        success: results.every(r => r.success),
+        message: results.every(r => r.success)
           ? 'Data synchronized successfully'
-          : 'Some synchronization tasks failed',
+          : results[0].message, // Return first error if any
         details: results,
       };
     } catch (error) {
-      this.logger.error(
-        `Error triggering manual sync for brand ${brandId}:`,
-        error.message,
-      );
+      this.logger.error('Error in triggerManualSync', error);
       return {
         success: false,
-        message: 'Failed to synchronize data',
-        error: error.message,
+        message: error.message,
       };
     }
   }
+  
 }

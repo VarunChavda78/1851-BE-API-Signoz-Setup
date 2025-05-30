@@ -14,7 +14,7 @@ export class LpGaSyncStatus {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ nullable: false })
   brandId: number;
 
   @ManyToOne(() => LpPage, { nullable: true })
