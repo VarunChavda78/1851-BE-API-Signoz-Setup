@@ -1,6 +1,13 @@
 import { LpPage } from 'src/landing/lp-page.entity';
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-// import { LpPage } from '../../landing/lp-page.entity';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity('lp_ga_summary')
 export class LpGaSummary {
@@ -34,10 +41,10 @@ export class LpGaSummary {
   @ManyToOne(() => LpPage, { nullable: true })
   @JoinColumn({ name: 'landingPageId' })
   landingPage: LpPage;
-  
+
   @CreateDateColumn()
   createdAt: Date;
-  
+
   @UpdateDateColumn()
   updatedAt: Date;
 }

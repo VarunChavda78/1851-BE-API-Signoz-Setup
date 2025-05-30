@@ -1,5 +1,13 @@
 import { LpPage } from 'src/landing/lp-page.entity';
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity('lp_ga_sync_status')
 export class LpGaSyncStatus {
@@ -8,7 +16,7 @@ export class LpGaSyncStatus {
 
   @Column()
   brandId: number;
-  
+
   @ManyToOne(() => LpPage, { nullable: true })
   @JoinColumn({ name: 'landingPageId' })
   landingPage: LpPage;
@@ -18,10 +26,10 @@ export class LpGaSyncStatus {
 
   @Column({ nullable: true })
   lastSyncStatus: string;
-  
+
   @CreateDateColumn()
   createdAt: Date;
-  
+
   @UpdateDateColumn()
   updatedAt: Date;
 }
