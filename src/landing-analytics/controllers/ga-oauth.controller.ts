@@ -1,7 +1,7 @@
 import { Controller, Get, Query, Redirect, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { GoogleOAuthService } from '../services/google-oauth.service';
 import { GACredentialsRepository } from '../repositories/ga-credentials.repository';
+import { EnvironmentConfigService } from 'src/shared/config/environment-config.service';
 
 @Controller({
   version: '1',
@@ -12,8 +12,8 @@ export class GoogleOAuthController {
   
   constructor(
     private readonly googleOAuthService: GoogleOAuthService,
-    private readonly configService: ConfigService,
-    private readonly gaCredentialsRepository: GACredentialsRepository
+    private readonly gaCredentialsRepository: GACredentialsRepository,
+    private readonly env: EnvironmentConfigService,
   ) {}
 
   @Get('connect')
@@ -42,19 +42,10 @@ async callback(
     const { brandId } = decodedState;
     
     // Get the appropriate frontend URL based on environment
-    const env = this.configService.get('NODE_ENV');
-    let frontendBaseUrl;
-    
-    if (env === 'production') {
-      frontendBaseUrl = 'https://brand.1851franchise.com';
-    } else if (env === 'development') {
-      frontendBaseUrl = 'https://brand.1851dev.com';
-    } else {
-      frontendBaseUrl = 'http://localhost:3000';
-    }
+    let brandPortalBaseUrl = this.env.getBrandPortalUrl();
     
     return { 
-      url: `${frontendBaseUrl}/v2/landing/site-analytics?brandId=${brandId}&connection=error&message=${encodeURIComponent(error)}` 
+      url: `${brandPortalBaseUrl}/v2/landing/site-analytics?brandId=${brandId}&connection=error&message=${encodeURIComponent(error)}` 
     };
   }
   
@@ -66,26 +57,17 @@ async callback(
   const { brandId } = decodedState;
   
   // Get the appropriate frontend URL based on environment
-  const env = this.configService.get('NODE_ENV');
-  let frontendBaseUrl;
-  
-  if (env === 'production') {
-    frontendBaseUrl = 'https://brand.1851franchise.com';
-  } else if (env === 'development') {
-    frontendBaseUrl = 'https://brand.1851dev.com';
-  } else {
-    frontendBaseUrl = 'http://localhost:3000';
-  }
+  let brandPortalBaseUrl = this.env.getBrandPortalUrl();
   
   if (result.success) {
     // Redirect to success page
     return { 
-      url: `${frontendBaseUrl}/v2/landing/site-analytics?brandId=${brandId}&connection=success` 
+      url: `${brandPortalBaseUrl}/v2/landing/site-analytics?brandId=${brandId}&connection=success` 
     };
   } else {
     // Redirect to error page
     return { 
-      url: `${frontendBaseUrl}/v2/landing/site-analytics?brandId=${brandId}&connection=error&message=${encodeURIComponent(result.error)}` 
+      url: `${brandPortalBaseUrl}/v2/landing/site-analytics?brandId=${brandId}&connection=error&message=${encodeURIComponent(result.error)}` 
     };
   }
 }
