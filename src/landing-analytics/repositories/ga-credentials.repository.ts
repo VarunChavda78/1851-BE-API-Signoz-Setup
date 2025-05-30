@@ -2,7 +2,7 @@
 import { IsNull, LessThan, Not, Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { GACredential } from './ga-credential.entity';
+import { GACredential } from '../ga-credential.entity';
 
 @Injectable()
 export class GACredentialsRepository {

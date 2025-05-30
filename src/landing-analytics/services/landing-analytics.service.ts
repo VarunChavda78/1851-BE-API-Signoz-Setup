@@ -6,8 +6,8 @@ import { BetaAnalyticsDataClient } from '@google-analytics/data';
 import { google } from 'googleapis';
 import { Not, IsNull } from 'typeorm';
 import * as dayjs from 'dayjs'
-import { GACredentialsRepository } from '../ga-credentials.repository';
-import { GoogleOAuthService } from '../google-oauth.service';
+import { GACredentialsRepository } from '../repositories/ga-credentials.repository';
+import { GoogleOAuthService } from './google-oauth.service';
 import { LpGaSummaryRepository } from '../repositories/lp-ga-summary.repository';
 import { LpGaSyncStatusRepository } from '../repositories/lp-ga-sync-status.repository';
 

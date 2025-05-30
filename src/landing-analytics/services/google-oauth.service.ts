@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { google } from 'googleapis';
 import { LpPageRepository } from 'src/landing/lp-page.repository';
-import { GACredentialsRepository } from './ga-credentials.repository';
+import { GACredentialsRepository } from '../repositories/ga-credentials.repository';
 import { EnvironmentConfigService } from 'src/shared/config/environment-config.service';
 
 @Injectable()

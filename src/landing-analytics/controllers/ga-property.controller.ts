@@ -1,6 +1,6 @@
 import { Controller, Put, Body, Param, Logger, Get, Query, Post } from '@nestjs/common';
-import { GACredentialsRepository } from './ga-credentials.repository';
-import { GoogleOAuthService } from './google-oauth.service';
+import { GACredentialsRepository } from '../repositories/ga-credentials.repository';
+import { GoogleOAuthService } from '../services/google-oauth.service';
 import { google } from 'googleapis';
 
 

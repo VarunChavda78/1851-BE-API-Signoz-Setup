@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { GoogleOAuthService } from './google-oauth.service';
-import { GACredentialsRepository } from './ga-credentials.repository';
+import { GACredentialsRepository } from '../repositories/ga-credentials.repository';
 
 @Injectable()
 export class TokenRefreshService {
