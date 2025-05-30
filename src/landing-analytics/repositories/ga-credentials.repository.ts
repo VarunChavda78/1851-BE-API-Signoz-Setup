@@ -1,4 +1,3 @@
-
 import { IsNull, LessThan, Not, Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -12,24 +11,24 @@ export class GACredentialsRepository {
   ) {}
 
   async findByBrandId(brandId: number): Promise<GACredential[]> {
-    return this.repository.find({ 
-      where: { brandId, isActive: true } 
+    return this.repository.find({
+      where: { brandId, isActive: true },
     });
   }
-  
+
   async findByLandingPageId(pageId: number): Promise<GACredential | undefined> {
-    return this.repository.findOne({ 
-      where: { landingPage: { id: pageId }, isActive: true } 
+    return this.repository.findOne({
+      where: { landingPage: { id: pageId }, isActive: true },
     });
   }
-  
+
   async findExpiredTokens(): Promise<GACredential[]> {
     const now = new Date();
-    return this.repository.find({ 
-      where: { 
-        expiresAt: LessThan(now), 
-        isActive: true 
-      } 
+    return this.repository.find({
+      where: {
+        expiresAt: LessThan(now),
+        isActive: true,
+      },
     });
   }
 
@@ -47,12 +46,12 @@ export class GACredentialsRepository {
   }
 
   async findActiveWithPropertyId() {
-    return this.repository.find({ 
-      where: { 
+    return this.repository.find({
+      where: {
         isActive: true,
-        propertyId: Not(IsNull())
+        propertyId: Not(IsNull()),
       },
-      relations: ['landingPage']
+      relations: ['landingPage'],
     });
   }
 }

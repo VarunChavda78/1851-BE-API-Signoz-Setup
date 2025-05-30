@@ -1,4 +1,3 @@
-// src/landing-analytics/landing-analytics.module.ts
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SharedModule } from 'src/shared/shared.module';
@@ -30,12 +29,8 @@ import { LpGaSyncStatus } from './lp-ga-sync-status.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      GACredential,
-      LpGaSummary,
-      LpGaSyncStatus
-    ]), 
-    SharedModule, 
+    TypeOrmModule.forFeature([GACredential, LpGaSummary, LpGaSyncStatus]),
+    SharedModule,
     UsersModule,
   ],
   controllers: [

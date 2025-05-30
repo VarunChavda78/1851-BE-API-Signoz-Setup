@@ -12,31 +12,36 @@ export class LpGaSyncStatusRepository {
 
   async findByBrandId(brandId: number): Promise<LpGaSyncStatus> {
     return this.repository.findOne({
-      where: { 
+      where: {
         brandId,
-        landingPage: null
+        landingPage: null,
       },
     });
   }
 
-  async findByBrandAndPage(brandId: number, landingPageId: number): Promise<LpGaSyncStatus> {
+  async findByBrandAndPage(
+    brandId: number,
+    landingPageId: number,
+  ): Promise<LpGaSyncStatus> {
     return this.repository.findOne({
-      where: { 
+      where: {
         brandId,
-        landingPage: { id: landingPageId }
+        landingPage: { id: landingPageId },
       },
     });
   }
 
   async updateSyncStatus(
-    brandId: number, 
-    landingPageId: number | null, 
-    status: string
+    brandId: number,
+    landingPageId: number | null,
+    status: string,
   ): Promise<LpGaSyncStatus> {
     let syncStatus = await this.repository.findOne({
-      where: { 
+      where: {
         brandId,
-        ...(landingPageId ? { landingPage: { id: landingPageId } } : { landingPage: null })
+        ...(landingPageId
+          ? { landingPage: { id: landingPageId } }
+          : { landingPage: null }),
       },
     });
 

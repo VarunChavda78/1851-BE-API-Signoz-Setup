@@ -11,9 +11,9 @@ export class LpGaSummaryRepository {
   ) {}
 
   async findByBrandId(
-    brandId: number, 
-    startDate: string, 
-    endDate: string
+    brandId: number,
+    startDate: string,
+    endDate: string,
   ): Promise<LpGaSummary[]> {
     return this.repository.find({
       where: {
@@ -27,9 +27,9 @@ export class LpGaSummaryRepository {
   }
 
   async findByLandingPageId(
-    landingPageId: number, 
-    startDate: string, 
-    endDate: string
+    landingPageId: number,
+    startDate: string,
+    endDate: string,
   ): Promise<LpGaSummary[]> {
     return this.repository.find({
       where: {
@@ -42,7 +42,12 @@ export class LpGaSummaryRepository {
     });
   }
 
-  async deleteByDateRange(startDate: string, endDate: string, brandId?: number, landingPageId?: number): Promise<void> {
+  async deleteByDateRange(
+    startDate: string,
+    endDate: string,
+    brandId?: number,
+    landingPageId?: number,
+  ): Promise<void> {
     const whereClause: any = {
       date: Between(startDate, endDate),
     };
