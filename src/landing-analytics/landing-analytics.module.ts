@@ -5,12 +5,11 @@ import { SharedModule } from 'src/shared/shared.module';
 import { UsersModule } from 'src/users/users.module';
 
 // Controllers
-import { LandingAnalyticsController } from './controllers/landing-analytics.controller';
 import { GoogleOAuthController } from './controllers/ga-oauth.controller';
 import { LandingAnalyticsStatusController } from './controllers/landing-analytics-status.controller';
 import { GAPropertyController } from './controllers/ga-property.controller';
 import { GADataController } from './controllers/ga-data.controller';
-import { LandingAnalyticsDataController } from './controllers/landing-analytics-data.controller';
+import { LandingAnalyticsController } from './controllers/landing-analytics.controller';
 
 // Services
 import { GoogleOAuthService } from './services/google-oauth.service';
@@ -45,7 +44,6 @@ import { LpGaSyncStatus } from './lp-ga-sync-status.entity';
     LandingAnalyticsStatusController,
     GAPropertyController,
     GADataController,
-    LandingAnalyticsDataController,
   ],
   providers: [
     GoogleOAuthService,

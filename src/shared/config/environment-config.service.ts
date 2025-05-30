@@ -60,5 +60,8 @@ export class EnvironmentConfigService extends ConfigService {
   getGoogleRedirectUrl(): string {
     return this.get<string>('google.redirectUrl');
   }
+  getBrandPortalUrl(): string {
+    return this.get<string>('brandPortalUrl');
+  }
   
 }
