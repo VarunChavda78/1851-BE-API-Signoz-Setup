@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Redirect, Logger } from '@nestjs/common';
+import { Controller, Get, Query, Redirect, Logger, BadRequestException } from '@nestjs/common';
 import { GoogleOAuthService } from '../services/google-oauth.service';
 import { GACredentialsRepository } from '../repositories/ga-credentials.repository';
 import { EnvironmentConfigService } from 'src/shared/config/environment-config.service';
@@ -20,9 +20,12 @@ export class GoogleOAuthController {
   @Redirect()
   connect(
     @Query('brandId') brandId: number,
-    @Query('pageId') pageId: number = 0,
+    @Query('pageId') pageId: number,
   ) {
-    this.logger.log(`Initiating Google OAuth connection for brand ${brandId}`);
+    if (!brandId || !pageId) {
+      throw new BadRequestException('Both Brand ID and Landing Page ID are required');
+    }
+
     const url = this.googleOAuthService.getAuthUrl(brandId, pageId);
     return { url };
   }
@@ -34,71 +37,34 @@ export class GoogleOAuthController {
     @Query('state') state: string,
     @Query('error') error: string,
   ) {
-    this.logger.log('Received callback from Google OAuth');
-
-    // Check if there's an error parameter
-    if (error) {
-      this.logger.error(`OAuth error: ${error}`);
-
-      // Decode state to get brandId
-      const decodedState = JSON.parse(Buffer.from(state, 'base64').toString());
-      const { brandId } = decodedState;
-
-      // Get the appropriate frontend URL based on environment
-      let brandPortalBaseUrl = this.env.getBrandPortalUrl();
-
-      return {
-        url: `${brandPortalBaseUrl}/v2/landing/site-analytics?brandId=${brandId}&connection=error&message=${encodeURIComponent(
-          error,
-        )}`,
-      };
-    }
-
-    // No error, proceed with normal flow
-    const result = await this.googleOAuthService.handleCallback(code, state);
-
-    // Decode state to get brandId
     const decodedState = JSON.parse(Buffer.from(state, 'base64').toString());
-    const { brandId } = decodedState;
+    const { brandId, pageId } = decodedState;
 
-    // Get the appropriate frontend URL based on environment
-    let brandPortalBaseUrl = this.env.getBrandPortalUrl();
+    const redirectUrl = `${this.env.getBrandPortalUrl()}/v2/landing/site-analytics?brandId=${brandId}&pageId=${pageId}`;
 
-    if (result.success) {
-      // Redirect to success page
+    if (error) {
       return {
-        url: `${brandPortalBaseUrl}/v2/landing/site-analytics?brandId=${brandId}&connection=success`,
-      };
-    } else {
-      // Redirect to error page
-      return {
-        url: `${brandPortalBaseUrl}/v2/landing/site-analytics?brandId=${brandId}&connection=error&message=${encodeURIComponent(
-          result.error,
-        )}`,
+        url: `${redirectUrl}&connection=error&message=${encodeURIComponent(error)}`,
       };
     }
+
+    const result = await this.googleOAuthService.handleCallback(code, state);
+    return {
+      url: `${redirectUrl}&connection=${result.success ? 'success' : 'error'}`,
+    };
   }
 
   @Get('reconnect')
   @Redirect()
   async reconnect(
     @Query('brandId') brandId: number,
-    @Query('pageId') pageId: number = 0,
+    @Query('pageId') pageId: number,
   ) {
-    this.logger.log(
-      `Initiating Google OAuth reconnection for brand ${brandId}`,
-    );
-
-    // Find and invalidate existing credentials
-    const credentials =
-      await this.gaCredentialsRepository.findByBrandId(brandId);
-
-    for (const credential of credentials) {
-      credential.isActive = false;
-      await this.gaCredentialsRepository.save(credential);
+    if (!brandId || !pageId) {
+      throw new BadRequestException('Both Brand ID and Landing Page ID are required');
     }
 
-    // Redirect to the OAuth flow to create new credentials
+    await this.gaCredentialsRepository.deactivateByLandingPage(pageId);
     const url = this.googleOAuthService.getAuthUrl(brandId, pageId);
     return { url };
   }

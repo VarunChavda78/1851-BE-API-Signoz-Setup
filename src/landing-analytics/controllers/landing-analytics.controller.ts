@@ -1,4 +1,11 @@
-import { Controller, Get, Post, Query, Logger } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Query,
+  Logger,
+  BadRequestException,
+} from '@nestjs/common';
 import { LandingAnalyticsService } from '../services/landing-analytics.service';
 import * as dayjs from 'dayjs';
 
@@ -14,20 +21,18 @@ export class LandingAnalyticsController {
   @Get('data')
   async getAnalyticsData(
     @Query('brandId') brandId: number,
-    @Query('landingPageId') landingPageId: number,
-    @Query('startDate')
-    startDate: string = dayjs().subtract(7, 'day').format('YYYY-MM-DD'),
-    @Query('endDate') endDate: string = dayjs().format('YYYY-MM-DD'),
+    @Query('landingPageId') landingPageId?: number,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
   ) {
-    this.logger.log(
-      `Getting analytics data for brand ${brandId}, page ${
-        landingPageId || 'all'
-      }`,
-    );
+    if (!brandId) throw new BadRequestException('Brand ID is required');
+    if (!landingPageId)
+      throw new BadRequestException('Landing Page ID is required');
+
     return this.landingAnalyticsService.getAnalyticsData(
       brandId,
-      startDate,
-      endDate,
+      startDate || dayjs().subtract(7, 'day').format('YYYY-MM-DD'),
+      endDate || dayjs().format('YYYY-MM-DD'),
       landingPageId,
     );
   }
@@ -35,24 +40,26 @@ export class LandingAnalyticsController {
   @Get('sync-status')
   async getSyncStatus(
     @Query('brandId') brandId: number,
-    @Query('landingPageId') landingPageId: number,
+    @Query('landingPageId') landingPageId?: number,
   ) {
-    this.logger.log(
-      `Getting sync status for brand ${brandId}, page ${
-        landingPageId || 'all'
-      }`,
-    );
+    if (!brandId) throw new BadRequestException('Brand ID is required');
+    if (!landingPageId)
+      throw new BadRequestException('Landing Page ID is required');
+
     return this.landingAnalyticsService.getSyncStatus(brandId, landingPageId);
   }
 
   @Post('sync')
   async triggerSync(
     @Query('brandId') brandId: number,
-    @Query('landingPageId') landingPageId: number,
+    @Query('landingPageId') landingPageId: number, // Now required
   ) {
-    this.logger.log(
-      `Triggering sync for brand ${brandId}, page ${landingPageId || 'all'}`,
-    );
+    if (!brandId || !landingPageId) {
+      throw new BadRequestException(
+        'Both Brand ID and Landing Page ID are required',
+      );
+    }
+
     return this.landingAnalyticsService.triggerManualSync(
       brandId,
       landingPageId,

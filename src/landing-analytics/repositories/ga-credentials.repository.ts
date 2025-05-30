@@ -10,18 +10,6 @@ export class GACredentialsRepository {
     private repository: Repository<GACredential>,
   ) {}
 
-  async findByBrandId(brandId: number): Promise<GACredential[]> {
-    return this.repository.find({
-      where: { brandId, isActive: true },
-    });
-  }
-
-  async findByLandingPageId(pageId: number): Promise<GACredential | undefined> {
-    return this.repository.findOne({
-      where: { landingPage: { id: pageId }, isActive: true },
-    });
-  }
-
   async findExpiredTokens(): Promise<GACredential[]> {
     const now = new Date();
     return this.repository.find({
@@ -45,13 +33,47 @@ export class GACredentialsRepository {
     return this.repository.save(newCredential);
   }
 
-  async findActiveWithPropertyId() {
+  async findByLandingPageId(pageId: number): Promise<GACredential[]> {
     return this.repository.find({
-      where: {
-        isActive: true,
-        propertyId: Not(IsNull()),
+      where: { 
+        landingPage: { id: pageId },
+        isActive: true 
       },
       relations: ['landingPage'],
     });
+  }  
+  
+  async findByBrandId(brandId: number): Promise<GACredential[]> {
+    return this.repository.find({
+      where: { 
+        brandId,
+        isActive: true 
+      },
+      relations: ['landingPage'],
+    });
+  }
+  
+
+  async findActiveWithPropertyId(landingPageId?: number) {
+    const where: any = {
+      isActive: true,
+      propertyId: Not(IsNull()),
+    };
+
+    if (landingPageId) {
+      where.landingPage = { id: landingPageId };
+    }
+
+    return this.repository.find({
+      where,
+      relations: ['landingPage'],
+    });
+  }
+
+  async deactivateByLandingPage(pageId: number): Promise<void> {
+    await this.repository.update(
+      { landingPage: { id: pageId } },
+      { isActive: false }
+    );
   }
 }

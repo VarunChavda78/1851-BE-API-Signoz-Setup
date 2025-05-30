@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Logger } from '@nestjs/common';
+import { Controller, Get, Query, BadRequestException } from '@nestjs/common';
 import { GACredentialsRepository } from '../repositories/ga-credentials.repository';
 
 @Controller({
@@ -6,28 +6,23 @@ import { GACredentialsRepository } from '../repositories/ga-credentials.reposito
   path: 'landing-analytics/status',
 })
 export class LandingAnalyticsStatusController {
-  private readonly logger = new Logger(LandingAnalyticsStatusController.name);
-
   constructor(private gaCredentialsRepository: GACredentialsRepository) {}
 
   @Get()
-  async getConnectionStatus(@Query('brandId') brandId: number) {
-    try {
-      const credentials =
-        await this.gaCredentialsRepository.findByBrandId(brandId);
-
-      return {
-        connected: credentials.length > 0,
-        hasPropertyId:
-          credentials.length > 0 && credentials[0].propertyId ? true : false,
-        credentialId: credentials.length > 0 ? credentials[0].id : null,
-      };
-    } catch (error) {
-      this.logger.error(
-        `Error checking connection status for brand ${brandId}`,
-        error,
-      );
-      return { connected: false, error: 'Failed to check connection status' };
+  async getConnectionStatus(
+    @Query('brandId') brandId: number,
+    @Query('landingPageId') landingPageId: number,
+  ) {
+    if (!brandId || !landingPageId) {
+      throw new BadRequestException('Both Brand ID and Landing Page ID are required');
     }
+
+    const credentials = await this.gaCredentialsRepository.findByLandingPageId(landingPageId);
+    
+    return {
+      connected: credentials.length > 0,
+      hasPropertyId: credentials.length > 0 && !!credentials[0].propertyId,
+      credentialId: credentials[0]?.id || null,
+    };
   }
 }
