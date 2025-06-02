@@ -1,4 +1,4 @@
-import { LpPage } from 'src/landing/lp-page.entity';
+import { LpPage } from '../landing/lp-page.entity';
 import {
   Entity,
   Column,
