@@ -14,6 +14,10 @@ export class UpdateLpPageUniqueIndex1748262327522
       `ALTER TABLE "lp_pages" DROP CONSTRAINT IF EXISTS "UQ_lp_pages_nameSlug"`,
     );
 
+    // Also drop any existing indexes with the same names (if they still exist)
+    await queryRunner.query(`DROP INDEX IF EXISTS "UQ_lp_pages_name"`);
+    await queryRunner.query(`DROP INDEX IF EXISTS "UQ_lp_pages_nameSlug"`);
+
     // Create partial unique indexes that only apply to non-deleted records
     await queryRunner.query(
       `CREATE UNIQUE INDEX "UQ_lp_pages_name" ON public.lp_pages (name) WHERE "deletedAt" IS NULL`,
