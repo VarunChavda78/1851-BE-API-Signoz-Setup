@@ -258,6 +258,7 @@ export class S3Service {
   }
 
   async moveS3Images(image: string, id: number): Promise<void> {
+    this.init('1851');
     const bucketName = this.bucketName;
     const sourcePath = `supplier-db/images/${image}`;
     const destinationPath = `supplier-db/supplier/${id}/${image}`;
