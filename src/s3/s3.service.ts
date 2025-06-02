@@ -7,6 +7,7 @@ import {
   S3Client,
   PutObjectCommand,
   DeleteObjectCommand,
+  CopyObjectCommand,
 } from '@aws-sdk/client-s3';
 import { ConfigService } from '@nestjs/config';
 import { RollbarLogger } from 'nestjs-rollbar';
@@ -253,6 +254,36 @@ export class S3Service {
         error,
       );
       throw error;
+    }
+  }
+
+  async moveS3Images(image: string, id: number): Promise<void> {
+    const bucketName = this.bucketName;
+    const sourcePath = `supplier-db/images/${image}`;
+    const destinationPath = `supplier-db/supplier/${id}/${image}`;
+
+    if (image && id) {
+      try {
+        // Copy image to the new path
+        const copyParams = {
+          Bucket: bucketName,
+          CopySource: `${bucketName}/${sourcePath}`,
+          Key: destinationPath,
+        };
+        await this.s3Client.send(new CopyObjectCommand(copyParams));
+
+        // Delete the old image
+        const deleteParams = {
+          Bucket: bucketName,
+          Key: sourcePath,
+        };
+        await this.s3Client.send(new DeleteObjectCommand(deleteParams));
+
+        console.log(`Image ${image} moved to ${destinationPath}`);
+      } catch (e) {
+        console.error('S3 Error', e);
+        throw e;
+      }
     }
   }
 }

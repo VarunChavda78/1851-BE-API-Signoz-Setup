@@ -87,4 +87,19 @@ export class S3Controller {
       throw new HttpException(msg, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
+  @Post('move')
+  async moveS3Images(@Body() body: { image: string; id: number }) {
+    try {
+      await this.s3Service.moveS3Images(body.image, body.id);
+      return {
+        message: 'Image successfully moved',
+        status: HttpStatus.OK,
+      };
+    } catch (error) {
+      this.rollbar.error('Error in move file', error);
+      const msg = error?.message || 'Failed to move image or thumbnail';
+      throw new HttpException(msg, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 }
