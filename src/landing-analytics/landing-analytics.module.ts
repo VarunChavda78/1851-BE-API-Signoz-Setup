@@ -24,6 +24,7 @@ import { LpGaSyncStatusRepository } from './repositories/lp-ga-sync-status.repos
 import { GACredential } from './ga-credential.entity';
 import { LpGaSummary } from './lp-ga-summary.entity';
 import { LpGaSyncStatus } from './lp-ga-sync-status.entity';
+import { GaSummaryService } from './services/ga-summary.service';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { LpGaSyncStatus } from './lp-ga-sync-status.entity';
     LpPageRepository,
     LpGaSummaryRepository,
     LpGaSyncStatusRepository,
+    GaSummaryService,
   ],
   exports: [
     GoogleOAuthService,
