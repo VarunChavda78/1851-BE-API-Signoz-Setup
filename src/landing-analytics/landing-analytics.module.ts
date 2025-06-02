@@ -13,6 +13,9 @@ import { LandingAnalyticsController } from './controllers/landing-analytics.cont
 import { GoogleOAuthService } from './services/google-oauth.service';
 import { TokenRefreshService } from './services/token-refresh.service';
 import { LandingAnalyticsService } from './services/landing-analytics.service';
+import { GaSummaryService } from './services/ga-summary.service';
+import { GaReadersService } from './services/ga-readers.service';
+import { GaReadsService } from './services/ga-reads.service';
 
 // Repositories
 import { GACredentialsRepository } from './repositories/ga-credentials.repository';
@@ -24,7 +27,7 @@ import { LpGaSyncStatusRepository } from './repositories/lp-ga-sync-status.repos
 import { GACredential } from './ga-credential.entity';
 import { LpGaSummary } from './lp-ga-summary.entity';
 import { LpGaSyncStatus } from './lp-ga-sync-status.entity';
-import { GaSummaryService } from './services/ga-summary.service';
+import { LandingAnalyticsHelperService } from './services/landing-analytics-helper.service';
 
 @Module({
   imports: [
@@ -47,6 +50,9 @@ import { GaSummaryService } from './services/ga-summary.service';
     LpGaSummaryRepository,
     LpGaSyncStatusRepository,
     GaSummaryService,
+    GaReadersService,
+    GaReadsService,
+    LandingAnalyticsHelperService,
   ],
   exports: [
     GoogleOAuthService,
