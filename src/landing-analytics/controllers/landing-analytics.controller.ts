@@ -5,9 +5,11 @@ import {
   Query,
   Logger,
   BadRequestException,
+  Param,
 } from '@nestjs/common';
 import { LandingAnalyticsService } from '../services/landing-analytics.service';
 import * as dayjs from 'dayjs';
+import { GaSummaryService } from '../services/ga-summary.service';
 
 @Controller({
   version: '1',
@@ -16,7 +18,7 @@ import * as dayjs from 'dayjs';
 export class LandingAnalyticsController {
   private readonly logger = new Logger(LandingAnalyticsController.name);
 
-  constructor(private landingAnalyticsService: LandingAnalyticsService) {}
+  constructor(private landingAnalyticsService: LandingAnalyticsService, private gaSummaryService: GaSummaryService) {}
 
   @Get('data')
   async getAnalyticsData(
@@ -64,5 +66,15 @@ export class LandingAnalyticsController {
       brandId,
       landingPageId,
     );
+  }
+
+  // Summary data
+  @Get('summary/:landingPageId')
+  async fetchSummaryData(
+    @Param('landingPageId') landingPageId: number,
+    @Query() query: { startDate: string; endDate: string },
+  ) {
+    this.logger.log('All Summary data | Query Parameter', query);
+    return await this.gaSummaryService.fetchSummaryData(query, landingPageId);
   }
 }
