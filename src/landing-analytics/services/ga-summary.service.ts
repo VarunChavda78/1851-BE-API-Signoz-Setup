@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Between } from 'typeorm';
 import { LpGaSummaryRepository } from '../repositories/lp-ga-summary.repository';
+import { LandingAnalyticsHelperService } from './landing-analytics-helper.service';
 
 @Injectable()
 export class GaSummaryService {
@@ -8,6 +8,7 @@ export class GaSummaryService {
 
   constructor(
     private gaSummaryRepository: LpGaSummaryRepository,
+    private helper: LandingAnalyticsHelperService,
   ) {}
 
   async fetchSummaryData(
@@ -56,7 +57,7 @@ export class GaSummaryService {
         totalAvgSessionDurationCurrent / totalSessionCurrent;
 
       const { previousStartDate, previousEndDate } =
-        this.getPreviousDates(startDate, endDate);
+        this.helper.getPreviousDates(startDate, endDate);
 
       // Fetch data for the previous date range
       const preStartData = previousStartDate.toISOString().split('T')[0];
@@ -161,21 +162,5 @@ export class GaSummaryService {
         error: error?.message,
       };
     }
-  }
-
-  getPreviousDates(startDate: string, endDate: string) {
-    // Determine the number of days in the current date range
-    const dateDifference =
-      (new Date(endDate).getTime() - new Date(startDate).getTime()) /
-        (1000 * 3600 * 24) +
-      1;
-
-    // Calculate the previous date range
-    const previousStartDate = new Date(startDate);
-    previousStartDate.setDate(previousStartDate.getDate() - dateDifference);
-    const previousEndDate = new Date(startDate);
-    previousEndDate.setDate(previousEndDate.getDate() - 1);
-
-    return { previousStartDate, previousEndDate };
   }
 }
