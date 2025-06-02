@@ -303,43 +303,42 @@ export class LandingAnalyticsService {
     }
   }
 
-  async triggerManualSync(brandId: number, landingPageId?: number) {
+  async triggerManualSync(brandId: number, landingPageId: number) {
     try {
-      // Validate IDs - landingPageId is now required
+      // Validate IDs
       if (!brandId || !landingPageId) {
         throw new Error('Both Brand ID and Landing Page ID are required');
       }
   
-      console.log('Fetching credentials for:', { brandId, landingPageId });
-      
       // Only look for landing-page-specific credentials
       const credentials = await this.gaCredentialsRepository.findByLandingPageId(landingPageId);
-      console.log('Found credentials:', credentials);
-  
+      
       if (!credentials.length) {
         return {
           success: false,
-          message: 'No GA connection found for this landing page',
+          message: 'No active Google Analytics connection found for this landing page',
         };
       }
   
-      // Process sync for each credential (should typically be just one)
-      const results = await Promise.all(
-        credentials.map(async (credential) => {
-          try {
-            console.log('Processing credential:', credential.id);
-            
-            // Validate credential data
-            if (!credential.propertyId) {
-              throw new Error('Missing propertyId in GA connection');
-            }
-            if (!credential.isActive) {
-              throw new Error('GA connection is not active');
-            }
+      // Verify credentials have required data
+      const validCredentials = credentials.filter(c => 
+        c.brandId && c.propertyId && c.isActive
+      );
   
+      if (!validCredentials.length) {
+        return {
+          success: false,
+          message: 'No valid GA connections found (missing propertyId or inactive)',
+        };
+      }
+  
+      // Process sync for each credential
+      const results = await Promise.all(
+        validCredentials.map(async (credential) => {
+          try {
             const result = await this.fetchAndStoreLandingPageData({
               ...credential,
-              brandId: credential.brandId // Ensure brandId is from credential
+              brandId: credential.brandId // Ensure brandId comes from credential
             });
   
             return {
@@ -372,5 +371,6 @@ export class LandingAnalyticsService {
       };
     }
   }
+  
   
 }

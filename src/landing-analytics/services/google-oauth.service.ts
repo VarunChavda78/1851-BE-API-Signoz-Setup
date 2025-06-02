@@ -1,3 +1,4 @@
+// services/google-oauth.service.ts
 import { Injectable, Logger } from '@nestjs/common';
 import { google } from 'googleapis';
 import { LpPageRepository } from 'src/landing/lp-page.repository';
@@ -47,11 +48,12 @@ export class GoogleOAuthService {
     }
   }
 
-  getAuthUrl(brandId: number, pageId: number): string {
+  // Change pageId to landingPageId in this method
+  getAuthUrl(brandId: number, landingPageId: number): string {
     // Store state to verify callback and associate with brand/landing page
-    const state = Buffer.from(JSON.stringify({ brandId, pageId })).toString(
-      'base64',
-    );
+    const state = Buffer.from(
+      JSON.stringify({ brandId, landingPageId }),
+    ).toString('base64');
 
     return this.oauthClient.generateAuthUrl({
       access_type: 'offline',
@@ -66,12 +68,12 @@ export class GoogleOAuthService {
       // Exchange code for tokens
       const { tokens } = await this.oauthClient.getToken(code);
 
-      // Decode state to get brandId and pageId
+      // Decode state to get brandId and landingPageId
       const decodedState = JSON.parse(Buffer.from(state, 'base64').toString());
-      const { brandId, pageId } = decodedState;
+      const { brandId, landingPageId } = decodedState;
 
       // Store tokens in database
-      await this.storeTokens(brandId, pageId, tokens);
+      await this.storeTokens(brandId, landingPageId, tokens);
 
       return { success: true };
     } catch (error) {
@@ -82,59 +84,50 @@ export class GoogleOAuthService {
 
   private async storeTokens(
     brandId: number,
-    pageId: number,
+    landingPageId: number,
     tokens: any,
   ): Promise<void> {
     try {
-      // Calculate token expiration with proper error handling
-      let expiresAt = new Date();
-      if (tokens.expires_in) {
-        expiresAt.setSeconds(
-          expiresAt.getSeconds() + (tokens.expires_in || 3600),
-        );
-      } else {
-        // Default to 1 hour if expires_in is not provided
-        expiresAt.setHours(expiresAt.getHours() + 1);
-      }
+      // Calculate token expiration
+      const expiresAt = new Date();
+      expiresAt.setSeconds(
+        expiresAt.getSeconds() + (tokens.expires_in || 3600),
+      );
 
-      // Check if credential already exists
+      // Find existing credential for this landing page
       const existingCredentials =
-        await this.gaCredentialsRepository.findByBrandId(brandId);
+        await this.gaCredentialsRepository.findByLandingPageId(landingPageId);
       let credential =
         existingCredentials.length > 0 ? existingCredentials[0] : null;
 
-      let landingPage = null;
-      if (pageId) {
-        landingPage = await this.lpPageRepository.findOne({
-          where: { id: pageId },
-        });
-      }
+      const landingPage = await this.lpPageRepository.findOne({
+        where: { id: landingPageId },
+      });
 
       if (credential) {
         // Update existing
         credential.accessToken = tokens.access_token;
-        // Only update refresh token if provided
         if (tokens.refresh_token) {
           credential.refreshToken = tokens.refresh_token;
         }
         credential.expiresAt = expiresAt;
         credential.isActive = true;
-
-        await this.gaCredentialsRepository.save(credential);
       } else {
         // Create new
-        await this.gaCredentialsRepository.create({
+        credential = await this.gaCredentialsRepository.create({
           brandId,
           landingPage,
           accessToken: tokens.access_token,
-          refreshToken: tokens.refresh_token || '', // Handle case when refresh token is not provided
+          refreshToken: tokens.refresh_token || '',
           expiresAt,
           isActive: true,
         });
       }
+
+      await this.gaCredentialsRepository.save(credential);
     } catch (error) {
       this.logger.error('Error storing tokens', error);
-      throw error; // Re-throw to be caught by the handleCallback method
+      throw error;
     }
   }
 

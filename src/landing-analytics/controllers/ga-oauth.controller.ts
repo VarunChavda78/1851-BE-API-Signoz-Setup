@@ -1,3 +1,4 @@
+// controllers/ga-oauth.controller.ts
 import {
   Controller,
   Get,
@@ -25,14 +26,17 @@ export class GoogleOAuthController {
 
   @Get('connect')
   @Redirect()
-  connect(@Query('brandId') brandId: number, @Query('pageId') pageId: number) {
-    if (!brandId || !pageId) {
+  connect(
+    @Query('brandId') brandId: number,
+    @Query('landingPageId') landingPageId: number,
+  ) {
+    if (!brandId || !landingPageId) {
       throw new BadRequestException(
         'Both Brand ID and Landing Page ID are required',
       );
     }
 
-    const url = this.googleOAuthService.getAuthUrl(brandId, pageId);
+    const url = this.googleOAuthService.getAuthUrl(brandId, landingPageId);
     return { url };
   }
 
@@ -44,28 +48,27 @@ export class GoogleOAuthController {
     @Query('error') error: string,
   ) {
     const decodedState = JSON.parse(Buffer.from(state, 'base64').toString());
-    const { brandId, pageId } = decodedState;
+    const { brandId, landingPageId } = decodedState;
 
-    if (!brandId || !pageId) {
-      throw new BadRequestException('Missing brandId or pageId in state');
+    if (!brandId || !landingPageId) {
+      throw new BadRequestException(
+        'Missing brandId or landingPageId in state',
+      );
     }
 
-    const redirectUrl = `${this.env.getBrandPortalUrl()}/v2/landing/site-analytics`;
+    const redirectUrl = `${this.env.getBrandPortalUrl()}/v2/landing/site-analytics?brandId=${brandId}&landingPageId=${landingPageId}`;
 
     if (error) {
       return {
-        url: `${redirectUrl}?brandId=${brandId}&landingPageId=${pageId}&connection=error&message=${encodeURIComponent(
+        url: `${redirectUrl}&connection=error&message=${encodeURIComponent(
           error,
         )}`,
       };
     }
 
     const result = await this.googleOAuthService.handleCallback(code, state);
-
     return {
-      url: `${redirectUrl}?brandId=${brandId}&landingPageId=${pageId}&connection=${
-        result.success ? 'success' : 'error'
-      }`,
+      url: `${redirectUrl}&connection=${result.success ? 'success' : 'error'}`,
     };
   }
 
@@ -73,16 +76,16 @@ export class GoogleOAuthController {
   @Redirect()
   async reconnect(
     @Query('brandId') brandId: number,
-    @Query('pageId') pageId: number,
+    @Query('landingPageId') landingPageId: number,
   ) {
-    if (!brandId || !pageId) {
+    if (!brandId || !landingPageId) {
       throw new BadRequestException(
         'Both Brand ID and Landing Page ID are required',
       );
     }
 
-    await this.gaCredentialsRepository.deactivateByLandingPage(pageId);
-    const url = this.googleOAuthService.getAuthUrl(brandId, pageId);
+    await this.gaCredentialsRepository.deactivateByLandingPage(landingPageId);
+    const url = this.googleOAuthService.getAuthUrl(brandId, landingPageId);
     return { url };
   }
 }
