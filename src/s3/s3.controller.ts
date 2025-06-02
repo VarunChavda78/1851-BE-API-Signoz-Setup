@@ -68,13 +68,13 @@ export class S3Controller {
   }
 
   @Post('convert')
-  async convertImage(@Body() body: { url: string; path: string; siteId?: string }) {
+  async convertImage(@Body() body: { url: string; path: string; siteId?: string; type?: string }) {
     try {
       this.rollbar.info('Uploading file..');
       const siteId = body?.siteId || '1851';
 
       // Handle file uploads
-      const result = await this.s3Service.convertSvgToPngAndUpload(body.url, body.path, siteId);
+      const result = await this.s3Service.convertSvgToPngAndUpload(body.url, body.path, siteId, body.type);
       return {
         message: 'Image successfully uploaded',
         data: {
