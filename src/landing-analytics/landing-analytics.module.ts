@@ -28,10 +28,12 @@ import { GACredential } from './ga-credential.entity';
 import { LpGaSummary } from './lp-ga-summary.entity';
 import { LpGaSyncStatus } from './lp-ga-sync-status.entity';
 import { LandingAnalyticsHelperService } from './services/landing-analytics-helper.service';
+import { LpGaLocationMetricsRepository } from './repositories/lp-ga-location-metrics.repository';
+import { LpGaLocationMetrics } from './lp-ga-location-metrics.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([GACredential, LpGaSummary, LpGaSyncStatus]),
+    TypeOrmModule.forFeature([GACredential, LpGaSummary, LpGaSyncStatus, LpGaLocationMetrics]),
     SharedModule,
     UsersModule,
   ],
@@ -53,6 +55,7 @@ import { LandingAnalyticsHelperService } from './services/landing-analytics-help
     GaReadersService,
     GaReadsService,
     LandingAnalyticsHelperService,
+    LpGaLocationMetricsRepository,
   ],
   exports: [
     GoogleOAuthService,
