@@ -8,6 +8,7 @@ import { GoogleOAuthService } from './google-oauth.service';
 import { LpGaSummaryRepository } from '../repositories/lp-ga-summary.repository';
 import { LpGaSyncStatusRepository } from '../repositories/lp-ga-sync-status.repository';
 import { LpGaLocationMetricsRepository } from '../repositories/lp-ga-location-metrics.repository';
+import { LocationService } from 'src/mysqldb/location.service';
 
 @Injectable()
 export class LandingAnalyticsService {
@@ -19,6 +20,7 @@ export class LandingAnalyticsService {
     private lpGaSummaryRepository: LpGaSummaryRepository,
     private lpGaSyncStatusRepository: LpGaSyncStatusRepository,
     private lpGaLocationMetricsRepository: LpGaLocationMetricsRepository,
+    private locationService: LocationService,
   ) {}
 
   @Cron('0 1 * * *') // Daily at 1 AM
@@ -302,17 +304,14 @@ export class LandingAnalyticsService {
         // Get coordinates if not already available
         if (!item.latitude || !item.longitude) {
           try {
-            // const coordinates = await this.locationService.getGeocode({
-            //   city: item.city,
-            //   state: item.state,
-            //   country: item.country,
-            // });
+            const coordinates = await this.locationService.getGeocode({
+              city: item.city,
+              state: item.state,
+              country: item.country,
+            });
 
-            // item.latitude = coordinates.latitude || 0;
-            // item.longitude = coordinates.longitude || 0;
-
-            item.latitude = 0;
-            item.longitude = 0;
+            item.latitude = coordinates.latitude || 0;
+            item.longitude = coordinates.longitude || 0;
           } catch (error) {
             this.logger.error(
               `Failed to get coordinates for ${item.city}, ${item.state}, ${item.country}`,
