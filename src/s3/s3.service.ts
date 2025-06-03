@@ -7,13 +7,15 @@ import {
   S3Client,
   PutObjectCommand,
   DeleteObjectCommand,
+  CopyObjectCommand,
 } from '@aws-sdk/client-s3';
 import { ConfigService } from '@nestjs/config';
 import { RollbarLogger } from 'nestjs-rollbar';
 import { lastValueFrom } from 'rxjs';
 import * as sharp from 'sharp';
 import { HttpService } from '@nestjs/axios';
-
+import { S3RequestOrigin } from 'src/shared/constants/constants';
+import { v4 as uuidv4 } from 'uuid';
 @Injectable()
 export class S3Service {
   private s3Client: S3Client;
@@ -161,7 +163,7 @@ export class S3Service {
       );
     }
   }
-  async convertSvgToPngAndUpload(url: string, path = '', siteId: string = '1851',): Promise<string> {
+  async convertSvgToPngAndUpload(url: string, path = '', siteId: string = '1851', type?: string): Promise<string> {
     // Fetch the SVG image
     try {
       this.init(siteId);
@@ -182,6 +184,20 @@ export class S3Service {
         .toBuffer();
   
       // Upload to S3
+      if (type === S3RequestOrigin.FRANCHISE_META) {
+        const fileName = `${uuidv4()}.png`;
+        const fileNameWithPath = `${path}${fileName}`;
+        const bucketName = this.bucketName;
+        const uploadParams = {
+          Bucket: bucketName,
+          Key: fileNameWithPath,
+          Body: pngBuffer,
+          ContentType: 'image/png',
+        };
+
+        await this.s3Client.send(new PutObjectCommand(uploadParams));
+        return fileName;
+      }
       // Remove leading slash if present and ensure proper path construction
       const normalizedPath = path.startsWith('/') ? path.substring(1) : path;
       const fileNameWithPath = `${normalizedPath?.split('.')[0]}.png`;
@@ -238,6 +254,37 @@ export class S3Service {
         error,
       );
       throw error;
+    }
+  }
+
+  async moveS3Images(image: string, id: number): Promise<void> {
+    this.init('1851');
+    const bucketName = this.bucketName;
+    const sourcePath = `supplier-db/images/${image}`;
+    const destinationPath = `supplier-db/supplier/${id}/${image}`;
+
+    if (image && id) {
+      try {
+        // Copy image to the new path
+        const copyParams = {
+          Bucket: bucketName,
+          CopySource: `${bucketName}/${sourcePath}`,
+          Key: destinationPath,
+        };
+        await this.s3Client.send(new CopyObjectCommand(copyParams));
+
+        // Delete the old image
+        const deleteParams = {
+          Bucket: bucketName,
+          Key: sourcePath,
+        };
+        await this.s3Client.send(new DeleteObjectCommand(deleteParams));
+
+        console.log(`Image ${image} moved to ${destinationPath}`);
+      } catch (e) {
+        console.error('S3 Error', e);
+        throw e;
+      }
     }
   }
 }

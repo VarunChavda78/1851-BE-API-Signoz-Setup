@@ -19,3 +19,7 @@ export enum UserType {
   BRAND_1851 = 2,
   BRAND_GC = 3
 }
+
+export enum S3RequestOrigin {
+  FRANCHISE_META = 'franchise_meta',
+}

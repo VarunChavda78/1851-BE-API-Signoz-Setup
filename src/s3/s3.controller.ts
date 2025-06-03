@@ -68,13 +68,13 @@ export class S3Controller {
   }
 
   @Post('convert')
-  async convertImage(@Body() body: { url: string; path: string; siteId?: string }) {
+  async convertImage(@Body() body: { url: string; path: string; siteId?: string; type?: string }) {
     try {
       this.rollbar.info('Uploading file..');
       const siteId = body?.siteId || '1851';
 
       // Handle file uploads
-      const result = await this.s3Service.convertSvgToPngAndUpload(body.url, body.path, siteId);
+      const result = await this.s3Service.convertSvgToPngAndUpload(body.url, body.path, siteId, body.type);
       return {
         message: 'Image successfully uploaded',
         data: {
@@ -84,6 +84,21 @@ export class S3Controller {
     } catch (error) {
       this.rollbar.error('Error in upload File method', error);
       const msg = error?.message || 'Failed to upload image or thumbnail';
+      throw new HttpException(msg, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Post('move')
+  async moveS3Images(@Body() body: { image: string; id: number }) {
+    try {
+      await this.s3Service.moveS3Images(body.image, body.id);
+      return {
+        message: 'Image successfully moved',
+        status: HttpStatus.OK,
+      };
+    } catch (error) {
+      this.rollbar.error('Error in move file', error);
+      const msg = error?.message || 'Failed to move image or thumbnail';
       throw new HttpException(msg, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
