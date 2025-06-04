@@ -7,6 +7,8 @@ import { BrandFranchise } from './entities/brand-franchise.entity';
 import { Brand } from './entities/brand.entity';
 import { NavigationMenu } from './entities/customize-user-sidebar.entity';
 import { Registration } from './entities/registration.entity';
+import { LocationService } from './location.service';
+import { MysqlGALocationMetrics } from './entities/mysql-ga-location-metrics.entity';
 
 @Module({
   imports: [
@@ -18,11 +20,12 @@ import { Registration } from './entities/registration.entity';
         Brand,
         NavigationMenu,
         Registration,
+        MysqlGALocationMetrics,
       ],
       'mysqldb',
     ),
   ],
-  providers: [MysqldbService],
-  exports: [TypeOrmModule, MysqldbService],
+  providers: [MysqldbService, LocationService],
+  exports: [TypeOrmModule, MysqldbService, LocationService],
 })
 export class MysqldbModule {}

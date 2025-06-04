@@ -46,6 +46,42 @@ export class LandingAnalyticsController {
     );
   }
 
+  @Get('location-data')
+  async getLocationData(
+    @Query('brandId') brandId: number,
+    @Query('landingPageId') landingPageId?: number,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    if (!brandId) throw new BadRequestException('Brand ID is required');
+    if (!landingPageId)
+      throw new BadRequestException('Landing Page ID is required');
+
+    return this.landingAnalyticsService.getLocationData(
+      brandId,
+      startDate || dayjs().subtract(7, 'day').format('YYYY-MM-DD'),
+      endDate || dayjs().format('YYYY-MM-DD'),
+      landingPageId,
+    );
+  }
+
+  @Get('heatmap')
+  async getHeatmapData(
+    @Query('brandId') brandId: number,
+    @Query('landingPageId') landingPageId?: number,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    if (!brandId) throw new BadRequestException('Brand ID is required');
+
+    return this.landingAnalyticsService.getHeatmapData(
+      brandId,
+      startDate || dayjs().subtract(7, 'day').format('YYYY-MM-DD'),
+      endDate || dayjs().format('YYYY-MM-DD'),
+      landingPageId,
+    );
+  }
+
   @Get('sync-status')
   async getSyncStatus(
     @Query('brandId') brandId: number,
