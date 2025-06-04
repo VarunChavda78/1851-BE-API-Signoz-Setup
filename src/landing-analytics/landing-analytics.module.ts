@@ -31,10 +31,16 @@ import { LandingAnalyticsHelperService } from './services/landing-analytics-help
 import { LpGaLocationMetricsRepository } from './repositories/lp-ga-location-metrics.repository';
 import { LpGaLocationMetrics } from './lp-ga-location-metrics.entity';
 import { MysqldbModule } from 'src/mysqldb/mysqldb.module';
+import { GaActiveMarketsService } from './services/ga-active-markets.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([GACredential, LpGaSummary, LpGaSyncStatus, LpGaLocationMetrics]),
+    TypeOrmModule.forFeature([
+      GACredential,
+      LpGaSummary,
+      LpGaSyncStatus,
+      LpGaLocationMetrics,
+    ]),
     SharedModule,
     UsersModule,
     MysqldbModule,
@@ -58,11 +64,8 @@ import { MysqldbModule } from 'src/mysqldb/mysqldb.module';
     GaReadsService,
     LandingAnalyticsHelperService,
     LpGaLocationMetricsRepository,
+    GaActiveMarketsService,
   ],
-  exports: [
-    GoogleOAuthService,
-    TokenRefreshService,
-    LandingAnalyticsService,
-  ],
+  exports: [GoogleOAuthService, TokenRefreshService, LandingAnalyticsService],
 })
 export class LandingAnalyticsModule {}
