@@ -33,6 +33,7 @@ export class LpGaLocationMetricsRepository {
     endDate: string,
   ): Promise<LpGaLocationMetrics[]> {
     return this.repository.find({
+      relations: ['landingPage'],
       where: {
         landingPage: { id: landingPageId },
         date: Between(startDate, endDate),
@@ -42,6 +43,46 @@ export class LpGaLocationMetricsRepository {
       },
     });
   }
+
+async fetchMetrics(landingPageId: number, startDate: string, endDate: string) {
+  const query = this.repository.createQueryBuilder('ga')
+    .select('ga.city', 'city')
+    .addSelect('SUM(ga.users)', 'activeUsers')
+    .addSelect(
+      "TO_CHAR(INTERVAL '1 second' * (SUM(ga.avgSessionDuration * ga.sessions) / NULLIF(SUM(ga.sessions), 0)), 'HH24:MI:SS')",
+      'duration'
+    )
+    .addSelect(
+      'CASE WHEN SUM(ga.users) = 0 THEN 0 ELSE SUM(ga.pageViews) / SUM(ga.users) END',
+      'avgReadsPerUser'
+    )
+    // .where('ga.country = :country', { country: 'United States' })
+    .andWhere('ga.date BETWEEN :startDate AND :endDate', {
+      startDate,
+      endDate,
+    })
+    .andWhere("ga.city != '(not set)'")
+    .andWhere("ga.city != ''");
+
+  if (landingPageId) {
+    query.andWhere('ga.landingPageId = :landingPageId', { landingPageId });
+  }
+
+  const result = await query.groupBy('ga.city').getRawMany();
+  const data = result
+    ?.sort((a, b) => b.activeUsers - a.activeUsers)
+    ?.filter((item) => item.activeUsers != 0)
+    ?.map((item, idx) => ({
+      rank: idx + 1,
+      city: item.city,
+      users: item.activeUsers,
+      averageReads: item.avgReadsPerUser,
+      duration: item.duration,
+    }))
+    ?.slice(0, 25);
+  return data || [];
+}
+
 
   async deleteByDateRange(
     startDate: string,

@@ -12,6 +12,8 @@ import * as dayjs from 'dayjs';
 import { GaSummaryService } from '../services/ga-summary.service';
 import { GaReadersService } from '../services/ga-readers.service';
 import { GaReadsService } from '../services/ga-reads.service';
+import { ActiveMarketsQueryDto } from '../dtos/active-markets-query.dto';
+import { GaActiveMarketsService } from '../services/ga-active-markets.service';
 
 @Controller({
   version: '1',
@@ -25,6 +27,7 @@ export class LandingAnalyticsController {
     private gaSummaryService: GaSummaryService,
     private gaReadersService: GaReadersService,
     private gaReadsService: GaReadsService,
+    private gaActiveMarketsService: GaActiveMarketsService
   ) {}
 
   @Get('data')
@@ -145,5 +148,18 @@ export class LandingAnalyticsController {
       query,
     );
     return await this.gaReadsService.fetchReadsData(query, landingPageId);
+  }
+
+  // Brand Active Markets data
+  @Get('active-markets/:landingPageId')
+  async fetchBrandActiveMarketsData(
+    @Param('landingPageId') landingPageId: number,
+    @Query() query: ActiveMarketsQueryDto
+  ) {
+    this.logger.log(
+      `Brand Active Markets data: landingPageId -> ${landingPageId} | Query Parameter`,
+      query
+    );
+    return await this.gaActiveMarketsService.fetchActiveMarketsData(query, landingPageId);
   }
 }
