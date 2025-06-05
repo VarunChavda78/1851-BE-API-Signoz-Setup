@@ -14,6 +14,7 @@ import { GaReadersService } from '../services/ga-readers.service';
 import { GaReadsService } from '../services/ga-reads.service';
 import { ActiveMarketsQueryDto } from '../dtos/active-markets-query.dto';
 import { GaActiveMarketsService } from '../services/ga-active-markets.service';
+import { GaHeatmapService } from '../services/ga-heatmap.service';
 
 @Controller({
   version: '1',
@@ -27,63 +28,64 @@ export class LandingAnalyticsController {
     private gaSummaryService: GaSummaryService,
     private gaReadersService: GaReadersService,
     private gaReadsService: GaReadsService,
-    private gaActiveMarketsService: GaActiveMarketsService
+    private gaActiveMarketsService: GaActiveMarketsService,
+    private gaHeatmapService: GaHeatmapService,
   ) {}
 
-  @Get('data')
-  async getAnalyticsData(
-    @Query('brandId') brandId: number,
-    @Query('landingPageId') landingPageId?: number,
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
-  ) {
-    if (!brandId) throw new BadRequestException('Brand ID is required');
-    if (!landingPageId)
-      throw new BadRequestException('Landing Page ID is required');
+  // @Get('data')
+  // async getAnalyticsData(
+  //   @Query('brandId') brandId: number,
+  //   @Query('landingPageId') landingPageId?: number,
+  //   @Query('startDate') startDate?: string,
+  //   @Query('endDate') endDate?: string,
+  // ) {
+  //   if (!brandId) throw new BadRequestException('Brand ID is required');
+  //   if (!landingPageId)
+  //     throw new BadRequestException('Landing Page ID is required');
 
-    return this.landingAnalyticsService.getAnalyticsData(
-      brandId,
-      startDate || dayjs().subtract(7, 'day').format('YYYY-MM-DD'),
-      endDate || dayjs().format('YYYY-MM-DD'),
-      landingPageId,
-    );
-  }
+  //   return this.landingAnalyticsService.getAnalyticsData(
+  //     brandId,
+  //     startDate || dayjs().subtract(7, 'day').format('YYYY-MM-DD'),
+  //     endDate || dayjs().format('YYYY-MM-DD'),
+  //     landingPageId,
+  //   );
+  // }
 
-  @Get('location-data')
-  async getLocationData(
-    @Query('brandId') brandId: number,
-    @Query('landingPageId') landingPageId?: number,
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
-  ) {
-    if (!brandId) throw new BadRequestException('Brand ID is required');
-    if (!landingPageId)
-      throw new BadRequestException('Landing Page ID is required');
+  // @Get('location-data')
+  // async getLocationData(
+  //   @Query('brandId') brandId: number,
+  //   @Query('landingPageId') landingPageId?: number,
+  //   @Query('startDate') startDate?: string,
+  //   @Query('endDate') endDate?: string,
+  // ) {
+  //   if (!brandId) throw new BadRequestException('Brand ID is required');
+  //   if (!landingPageId)
+  //     throw new BadRequestException('Landing Page ID is required');
 
-    return this.landingAnalyticsService.getLocationData(
-      brandId,
-      startDate || dayjs().subtract(7, 'day').format('YYYY-MM-DD'),
-      endDate || dayjs().format('YYYY-MM-DD'),
-      landingPageId,
-    );
-  }
+  //   return this.landingAnalyticsService.getLocationData(
+  //     brandId,
+  //     startDate || dayjs().subtract(7, 'day').format('YYYY-MM-DD'),
+  //     endDate || dayjs().format('YYYY-MM-DD'),
+  //     landingPageId,
+  //   );
+  // }
 
-  @Get('heatmap')
-  async getHeatmapData(
-    @Query('brandId') brandId: number,
-    @Query('landingPageId') landingPageId?: number,
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
-  ) {
-    if (!brandId) throw new BadRequestException('Brand ID is required');
+  // @Get('heatmap')
+  // async getHeatmapData(
+  //   @Query('brandId') brandId: number,
+  //   @Query('landingPageId') landingPageId?: number,
+  //   @Query('startDate') startDate?: string,
+  //   @Query('endDate') endDate?: string,
+  // ) {
+  //   if (!brandId) throw new BadRequestException('Brand ID is required');
 
-    return this.landingAnalyticsService.getHeatmapData(
-      brandId,
-      startDate || dayjs().subtract(7, 'day').format('YYYY-MM-DD'),
-      endDate || dayjs().format('YYYY-MM-DD'),
-      landingPageId,
-    );
-  }
+  //   return this.landingAnalyticsService.getHeatmapData(
+  //     brandId,
+  //     startDate || dayjs().subtract(7, 'day').format('YYYY-MM-DD'),
+  //     endDate || dayjs().format('YYYY-MM-DD'),
+  //     landingPageId,
+  //   );
+  // }
 
   @Get('sync-status')
   async getSyncStatus(
@@ -154,12 +156,28 @@ export class LandingAnalyticsController {
   @Get('active-markets/:landingPageId')
   async fetchBrandActiveMarketsData(
     @Param('landingPageId') landingPageId: number,
-    @Query() query: ActiveMarketsQueryDto
+    @Query() query: ActiveMarketsQueryDto,
   ) {
     this.logger.log(
       `Brand Active Markets data: landingPageId -> ${landingPageId} | Query Parameter`,
-      query
+      query,
     );
-    return await this.gaActiveMarketsService.fetchActiveMarketsData(query, landingPageId);
+    return await this.gaActiveMarketsService.fetchActiveMarketsData(
+      query,
+      landingPageId,
+    );
+  }
+
+  // Brand Heatmap data
+  @Get('heatmap/:id')
+  async fetchBrandHeatmapData(
+    @Param('id') id: number,
+    @Query() query: { startDate: string; endDate: string },
+  ) {
+    this.logger.log(
+      `Brand Heatmap data:  brand id -> ${id} | Query Parameter`,
+      query,
+    );
+    return await this.gaHeatmapService.fetchHeatmapData(query, id);
   }
 }

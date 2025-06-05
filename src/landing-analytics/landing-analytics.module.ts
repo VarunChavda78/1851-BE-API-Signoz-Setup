@@ -32,6 +32,7 @@ import { LpGaLocationMetricsRepository } from './repositories/lp-ga-location-met
 import { LpGaLocationMetrics } from './lp-ga-location-metrics.entity';
 import { MysqldbModule } from 'src/mysqldb/mysqldb.module';
 import { GaActiveMarketsService } from './services/ga-active-markets.service';
+import { GaHeatmapService } from './services/ga-heatmap.service';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { GaActiveMarketsService } from './services/ga-active-markets.service';
     LandingAnalyticsHelperService,
     LpGaLocationMetricsRepository,
     GaActiveMarketsService,
+    GaHeatmapService,
   ],
   exports: [GoogleOAuthService, TokenRefreshService, LandingAnalyticsService],
 })
