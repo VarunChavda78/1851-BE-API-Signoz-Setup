@@ -581,8 +581,7 @@ export class LandingAnalyticsService {
   ) {
     try {
       const data = await this.lpGaLocationMetricsRepository.fetchHeatmapData(
-        brandId,
-        landingPageId || null,
+        landingPageId,
         startDate,
         endDate,
       );

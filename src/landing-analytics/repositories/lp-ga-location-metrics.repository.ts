@@ -109,42 +109,32 @@ async fetchMetrics(landingPageId: number, startDate: string, endDate: string) {
     return this.repository.save(data);
   }
 
-  async fetchHeatmapData(
-    brandId: number,
-    landingPageId: number | null,
-    startDate: string,
-    endDate: string,
-  ) {
-    const query = this.repository
-      .createQueryBuilder('metrics')
-      .select([
-        'metrics.city as city',
-        'SUM(metrics.sessions) as sessions',
-        'metrics.latitude as latitude',
-        'metrics.longitude as longitude',
-        'metrics.country as country',
-        'metrics.state as state',
-      ])
-      .where('metrics.date BETWEEN :startDate AND :endDate', {
-        startDate,
-        endDate,
-      })
-      .andWhere('metrics.brandId = :brandId', { brandId })
-      .andWhere("metrics.city != '(not set)'")
-      .andWhere("metrics.city != ''");
+async fetchHeatmapData(landingPageId: number, startDate: string, endDate: string) {
+  const query = this.repository.createQueryBuilder('metrics')
+    .select([
+      'metrics.city as city',
+      'SUM(metrics.sessions) as sessions',
+      'metrics.latitude as latitude',
+      'metrics.longitude as longitude',
+      'metrics.country as country',
+      'metrics.state as state'
+    ])
+    .where('metrics.date BETWEEN :startDate AND :endDate', {
+      startDate,
+      endDate,
+    })
+    .andWhere("metrics.city != '(not set)'")
+    .andWhere("metrics.city != ''");
 
-    if (landingPageId) {
-      query.andWhere('metrics.landingPageId = :landingPageId', {
-        landingPageId,
-      });
-    }
-
-    query
-      .groupBy(
-        'metrics.city, metrics.latitude, metrics.longitude, metrics.country, metrics.state',
-      )
-      .orderBy('SUM(metrics.sessions)', 'DESC');
-
-    return query.getRawMany();
+  if (landingPageId) {
+    query.andWhere('metrics.landingPageId = :landingPageId', { landingPageId });
   }
+
+  query
+    .groupBy('metrics.city, metrics.latitude, metrics.longitude, metrics.country, metrics.state')
+    .orderBy('SUM(metrics.sessions)', 'DESC');
+
+  return await query.getRawMany();
+}
+
 }
