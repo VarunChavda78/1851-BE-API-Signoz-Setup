@@ -15,6 +15,7 @@ import { AuthModule } from './auth/auth.module';
 import { MysqldbService } from './mysqldb/mysqldb.service';
 import { MysqldbModule } from './mysqldb/mysqldb.module';
 import { LandingAnalyticsModule } from './landing-analytics/landing-analytics.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { LandingAnalyticsModule } from './landing-analytics/landing-analytics.mo
     AuthModule,
     MysqldbModule,
     LandingAnalyticsModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService, MysqldbService],
