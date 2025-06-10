@@ -57,8 +57,12 @@ export class GoogleOAuthService {
 
     return this.oauthClient.generateAuthUrl({
       access_type: 'offline',
-      scope: ['https://www.googleapis.com/auth/analytics.readonly'],
-      prompt: 'consent', // Force to get refresh_token
+      scope: [
+        'https://www.googleapis.com/auth/analytics.readonly',
+        'https://www.googleapis.com/auth/analytics'
+      ],
+      prompt: 'consent',
+      include_granted_scopes: true,
       state,
     });
   }
@@ -133,8 +137,7 @@ export class GoogleOAuthService {
 
   async refreshToken(credentialId: number): Promise<boolean> {
     try {
-      const credential =
-        await this.gaCredentialsRepository.findOne(credentialId);
+      const credential = await this.gaCredentialsRepository.findOneById(credentialId);
       if (!credential || !credential.refreshToken) {
         this.logger.error(
           `No valid refresh token found for credential ${credentialId}`,
@@ -166,20 +169,25 @@ export class GoogleOAuthService {
           return false;
         }
 
-        // Update token in database with error handling for missing expires_in
+        // Calculate new expiration time
         const expiresAt = new Date();
-        // Use default expiration of 1 hour if expires_in is not provided
         const expiresIn = tokens.expires_in || 3600;
         expiresAt.setSeconds(expiresAt.getSeconds() + expiresIn);
 
-        this.logger.log(
-          `Updating credential ${credentialId} with new token expiring at ${expiresAt}`,
-        );
-
+        // Update the credential with new token information
         credential.accessToken = tokens.access_token;
         credential.expiresAt = expiresAt;
+        
+        // If we got a new refresh token, update it
+        if (tokens.refresh_token) {
+          credential.refreshToken = tokens.refresh_token;
+        }
 
         await this.gaCredentialsRepository.save(credential);
+        
+        this.logger.log(
+          `Successfully refreshed token for credential ${credentialId}, expires at ${expiresAt}`,
+        );
 
         return true;
       } catch (refreshError) {
@@ -188,26 +196,11 @@ export class GoogleOAuthService {
           refreshError,
         );
 
-        // Log the full error details for debugging
-        if (refreshError.response) {
-          this.logger.error(
-            `Error details: ${JSON.stringify(
-              refreshError.response.data || {},
-            )}`,
-          );
-        }
-
-        // If refresh fails due to invalid_grant, the refresh token is no longer valid
-        // This can happen if the user revoked access or the token was revoked by Google
-        if (
-          refreshError.message &&
-          refreshError.message.includes('invalid_grant')
-        ) {
+        // Handle specific error cases
+        if (refreshError.message?.includes('invalid_grant')) {
           this.logger.warn(
             `Refresh token is invalid for credential ${credentialId}, marking as inactive`,
           );
-
-          // Mark the credential as inactive
           credential.isActive = false;
           await this.gaCredentialsRepository.save(credential);
         }
@@ -216,7 +209,7 @@ export class GoogleOAuthService {
       }
     } catch (error) {
       this.logger.error(
-        `Error refreshing token for credential ${credentialId}: ${error.message}`,
+        `Error in refresh token process for credential ${credentialId}: ${error.message}`,
         error,
       );
       return false;
