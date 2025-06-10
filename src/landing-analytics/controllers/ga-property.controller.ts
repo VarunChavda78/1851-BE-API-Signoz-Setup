@@ -24,7 +24,7 @@ export class GAPropertyController {
     @Body() body: { propertyId: string },
   ) {
     try {
-      const credential = await this.gaCredentialsRepository.findOne(id);
+      const credential = await this.gaCredentialsRepository.findOne({ where: { id } });
       if (!credential) {
         return { success: false, message: 'Credential not found' };
       }

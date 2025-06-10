@@ -1,18 +1,17 @@
-import { IsNull, LessThan, Not, Repository } from 'typeorm';
+import { IsNull, LessThan, Not, Repository, DataSource, FindOneOptions, DeepPartial } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { GACredential } from '../ga-credential.entity';
 
 @Injectable()
-export class GACredentialsRepository {
-  constructor(
-    @InjectRepository(GACredential)
-    private repository: Repository<GACredential>,
-  ) {}
+export class GACredentialsRepository extends Repository<GACredential> {
+  constructor(private dataSource: DataSource) {
+    super(GACredential, dataSource.createEntityManager());
+  }
 
   async findExpiredTokens(): Promise<GACredential[]> {
     const now = new Date();
-    return this.repository.find({
+    return this.find({
       where: {
         expiresAt: LessThan(now),
         isActive: true,
@@ -20,21 +19,26 @@ export class GACredentialsRepository {
     });
   }
 
-  async findOne(id: number): Promise<GACredential | undefined> {
-    return this.repository.findOne({ where: { id } });
+  async findTokensToRefresh(expiryThreshold: Date): Promise<GACredential[]> {
+    return this.find({
+      where: {
+        expiresAt: LessThan(expiryThreshold),
+        isActive: true,
+      },
+    });
   }
 
-  async save(credential: Partial<GACredential>): Promise<GACredential> {
-    return this.repository.save(credential);
+  async findOneById(id: number): Promise<GACredential | null> {
+    return this.findOne({ where: { id } } as FindOneOptions<GACredential>);
   }
 
-  async create(credential: Partial<GACredential>): Promise<GACredential> {
-    const newCredential = this.repository.create(credential);
-    return this.repository.save(newCredential);
+  async createCredential(data: DeepPartial<GACredential>): Promise<GACredential> {
+    const credential = this.create(data);
+    return this.save(credential);
   }
 
   async findByLandingPageId(pageId: number): Promise<GACredential[]> {
-    return this.repository.find({
+    return this.find({
       where: {
         landingPage: { id: pageId },
         isActive: true,
@@ -44,7 +48,7 @@ export class GACredentialsRepository {
   }
 
   async findByBrandId(brandId: number): Promise<GACredential[]> {
-    return this.repository.find({
+    return this.find({
       where: {
         brandId,
         isActive: true,
@@ -63,14 +67,14 @@ export class GACredentialsRepository {
       where.landingPage = { id: landingPageId };
     }
 
-    return this.repository.find({
+    return this.find({
       where,
       relations: ['landingPage'],
     });
   }
 
   async deactivateByLandingPage(pageId: number): Promise<void> {
-    await this.repository.update(
+    await this.update(
       { landingPage: { id: pageId } },
       { isActive: false },
     );
@@ -80,7 +84,7 @@ export class GACredentialsRepository {
     brandId: number,
     pageId: number,
   ): Promise<GACredential[]> {
-    return this.repository.find({
+    return this.find({
       where: {
         brandId,
         landingPage: { id: pageId },
