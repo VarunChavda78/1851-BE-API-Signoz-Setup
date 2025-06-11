@@ -23,9 +23,13 @@ export class LandingAnalyticsService {
     private locationService: LocationService,
   ) {}
 
-  @Cron('0 1 * * *') // Daily at 1 AM
+  @Cron('0 1 * * *', {
+    name: 'dailySyncAllLandingPages',
+  }) // Daily at 1 AM
   async dailySyncAllLandingPages() {
-    const credentials =
+    this.logger.log('Starting dailySyncAllLandingPages');
+    try{
+      const credentials =
       await this.gaCredentialsRepository.findActiveWithPropertyId();
 
     for (const credential of credentials) {
@@ -42,6 +46,12 @@ export class LandingAnalyticsService {
         );
       }
     }
+    } catch (error) {
+      this.logger.error('Error in dailySyncAllLandingPages', error);
+    }
+    finally{
+      this.logger.log('Finished dailySyncAllLandingPages');
+    }    
   }
 
   async fetchAndStoreLandingPageData(
