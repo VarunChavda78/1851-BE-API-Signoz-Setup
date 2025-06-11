@@ -10,6 +10,7 @@ import {
 import { GoogleOAuthService } from '../services/google-oauth.service';
 import { GACredentialsRepository } from '../repositories/ga-credentials.repository';
 import { EnvironmentConfigService } from 'src/shared/config/environment-config.service';
+import { TokenRefreshService } from '../services/token-refresh.service';
 
 @Controller({
   version: '1',
@@ -22,6 +23,7 @@ export class GoogleOAuthController {
     private readonly googleOAuthService: GoogleOAuthService,
     private readonly gaCredentialsRepository: GACredentialsRepository,
     private readonly env: EnvironmentConfigService,
+    private readonly tokenRefreshService: TokenRefreshService,
   ) {}
 
   @Get('connect')
@@ -138,6 +140,24 @@ export class GoogleOAuthController {
       };
     } catch (error) {
       this.logger.error('Error fetching GA connection status:', error);
+      return {
+        success: false,
+        message: error.message
+      };
+    }
+  }
+
+  @Get('refresh-tokens')
+  async triggerTokenRefresh() {
+    try {
+      this.logger.log('Manually triggering token refresh');
+      await this.tokenRefreshService.refreshExpiredTokens();
+      return {
+        success: true,
+        message: 'Token refresh job triggered successfully'
+      };
+    } catch (error) {
+      this.logger.error('Error triggering token refresh:', error);
       return {
         success: false,
         message: error.message
