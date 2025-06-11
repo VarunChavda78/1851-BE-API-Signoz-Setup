@@ -88,4 +88,60 @@ export class GoogleOAuthController {
     const url = this.googleOAuthService.getAuthUrl(brandId, landingPageId);
     return { url };
   }
+
+  @Get('status')
+  async getConnectionStatus(
+    @Query('brandId') brandId?: number,
+    @Query('landingPageId') landingPageId?: number,
+  ) {
+    try {
+      let credentials;
+      
+      if (landingPageId) {
+        credentials = await this.gaCredentialsRepository.findByLandingPageId(landingPageId);
+      } else if (brandId) {
+        credentials = await this.gaCredentialsRepository.findByBrandId(brandId);
+      } else {
+        credentials = await this.gaCredentialsRepository.findActiveWithPropertyId();
+      }
+
+      const now = new Date();
+      const results = credentials.map(cred => {
+        const expiresAt = new Date(cred.expiresAt);
+        const timeLeft = expiresAt.getTime() - now.getTime();
+        
+        // Calculate time components
+        const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+        const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+        
+        return {
+          credentialId: cred.id,
+          brandId: cred.brandId,
+          landingPageId: cred.landingPage?.id,
+          propertyId: cred.propertyId,
+          isActive: cred.isActive,
+          isValid: timeLeft > 0 && cred.isActive,
+          expiresAt: cred.expiresAt,
+          timeLeft: timeLeft > 0 ? `${hours}h ${minutes}m ${seconds}s` : 'Expired',
+          hasRefreshToken: !!cred.refreshToken,
+          createdAt: cred.createdAt,
+          updatedAt: cred.updatedAt
+        };
+      });
+
+      return {
+        success: true,
+        totalConnections: results.length,
+        activeConnections: results.filter(r => r.isValid).length,
+        connections: results
+      };
+    } catch (error) {
+      this.logger.error('Error fetching GA connection status:', error);
+      return {
+        success: false,
+        message: error.message
+      };
+    }
+  }
 }
