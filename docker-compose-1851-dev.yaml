@@ -21,10 +21,7 @@ services:
       resources:
         limits:
           cpus: "2.0"
-          memory: 4096MB       
-        reservations:
-          cpus: "1.5"
-          memory: 3072MB 
+          memory: "4096MB"
 
 networks:
   default:
