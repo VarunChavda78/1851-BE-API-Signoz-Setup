@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SharedModule } from 'src/shared/shared.module';
 import { UsersModule } from 'src/users/users.module';
-import { ScheduleModule } from '@nestjs/schedule';
 
 // Controllers
 import { GoogleOAuthController } from './controllers/ga-oauth.controller';
@@ -37,7 +36,6 @@ import { GaHeatmapService } from './services/ga-heatmap.service';
 
 @Module({
   imports: [
-    ScheduleModule.forRoot(),
     TypeOrmModule.forFeature([
       GACredential,
       LpGaSummary,
