@@ -24,7 +24,6 @@ export class GoogleOAuthService {
       const clientSecret = this.env.getGoogleClientSecret();
       const redirectUrl = this.env.getGoogleRedirectUrl();
 
-      console.log('mmm', { clientId, clientSecret, redirectUrl });
 
       if (!clientId || !clientSecret || !redirectUrl) {
         this.logger.error(

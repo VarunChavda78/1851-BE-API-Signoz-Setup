@@ -13,7 +13,21 @@ export class TokenRefreshService {
     private googleOAuthService: GoogleOAuthService,
   ) {}
 
-  @Cron('*/15 * * * *') // Run every 15 minutes
+  // @Cron('*/5 * * * * *', {
+  //   name: 'testCron',
+  // }) // Run every 5 seconds
+  // async testCron() {
+  //   try{
+  //     console.log('mmm hello cron');
+  //     this.logger.log('mmm hello cron');
+  //   } catch (error) {
+  //     this.logger.error('Error in testCron', error);
+  //   }
+  // }
+
+  @Cron('*/15 * * * *', {
+    name: 'refreshExpiredTokens',
+  }) // Run every 15 minutes
   async refreshExpiredTokens() {
     this.logger.log('Starting scheduled token refresh job');
 
