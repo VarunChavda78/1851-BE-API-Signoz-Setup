@@ -83,10 +83,17 @@ export class LandingAnalyticsService {
           };
         }
 
-        // Get updated credential
-        const updatedCredential = await this.gaCredentialsRepository.findOne(
+        // Get updated credential with new token
+        const updatedCredential = await this.gaCredentialsRepository.findOneById(
           credential.id,
         );
+        if (!updatedCredential || !updatedCredential.isActive) {
+          return {
+            success: false,
+            message: 'Failed to refresh authentication. Please reconnect your Google Analytics account.',
+            errorCode: 'AUTH_EXPIRED',
+          };
+        }
         credential = updatedCredential;
       }
 
@@ -254,6 +261,37 @@ export class LandingAnalyticsService {
         throw new Error(
           'Invalid credential data - missing brandId or propertyId',
         );
+      }
+
+      // Refresh token if needed
+      if (new Date(credential.expiresAt) <= new Date()) {
+        this.logger.log(
+          `Token for credential ${credential.id} has expired, attempting to refresh`,
+        );
+        const refreshed = await this.googleOAuthService.refreshToken(
+          credential.id,
+        );
+
+        if (!refreshed) {
+          return {
+            success: false,
+            message: 'Authentication expired. Please reconnect your Google Analytics account.',
+            errorCode: 'AUTH_EXPIRED',
+          };
+        }
+
+        // Get updated credential with new token
+        const updatedCredential = await this.gaCredentialsRepository.findOneById(
+          credential.id,
+        );
+        if (!updatedCredential || !updatedCredential.isActive) {
+          return {
+            success: false,
+            message: 'Failed to refresh authentication. Please reconnect your Google Analytics account.',
+            errorCode: 'AUTH_EXPIRED',
+          };
+        }
+        credential = updatedCredential;
       }
 
       // Set up date range

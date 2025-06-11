@@ -64,6 +64,7 @@ export class GoogleOAuthService {
       prompt: 'consent',
       include_granted_scopes: true,
       state,
+      response_type: 'code',
     });
   }
 
@@ -147,40 +148,56 @@ export class GoogleOAuthService {
 
       this.logger.log(`Refreshing token for credential ${credentialId}`);
 
+      // Re-initialize OAuth client with current credentials
+      const clientId = this.env.getGoogleClientId();
+      const clientSecret = this.env.getGoogleClientSecret();
+      const redirectUrl = this.env.getGoogleRedirectUrl();
+
+      this.oauthClient = new google.auth.OAuth2(
+        clientId,
+        clientSecret,
+        redirectUrl,
+      );
+
       // Set up the OAuth client with the refresh token
       this.oauthClient.setCredentials({
         refresh_token: credential.refreshToken,
+        client_id: clientId,
+        client_secret: clientSecret
       });
 
       try {
         // Attempt to refresh the token
-        const { tokens } = await this.oauthClient.refreshAccessToken();
-
+        const response = await this.oauthClient.refreshAccessToken();
         this.logger.log(
           `Token refresh response received for credential ${credentialId}`,
+          { responseData: JSON.stringify(response.tokens) }
         );
 
         // Validate the response
-        if (!tokens || !tokens.access_token) {
+        if (!response?.tokens?.access_token) {
           this.logger.error(
             `Invalid token response for credential ${credentialId}`,
-            tokens,
+            { response: JSON.stringify(response) }
           );
           return false;
         }
 
         // Calculate new expiration time
         const expiresAt = new Date();
-        const expiresIn = tokens.expires_in || 3600;
+        const expiresIn = response.tokens.expiry_date ? 
+          Math.floor((response.tokens.expiry_date - Date.now()) / 1000) : 
+          response.tokens.expires_in || 3600;
+        
         expiresAt.setSeconds(expiresAt.getSeconds() + expiresIn);
 
         // Update the credential with new token information
-        credential.accessToken = tokens.access_token;
+        credential.accessToken = response.tokens.access_token;
         credential.expiresAt = expiresAt;
         
         // If we got a new refresh token, update it
-        if (tokens.refresh_token) {
-          credential.refreshToken = tokens.refresh_token;
+        if (response.tokens.refresh_token) {
+          credential.refreshToken = response.tokens.refresh_token;
         }
 
         await this.gaCredentialsRepository.save(credential);
