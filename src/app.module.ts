@@ -16,9 +16,11 @@ import { MysqldbService } from './mysqldb/mysqldb.service';
 import { MysqldbModule } from './mysqldb/mysqldb.module';
 import { LandingAnalyticsModule } from './landing-analytics/landing-analytics.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     UniversityModule,
     SharedModule,
     LoggerModule.forRootAsync({
