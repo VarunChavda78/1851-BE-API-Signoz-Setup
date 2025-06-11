@@ -8,7 +8,7 @@ services:
     ports:
       - "3005:3000"
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/v1/landing/mapped-domain"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/v1"]
       interval: 30s
       timeout: 10s
       retries: 4
