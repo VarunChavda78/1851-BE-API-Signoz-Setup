@@ -103,6 +103,8 @@ export class LandingAnalyticsController {
   async triggerSync(
     @Query('brandId') brandId: number,
     @Query('landingPageId') landingPageId: number,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
   ) {
     if (!brandId || !landingPageId) {
       throw new BadRequestException(
@@ -113,6 +115,7 @@ export class LandingAnalyticsController {
     return this.landingAnalyticsService.triggerManualSync(
       brandId,
       landingPageId,
+      { startDate, endDate }
     );
   }
 
