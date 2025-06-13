@@ -32,20 +32,24 @@ export class LandingAnalyticsService {
       const credentials =
       await this.gaCredentialsRepository.findActiveWithPropertyId();
 
-    for (const credential of credentials) {
-      try {
-        // Fetch and store summary data
-        await this.fetchAndStoreLandingPageData(credential);
+      // Always use last 7 days for cron sync
+      const endDate = dayjs().subtract(1, 'day').format('YYYY-MM-DD');
+      const startDate = dayjs().subtract(7, 'day').format('YYYY-MM-DD');
 
-        // Fetch and store location data
-        await this.fetchAndStoreLocationData(credential);
-      } catch (error) {
-        this.logger.error(
-          `Sync failed for credential ${credential.id}:`,
-          error,
-        );
+      for (const credential of credentials) {
+        try {
+          // Fetch and store summary data with fixed 7-day range
+          await this.fetchAndStoreLandingPageData(credential, { startDate, endDate });
+
+          // Fetch and store location data with fixed 7-day range
+          await this.fetchAndStoreLocationData(credential, { startDate, endDate });
+        } catch (error) {
+          this.logger.error(
+            `Sync failed for credential ${credential.id}:`,
+            error,
+          );
+        }
       }
-    }
     } catch (error) {
       this.logger.error('Error in dailySyncAllLandingPages', error);
     }
@@ -107,14 +111,14 @@ export class LandingAnalyticsService {
         credential = updatedCredential;
       }
 
-      // Set up date range
-      const startDate = query.startDate
-        ? dayjs(query.startDate).format('YYYY-MM-DD')
-        : dayjs().subtract(7, 'day').format('YYYY-MM-DD');
-
+      // Set up date range - default to last 30 days for manual sync if no dates provided
       const endDate = query.endDate
         ? dayjs(query.endDate).format('YYYY-MM-DD')
         : dayjs().subtract(1, 'day').format('YYYY-MM-DD');
+
+      const startDate = query.startDate
+        ? dayjs(query.startDate).format('YYYY-MM-DD')
+        : dayjs(endDate).subtract(30, 'day').format('YYYY-MM-DD');
 
       this.logger.log(
         `Fetching GA summary data for brand ${credential.brandId}, dates: ${startDate} to ${endDate}`,
@@ -304,14 +308,14 @@ export class LandingAnalyticsService {
         credential = updatedCredential;
       }
 
-      // Set up date range
-      const startDate = query.startDate
-        ? dayjs(query.startDate).format('YYYY-MM-DD')
-        : dayjs().subtract(7, 'day').format('YYYY-MM-DD');
-
+      // Set up date range - default to last 30 days for manual sync if no dates provided
       const endDate = query.endDate
         ? dayjs(query.endDate).format('YYYY-MM-DD')
         : dayjs().subtract(1, 'day').format('YYYY-MM-DD');
+
+      const startDate = query.startDate
+        ? dayjs(query.startDate).format('YYYY-MM-DD')
+        : dayjs(endDate).subtract(30, 'day').format('YYYY-MM-DD');
 
       this.logger.log(
         `Fetching GA location data for brand ${credential.brandId}, dates: ${startDate} to ${endDate}`,
@@ -650,7 +654,11 @@ export class LandingAnalyticsService {
     }
   }
 
-  async triggerManualSync(brandId: number, landingPageId: number) {
+  async triggerManualSync(
+    brandId: number, 
+    landingPageId: number,
+    query: { startDate?: string; endDate?: string } = {}
+  ) {
     try {
       // Validate IDs
       if (!brandId || !landingPageId) {
@@ -689,7 +697,7 @@ export class LandingAnalyticsService {
             const result = await this.fetchAndStoreLandingPageData({
               ...credential,
               brandId: credential.brandId, // Ensure brandId comes from credential
-            });
+            }, query);
 
             return {
               credentialId: credential.id,
@@ -716,7 +724,7 @@ export class LandingAnalyticsService {
             const result = await this.fetchAndStoreLocationData({
               ...credential,
               brandId: credential.brandId, // Ensure brandId comes from credential
-            });
+            }, query);
 
             return {
               credentialId: credential.id,
