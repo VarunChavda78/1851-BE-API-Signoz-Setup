@@ -27,6 +27,7 @@ export class LandingAnalyticsStatusController {
     return {
       connected: credentials.length > 0,
       hasPropertyId: credentials.length > 0 && !!credentials[0].propertyId,
+      propertyId: credentials[0]?.propertyId || null,
       credentialId: credentials[0]?.id || null,
     };
   }
