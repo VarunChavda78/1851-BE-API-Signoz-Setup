@@ -13,7 +13,7 @@ export class AddT5SectionSlug1749536602241 implements MigrationInterface {
              (111,8, 'T5 Schedule Call', 't5-schedule-call'),
              (112,8, 'T5 Why Us', 't5-why-us'),
              (113,8, 'T5 Support Process', 't5-support-process'),
-             (114,8, 'T5 section1', 't5-section1')
+             (114,8, 'T5 section1', 't5-section1'),
              (115,8, 'T5 Section2', 't5-section2'),
              (116,8, 'T5 section3', 't5-section3'),
              (117,8, 'T5 Research', 't5-research'),
