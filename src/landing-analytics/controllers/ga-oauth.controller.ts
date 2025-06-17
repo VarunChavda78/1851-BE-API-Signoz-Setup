@@ -164,4 +164,31 @@ export class GoogleOAuthController {
       };
     }
   }
+
+  @Get('disconnect')
+  async disconnect(
+    @Query('brandId') brandId: number,
+    @Query('landingPageId') landingPageId: number,
+  ) {
+    try {
+      if (!brandId || !landingPageId) {
+        throw new BadRequestException(
+          'Both Brand ID and Landing Page ID are required',
+        );
+      }
+
+      await this.gaCredentialsRepository.deactivateByLandingPage(landingPageId);
+      
+      return {
+        success: true,
+        message: 'Google Analytics connection disconnected successfully'
+      };
+    } catch (error) {
+      this.logger.error('Error disconnecting GA:', error);
+      return {
+        success: false,
+        message: error.message
+      };
+    }
+  }
 }
