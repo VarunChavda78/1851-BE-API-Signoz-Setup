@@ -248,6 +248,21 @@ export class LandingController {
     }
   }
 
+  @Get(':slug/pages/all')
+  @HttpCode(HttpStatus.OK) // Sets the response code to 200
+  async getAllLandingPages(
+    @Param('slug') slug: string,
+  ) {
+    try {
+      return await this.landingService.getAllLandingPagesBySlug(slug);
+    } catch (error) {
+      return {
+        status: false,
+        message: error.message,
+      };
+    }
+  }
+
   @Protected()
   @Post(':slug/create')
   @HttpCode(HttpStatus.CREATED) // Sets the response code to 201
