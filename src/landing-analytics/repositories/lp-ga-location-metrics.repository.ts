@@ -113,7 +113,7 @@ async fetchHeatmapData(landingPageId: number, startDate: string, endDate: string
   const query = this.repository.createQueryBuilder('metrics')
     .select([
       'metrics.city as city',
-      'SUM(metrics.sessions) as sessions',
+      'SUM(metrics.users) as users',
       'metrics.latitude as latitude',
       'metrics.longitude as longitude',
       'metrics.country as country',
@@ -132,7 +132,7 @@ async fetchHeatmapData(landingPageId: number, startDate: string, endDate: string
 
   query
     .groupBy('metrics.city, metrics.latitude, metrics.longitude, metrics.country, metrics.state')
-    .orderBy('SUM(metrics.sessions)', 'DESC');
+    .orderBy('SUM(metrics.users)', 'DESC');
 
   return await query.getRawMany();
 }

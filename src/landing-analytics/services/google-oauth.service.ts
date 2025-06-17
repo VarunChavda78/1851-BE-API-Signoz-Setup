@@ -24,7 +24,6 @@ export class GoogleOAuthService {
       const clientSecret = this.env.getGoogleClientSecret();
       const redirectUrl = this.env.getGoogleRedirectUrl();
 
-      console.log('mmm', { clientId, clientSecret, redirectUrl });
 
       if (!clientId || !clientSecret || !redirectUrl) {
         this.logger.error(
@@ -64,6 +63,7 @@ export class GoogleOAuthService {
       prompt: 'consent',
       include_granted_scopes: true,
       state,
+      response_type: 'code',
     });
   }
 
@@ -147,46 +147,84 @@ export class GoogleOAuthService {
 
       this.logger.log(`Refreshing token for credential ${credentialId}`);
 
+      // Re-initialize OAuth client with current credentials
+      const clientId = this.env.getGoogleClientId();
+      const clientSecret = this.env.getGoogleClientSecret();
+      const redirectUrl = this.env.getGoogleRedirectUrl();
+
+      this.oauthClient = new google.auth.OAuth2(
+        clientId,
+        clientSecret,
+        redirectUrl,
+      );
+
       // Set up the OAuth client with the refresh token
       this.oauthClient.setCredentials({
         refresh_token: credential.refreshToken,
+        client_id: clientId,
+        client_secret: clientSecret
       });
 
       try {
         // Attempt to refresh the token
-        const { tokens } = await this.oauthClient.refreshAccessToken();
+        const response = await this.oauthClient.refreshAccessToken();
+        
+        // Parse the response if it's a string
+        let tokenData;
+        if (typeof response === 'string') {
+          tokenData = JSON.parse(response);
+        } else if (response?.credentials) {
+          tokenData = response.credentials;
+        } else if (response?.tokens) {
+          tokenData = response.tokens;
+        } else {
+          this.logger.error(
+            `Unexpected response format for credential ${credentialId}`,
+            { response: JSON.stringify(response) }
+          );
+          return false;
+        }
 
         this.logger.log(
           `Token refresh response received for credential ${credentialId}`,
+          { tokenData: JSON.stringify(tokenData) }
         );
 
-        // Validate the response
-        if (!tokens || !tokens.access_token) {
+        // Validate the token data
+        if (!tokenData.access_token) {
           this.logger.error(
-            `Invalid token response for credential ${credentialId}`,
-            tokens,
+            `Invalid token data for credential ${credentialId}`,
+            { tokenData: JSON.stringify(tokenData) }
           );
           return false;
         }
 
         // Calculate new expiration time
         const expiresAt = new Date();
-        const expiresIn = tokens.expires_in || 3600;
+        const expiresIn = tokenData.expiry_date ? 
+          Math.floor((tokenData.expiry_date - Date.now()) / 1000) : 
+          tokenData.expires_in || 3600;
+        
         expiresAt.setSeconds(expiresAt.getSeconds() + expiresIn);
 
         // Update the credential with new token information
-        credential.accessToken = tokens.access_token;
+        credential.accessToken = tokenData.access_token;
         credential.expiresAt = expiresAt;
         
         // If we got a new refresh token, update it
-        if (tokens.refresh_token) {
-          credential.refreshToken = tokens.refresh_token;
+        if (tokenData.refresh_token) {
+          credential.refreshToken = tokenData.refresh_token;
         }
 
         await this.gaCredentialsRepository.save(credential);
         
         this.logger.log(
           `Successfully refreshed token for credential ${credentialId}, expires at ${expiresAt}`,
+          { 
+            accessTokenLength: tokenData.access_token.length,
+            expiresIn,
+            hasRefreshToken: !!tokenData.refresh_token
+          }
         );
 
         return true;

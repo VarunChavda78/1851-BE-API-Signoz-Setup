@@ -13,14 +13,28 @@ export class TokenRefreshService {
     private googleOAuthService: GoogleOAuthService,
   ) {}
 
-  @Cron('0 */1 * * *') // Run every hour instead of every 4 hours
+  // @Cron('*/5 * * * * *', {
+  //   name: 'testCron',
+  // }) // Run every 5 seconds
+  // async testCron() {
+  //   try{
+  //     console.log('mmm hello cron');
+  //     this.logger.log('mmm hello cron');
+  //   } catch (error) {
+  //     this.logger.error('Error in testCron', error);
+  //   }
+  // }
+
+  @Cron('*/15 * * * *', {
+    name: 'refreshExpiredTokens',
+  }) // Run every 15 minutes
   async refreshExpiredTokens() {
     this.logger.log('Starting scheduled token refresh job');
 
     try {
-      // Get tokens that will expire in the next 2 hours
+      // Get tokens that will expire in the next 30 minutes
       const expiryThreshold = new Date();
-      expiryThreshold.setHours(expiryThreshold.getHours() + 2);
+      expiryThreshold.setMinutes(expiryThreshold.getMinutes() + 30);
 
       const tokensToRefresh = await this.gaCredentialsRepository.findTokensToRefresh(expiryThreshold);
 
@@ -28,6 +42,9 @@ export class TokenRefreshService {
 
       for (const token of tokensToRefresh) {
         try {
+          this.logger.log(
+            `Attempting to refresh token ${token.id}, expires at ${token.expiresAt}`,
+          );
           const success = await this.googleOAuthService.refreshToken(token.id);
           this.logger.log(
             `Token ${token.id} refresh ${success ? 'successful' : 'failed'}`,

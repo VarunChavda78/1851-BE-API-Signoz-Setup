@@ -23,25 +23,39 @@ export class LandingAnalyticsService {
     private locationService: LocationService,
   ) {}
 
-  @Cron('0 1 * * *') // Daily at 1 AM
+  @Cron('0 1 * * *', {
+    name: 'dailySyncAllLandingPages',
+  }) // Daily at 1 AM
   async dailySyncAllLandingPages() {
-    const credentials =
+    this.logger.log('Starting dailySyncAllLandingPages');
+    try{
+      const credentials =
       await this.gaCredentialsRepository.findActiveWithPropertyId();
 
-    for (const credential of credentials) {
-      try {
-        // Fetch and store summary data
-        await this.fetchAndStoreLandingPageData(credential);
+      // Always use last 7 days for cron sync
+      const endDate = dayjs().subtract(1, 'day').format('YYYY-MM-DD');
+      const startDate = dayjs().subtract(7, 'day').format('YYYY-MM-DD');
 
-        // Fetch and store location data
-        await this.fetchAndStoreLocationData(credential);
-      } catch (error) {
-        this.logger.error(
-          `Sync failed for credential ${credential.id}:`,
-          error,
-        );
+      for (const credential of credentials) {
+        try {
+          // Fetch and store summary data with fixed 7-day range
+          await this.fetchAndStoreLandingPageData(credential, { startDate, endDate });
+
+          // Fetch and store location data with fixed 7-day range
+          await this.fetchAndStoreLocationData(credential, { startDate, endDate });
+        } catch (error) {
+          this.logger.error(
+            `Sync failed for credential ${credential.id}:`,
+            error,
+          );
+        }
       }
+    } catch (error) {
+      this.logger.error('Error in dailySyncAllLandingPages', error);
     }
+    finally{
+      this.logger.log('Finished dailySyncAllLandingPages');
+    }    
   }
 
   async fetchAndStoreLandingPageData(
@@ -83,21 +97,28 @@ export class LandingAnalyticsService {
           };
         }
 
-        // Get updated credential
-        const updatedCredential = await this.gaCredentialsRepository.findOne(
+        // Get updated credential with new token
+        const updatedCredential = await this.gaCredentialsRepository.findOneById(
           credential.id,
         );
+        if (!updatedCredential || !updatedCredential.isActive) {
+          return {
+            success: false,
+            message: 'Failed to refresh authentication. Please reconnect your Google Analytics account.',
+            errorCode: 'AUTH_EXPIRED',
+          };
+        }
         credential = updatedCredential;
       }
 
-      // Set up date range
-      const startDate = query.startDate
-        ? dayjs(query.startDate).format('YYYY-MM-DD')
-        : dayjs().subtract(7, 'day').format('YYYY-MM-DD');
-
+      // Set up date range - default to last 30 days for manual sync if no dates provided
       const endDate = query.endDate
         ? dayjs(query.endDate).format('YYYY-MM-DD')
         : dayjs().subtract(1, 'day').format('YYYY-MM-DD');
+
+      const startDate = query.startDate
+        ? dayjs(query.startDate).format('YYYY-MM-DD')
+        : dayjs(endDate).subtract(30, 'day').format('YYYY-MM-DD');
 
       this.logger.log(
         `Fetching GA summary data for brand ${credential.brandId}, dates: ${startDate} to ${endDate}`,
@@ -256,14 +277,45 @@ export class LandingAnalyticsService {
         );
       }
 
-      // Set up date range
-      const startDate = query.startDate
-        ? dayjs(query.startDate).format('YYYY-MM-DD')
-        : dayjs().subtract(7, 'day').format('YYYY-MM-DD');
+      // Refresh token if needed
+      if (new Date(credential.expiresAt) <= new Date()) {
+        this.logger.log(
+          `Token for credential ${credential.id} has expired, attempting to refresh`,
+        );
+        const refreshed = await this.googleOAuthService.refreshToken(
+          credential.id,
+        );
 
+        if (!refreshed) {
+          return {
+            success: false,
+            message: 'Authentication expired. Please reconnect your Google Analytics account.',
+            errorCode: 'AUTH_EXPIRED',
+          };
+        }
+
+        // Get updated credential with new token
+        const updatedCredential = await this.gaCredentialsRepository.findOneById(
+          credential.id,
+        );
+        if (!updatedCredential || !updatedCredential.isActive) {
+          return {
+            success: false,
+            message: 'Failed to refresh authentication. Please reconnect your Google Analytics account.',
+            errorCode: 'AUTH_EXPIRED',
+          };
+        }
+        credential = updatedCredential;
+      }
+
+      // Set up date range - default to last 30 days for manual sync if no dates provided
       const endDate = query.endDate
         ? dayjs(query.endDate).format('YYYY-MM-DD')
         : dayjs().subtract(1, 'day').format('YYYY-MM-DD');
+
+      const startDate = query.startDate
+        ? dayjs(query.startDate).format('YYYY-MM-DD')
+        : dayjs(endDate).subtract(30, 'day').format('YYYY-MM-DD');
 
       this.logger.log(
         `Fetching GA location data for brand ${credential.brandId}, dates: ${startDate} to ${endDate}`,
@@ -602,7 +654,11 @@ export class LandingAnalyticsService {
     }
   }
 
-  async triggerManualSync(brandId: number, landingPageId: number) {
+  async triggerManualSync(
+    brandId: number, 
+    landingPageId: number,
+    query: { startDate?: string; endDate?: string } = {}
+  ) {
     try {
       // Validate IDs
       if (!brandId || !landingPageId) {
@@ -641,7 +697,7 @@ export class LandingAnalyticsService {
             const result = await this.fetchAndStoreLandingPageData({
               ...credential,
               brandId: credential.brandId, // Ensure brandId comes from credential
-            });
+            }, query);
 
             return {
               credentialId: credential.id,
@@ -668,7 +724,7 @@ export class LandingAnalyticsService {
             const result = await this.fetchAndStoreLocationData({
               ...credential,
               brandId: credential.brandId, // Ensure brandId comes from credential
-            });
+            }, query);
 
             return {
               credentialId: credential.id,

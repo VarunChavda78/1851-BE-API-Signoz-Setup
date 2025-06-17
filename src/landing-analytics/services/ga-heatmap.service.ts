@@ -21,7 +21,7 @@ export class GaHeatmapService {
         latitude: parseFloat(location.latitude).toFixed(4),
         longitude: parseFloat(location.longitude).toFixed(4),
         name: location.city,
-        value: location.sessions,
+        value: location.users,
       }));
 
       return {

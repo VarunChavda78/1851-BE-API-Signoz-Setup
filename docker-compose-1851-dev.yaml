@@ -8,11 +8,11 @@ services:
     ports:
       - "3005:3000"
     healthcheck:
-     test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/v1/landing/mapped-domain"]
-     interval: 30s   
-     timeout: 10s   
-     retries: 4    
-     start_period: 300s
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/v1"]
+      interval: 30s
+      timeout: 10s
+      retries: 4
+      start_period: 300s
     deploy:
       mode: replicated
       replicas: 1
@@ -21,11 +21,8 @@ services:
       resources:
         limits:
           cpus: "2.0"
-          memory: "2048MB"
-        reservations:
-          cpus: "1.5"
-          memory: "1536MB"
+          memory: "4096MB"
 
 networks:
-   default:
+  default:
     driver: overlay
