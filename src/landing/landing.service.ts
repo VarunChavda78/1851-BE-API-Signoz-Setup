@@ -129,6 +129,74 @@ export class LandingService {
       throw error;
     }
   }
+
+  async getAllLandingPagesBySlug(slug: string) {
+    try {
+  
+      const brand = await this.usersService.getBrandIdBySlug(slug);
+      if (!brand) {
+        throw new Error(`Brand not found for slug: ${slug}`);
+      }
+      const queryBuilder = await this.lpPageRepository
+        .createQueryBuilder('lp_page')
+        .leftJoinAndSelect('lp_page.template', 'template')
+        .where('lp_page.brandId = :brandId', { brandId: brand?.id })
+        .andWhere('lp_page.deletedAt IS NULL')
+        .select([
+          'lp_page.id',
+          'lp_page.name',
+          'lp_page.templateId',
+          'lp_page.status',
+          'lp_page.brandSlug',
+          'lp_page.domain',
+          'lp_page.deletedAt',
+          'lp_page.domainType',
+          'lp_page.nameSlug',
+          'template.name AS template_name',
+          'lp_page.metaIndex',
+          'lp_page.createdAt',
+          'lp_page.updatedAt',
+        ]);
+      const lpPages = await queryBuilder.getMany();
+      const details = [];
+      if (lpPages.length) {
+        for (const data of lpPages) {
+          details.push(await this.getDetails(data));
+        }
+      }
+  
+      return details;
+    } catch (error) {
+      this.logger.error('Error finding landing page', error);
+      this.rollbar.error(
+        `${this.constructor.name}.${this.getAllLandingPagesBySlug.name} - ${error.message}`,
+        error,
+      );
+      throw error;
+    }
+  }
+
+  // async getAllLandingPagesBySlug(slug: string) {
+  //   try {
+  //     const brand = await this.usersService.getBrandIdBySlug(slug);
+  //     if (!brand) {
+  //       throw new Error(`Brand not found for slug: ${slug}`);
+  //     }
+  //     const landingPages = await this.lpPageRepository.find({
+  //       where: { brandId: brand.id },
+  //     });
+  //     console.log('mmmm', landingPages);
+  //     return landingPages;
+  //   } catch (error) {
+  //     this.logger.error('Error fetching landing pages', error);
+  //     this.rollbar.error(
+  //       `${this.constructor.name}.${this.getAllLandingPagesBySlug.name} - ${error.message}`,
+  //       error,
+  //     );
+  //     throw error;
+  //   }
+  // }
+
   async getDetails(page) {
     return {
       id: page.id,
