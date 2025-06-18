@@ -170,7 +170,16 @@ async fetchHeatmapData(landingPageId: number, startDate: string, endDate: string
     }
 
     // Pagination
-    const totalRecords = await qb.getCount();
+    const countQb = this.repository.createQueryBuilder('ga')
+      .select('COUNT(DISTINCT ga.country)', 'count')
+      .where('ga.date BETWEEN :startDate AND :endDate', { startDate, endDate })
+      .andWhere("ga.country != '(not set)'")
+      .andWhere("ga.country != ''");
+    if (landingPageId) {
+      countQb.andWhere('ga.landingPageId = :landingPageId', { landingPageId });
+    }
+    const totalRecordsResult = await countQb.getRawOne();
+    const totalRecords = Number(totalRecordsResult.count);
     qb.limit(limit).offset((page - 1) * limit);
     const data = await qb.getRawMany();
 
@@ -210,7 +219,16 @@ async fetchHeatmapData(landingPageId: number, startDate: string, endDate: string
     }
 
     // Pagination
-    const totalRecords = await qb.getCount();
+    const countQb = this.repository.createQueryBuilder('ga')
+      .select('COUNT(DISTINCT ga.state)', 'count')
+      .where('ga.date BETWEEN :startDate AND :endDate', { startDate, endDate })
+      .andWhere("ga.state != '(not set)'")
+      .andWhere("ga.state != ''");
+    if (landingPageId) {
+      countQb.andWhere('ga.landingPageId = :landingPageId', { landingPageId });
+    }
+    const totalRecordsResult = await countQb.getRawOne();
+    const totalRecords = Number(totalRecordsResult.count);
     qb.limit(limit).offset((page - 1) * limit);
     const data = await qb.getRawMany();
 
