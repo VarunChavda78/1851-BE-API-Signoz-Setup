@@ -763,4 +763,93 @@ export class LandingAnalyticsService {
       };
     }
   }
+
+  // Country metrics for landing page
+  async getCountryMetrics(
+    landingPageId: number,
+    startDate: string,
+    endDate: string,
+    sort: string = 'views',
+    order: 'asc' | 'desc' = 'desc',
+    limit: number = 5,
+    page: number = 1,
+  ) {
+    try {
+      const { data, totalRecords } = await this.lpGaLocationMetricsRepository.fetchCountryMetrics(
+        landingPageId,
+        startDate,
+        endDate,
+        sort,
+        order,
+        limit,
+        page,
+      );
+      // Format avgSessionDuration to HH:MM:SS
+      const geo = data.map((item: any) => ({
+        name: item.name,
+        views: Number(item.views),
+        avgSessionDuration: this.formatDuration(Number(item.avgSessionDuration)),
+      }));
+      return {
+        geo,
+        pagination: {
+          totalRecords,
+          page: Number(page),
+          limit: Number(limit),
+        },
+      };
+    } catch (error) {
+      this.logger.error('Error fetching country metrics', error.message);
+      throw error;
+    }
+  }
+
+  // State metrics for landing page
+  async getStateMetrics(
+    landingPageId: number,
+    startDate: string,
+    endDate: string,
+    sort: string = 'views',
+    order: 'asc' | 'desc' = 'desc',
+    limit: number = 5,
+    page: number = 1,
+  ) {
+    try {
+      const { data, totalRecords } = await this.lpGaLocationMetricsRepository.fetchStateMetrics(
+        landingPageId,
+        startDate,
+        endDate,
+        sort,
+        order,
+        limit,
+        page,
+      );
+      // Format avgSessionDuration to HH:MM:SS
+      const geo = data.map((item: any) => ({
+        name: item.name,
+        views: Number(item.views),
+        avgSessionDuration: this.formatDuration(Number(item.avgSessionDuration)),
+      }));
+      return {
+        geo,
+        pagination: {
+          totalRecords,
+          page: Number(page),
+          limit: Number(limit),
+        },
+      };
+    } catch (error) {
+      this.logger.error('Error fetching state metrics', error.message);
+      throw error;
+    }
+  }
+
+  // Helper to format seconds to HH:MM:SS
+  private formatDuration(durationInSeconds: number) {
+    if (!durationInSeconds || isNaN(durationInSeconds)) return '00:00:00';
+    const hours = Math.floor(durationInSeconds / 3600) || 0;
+    const minutes = Math.floor((durationInSeconds % 3600) / 60) || 0;
+    const seconds = Math.floor(durationInSeconds % 60) || 0;
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  }
 }
