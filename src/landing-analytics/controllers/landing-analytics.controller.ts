@@ -128,4 +128,54 @@ export class LandingAnalyticsController {
     );
     return await this.gaHeatmapService.fetchHeatmapData(query, id);
   }
+
+  // Country metrics endpoint
+  @Get('country/:landingPageId')
+  async fetchCountryMetrics(
+    @Param('landingPageId') landingPageId: number,
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @Query('sort') sort?: string,
+    @Query('order') order?: 'asc' | 'desc',
+    @Query('limit') limit?: number,
+    @Query('page') page?: number,
+  ) {
+    if (!startDate || !endDate) {
+      throw new BadRequestException('startDate and endDate are required');
+    }
+    return await this.landingAnalyticsService.getCountryMetrics(
+      landingPageId,
+      startDate,
+      endDate,
+      sort || 'views',
+      order || 'desc',
+      limit ? Number(limit) : 5,
+      page ? Number(page) : 1,
+    );
+  }
+
+  // State metrics endpoint
+  @Get('state/:landingPageId')
+  async fetchStateMetrics(
+    @Param('landingPageId') landingPageId: number,
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @Query('sort') sort?: string,
+    @Query('order') order?: 'asc' | 'desc',
+    @Query('limit') limit?: number,
+    @Query('page') page?: number,
+  ) {
+    if (!startDate || !endDate) {
+      throw new BadRequestException('startDate and endDate are required');
+    }
+    return await this.landingAnalyticsService.getStateMetrics(
+      landingPageId,
+      startDate,
+      endDate,
+      sort || 'views',
+      order || 'desc',
+      limit ? Number(limit) : 5,
+      page ? Number(page) : 1,
+    );
+  }
 }

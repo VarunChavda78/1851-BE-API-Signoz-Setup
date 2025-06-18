@@ -137,4 +137,84 @@ async fetchHeatmapData(landingPageId: number, startDate: string, endDate: string
   return await query.getRawMany();
 }
 
+  async fetchCountryMetrics(
+    landingPageId: number,
+    startDate: string,
+    endDate: string,
+    sort: string = 'views',
+    order: 'asc' | 'desc' = 'desc',
+    limit: number = 5,
+    page: number = 1,
+  ) {
+    const qb = this.repository.createQueryBuilder('ga')
+      .select('ga.country', 'name')
+      .addSelect('SUM(ga.pageViews)', 'views')
+      .addSelect('SUM(ga.avgSessionDuration * ga.sessions) / NULLIF(SUM(ga.sessions), 0)', 'avgSessionDuration')
+      .where('ga.date BETWEEN :startDate AND :endDate', { startDate, endDate })
+      .andWhere("ga.country != '(not set)'")
+      .andWhere("ga.country != ''");
+
+    if (landingPageId) {
+      qb.andWhere('ga.landingPageId = :landingPageId', { landingPageId });
+    }
+
+    qb.groupBy('ga.country');
+
+    // Sorting
+    if (sort === 'avgSessionDuration') {
+      qb.orderBy('avgSessionDuration', order.toUpperCase() as 'ASC' | 'DESC');
+    } else if (sort === 'name') {
+      qb.orderBy('name', order.toUpperCase() as 'ASC' | 'DESC');
+    } else {
+      qb.orderBy('views', order.toUpperCase() as 'ASC' | 'DESC');
+    }
+
+    // Pagination
+    const totalRecords = await qb.getCount();
+    qb.limit(limit).offset((page - 1) * limit);
+    const data = await qb.getRawMany();
+
+    return { data, totalRecords };
+  }
+
+  async fetchStateMetrics(
+    landingPageId: number,
+    startDate: string,
+    endDate: string,
+    sort: string = 'views',
+    order: 'asc' | 'desc' = 'desc',
+    limit: number = 5,
+    page: number = 1,
+  ) {
+    const qb = this.repository.createQueryBuilder('ga')
+      .select('ga.state', 'name')
+      .addSelect('SUM(ga.pageViews)', 'views')
+      .addSelect('SUM(ga.avgSessionDuration * ga.sessions) / NULLIF(SUM(ga.sessions), 0)', 'avgSessionDuration')
+      .where('ga.date BETWEEN :startDate AND :endDate', { startDate, endDate })
+      .andWhere("ga.state != '(not set)'")
+      .andWhere("ga.state != ''");
+
+    if (landingPageId) {
+      qb.andWhere('ga.landingPageId = :landingPageId', { landingPageId });
+    }
+
+    qb.groupBy('ga.state');
+
+    // Sorting
+    if (sort === 'avgSessionDuration') {
+      qb.orderBy('avgSessionDuration', order.toUpperCase() as 'ASC' | 'DESC');
+    } else if (sort === 'name') {
+      qb.orderBy('name', order.toUpperCase() as 'ASC' | 'DESC');
+    } else {
+      qb.orderBy('views', order.toUpperCase() as 'ASC' | 'DESC');
+    }
+
+    // Pagination
+    const totalRecords = await qb.getCount();
+    qb.limit(limit).offset((page - 1) * limit);
+    const data = await qb.getRawMany();
+
+    return { data, totalRecords };
+  }
+
 }
