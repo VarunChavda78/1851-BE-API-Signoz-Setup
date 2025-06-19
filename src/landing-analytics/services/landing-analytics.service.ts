@@ -9,6 +9,7 @@ import { LpGaSummaryRepository } from '../repositories/lp-ga-summary.repository'
 import { LpGaSyncStatusRepository } from '../repositories/lp-ga-sync-status.repository';
 import { LpGaLocationMetricsRepository } from '../repositories/lp-ga-location-metrics.repository';
 import { LocationService } from 'src/mysqldb/location.service';
+import { LpGaReferralMetricsRepository } from '../repositories/lp-ga-referral-metrics.repository';
 
 @Injectable()
 export class LandingAnalyticsService {
@@ -21,6 +22,7 @@ export class LandingAnalyticsService {
     private lpGaSyncStatusRepository: LpGaSyncStatusRepository,
     private lpGaLocationMetricsRepository: LpGaLocationMetricsRepository,
     private locationService: LocationService,
+    private lpGaReferralMetricsRepository: LpGaReferralMetricsRepository,
   ) {}
 
   @Cron('0 1 * * *', {
@@ -43,6 +45,9 @@ export class LandingAnalyticsService {
 
           // Fetch and store location data with fixed 7-day range
           await this.fetchAndStoreLocationData(credential, { startDate, endDate });
+
+          // Fetch and store referral data with fixed 7-day range
+          await this.fetchAndStoreReferralData(credential, { startDate, endDate });
         } catch (error) {
           this.logger.error(
             `Sync failed for credential ${credential.id}:`,
@@ -744,7 +749,33 @@ export class LandingAnalyticsService {
         }),
       );
 
-      const allResults = [...summaryResults, ...locationResults];
+      // Process referral sync for each credential
+      const referralResults = await Promise.all(
+        validCredentials.map(async (credential) => {
+          try {
+            const result = await this.fetchAndStoreReferralData({
+              ...credential,
+              brandId: credential.brandId,
+            }, query);
+            return {
+              credentialId: credential.id,
+              ...result,
+            };
+          } catch (error) {
+            this.logger.error(
+              `Referral sync failed for credential ${credential.id}`,
+              error,
+            );
+            return {
+              credentialId: credential.id,
+              success: false,
+              message: error.message,
+            };
+          }
+        }),
+      );
+
+      const allResults = [...summaryResults, ...locationResults, ...referralResults];
       const allSuccess = allResults.every((r) => r.success);
 
       return {
@@ -754,6 +785,7 @@ export class LandingAnalyticsService {
           : 'Some sync operations failed, check details',
         summaryResults,
         locationResults,
+        referralResults,
       };
     } catch (error) {
       this.logger.error('Error in triggerManualSync', error);
@@ -791,16 +823,24 @@ export class LandingAnalyticsService {
         avgSessionDuration: this.formatDuration(Number(item.avgSessionDuration)),
       }));
       return {
-        geo,
-        pagination: {
-          totalRecords,
-          page: Number(page),
-          limit: Number(limit),
+        status: true,
+        message: 'Data fetched successfully',
+        data: {
+          geo,
+          pagination: {
+            totalRecords,
+            page: Number(page),
+            limit: Number(limit),
+          },
         },
       };
     } catch (error) {
       this.logger.error('Error fetching country metrics', error.message);
-      throw error;
+      return {
+        status: false,
+        message: 'Data not fetched successfully',
+        error: error?.message,
+      };
     }
   }
 
@@ -831,16 +871,72 @@ export class LandingAnalyticsService {
         avgSessionDuration: this.formatDuration(Number(item.avgSessionDuration)),
       }));
       return {
-        geo,
-        pagination: {
-          totalRecords,
-          page: Number(page),
-          limit: Number(limit),
+        status: true,
+        message: 'Data fetched successfully',
+        data: {
+          geo,
+          pagination: {
+            totalRecords,
+            page: Number(page),
+            limit: Number(limit),
+          },
         },
       };
     } catch (error) {
       this.logger.error('Error fetching state metrics', error.message);
-      throw error;
+      return {
+        status: false,
+        message: 'Data not fetched successfully',
+        error: error?.message,
+      };
+    }
+  }
+
+  // City metrics for landing page
+  async getCityMetrics(
+    landingPageId: number,
+    startDate: string,
+    endDate: string,
+    sort: string = 'views',
+    order: 'asc' | 'desc' = 'desc',
+    limit: number = 5,
+    page: number = 1,
+  ) {
+    try {
+      const { data, totalRecords } = await this.lpGaLocationMetricsRepository.fetchCityMetrics(
+        landingPageId,
+        startDate,
+        endDate,
+        sort,
+        order,
+        limit,
+        page,
+      );
+      // Format avgSessionDuration to HH:MM:SS
+      const geo = data.map((item: any) => ({
+        name: item.name,
+        views: Number(item.views),
+        avgSessionDuration: this.formatDuration(Number(item.avgSessionDuration)),
+      }));
+      return {
+        status: true,
+        message: 'Data fetched successfully',
+        data: {
+          geo,
+          pagination: {
+            totalRecords,
+            page: Number(page),
+            limit: Number(limit),
+          },
+        },
+      };
+    } catch (error) {
+      this.logger.error('Error fetching city metrics', error.message);
+      return {
+        status: false,
+        message: 'Data not fetched successfully',
+        error: error?.message,
+      };
     }
   }
 
@@ -851,5 +947,197 @@ export class LandingAnalyticsService {
     const minutes = Math.floor((durationInSeconds % 3600) / 60) || 0;
     const seconds = Math.floor(durationInSeconds % 60) || 0;
     return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  }
+
+  // Referral metrics for landing page
+  async getReferralMetrics(
+    landingPageId: number,
+    startDate: string,
+    endDate: string,
+    sort: string = 'sessions',
+    order: 'asc' | 'desc' = 'desc',
+    limit: number = 5,
+    page: number = 1,
+  ) {
+    try {
+      const { data, totalRecords } = await this.lpGaReferralMetricsRepository.fetchReferralMetrics(
+        landingPageId,
+        startDate,
+        endDate,
+        sort,
+        order,
+        limit,
+        page,
+      );
+      const geo = data.map((item: any) => ({
+        source: item.source,
+        sessions: Number(item.sessions),
+      }));
+      return {
+        status: true,
+        message: 'Data fetched successfully',
+        data: {
+          geo,
+          pagination: {
+            totalRecords,
+            page: Number(page),
+            limit: Number(limit),
+          },
+        },
+      };
+    } catch (error) {
+      this.logger.error('Error fetching referral metrics', error.message);
+      return {
+        status: false,
+        message: 'Data not fetched successfully',
+        error: error?.message,
+      };
+    }
+  }
+
+  // Fetch and store referral data
+  async fetchAndStoreReferralData(
+    credential,
+    query: { startDate?: string; endDate?: string } = {},
+  ) {
+    try {
+      if (!credential.brandId || !credential.propertyId) {
+        throw new Error('Invalid credential data - missing brandId or propertyId');
+      }
+      // Refresh token if needed
+      if (new Date(credential.expiresAt) <= new Date()) {
+        this.logger.log(
+          `Token for credential ${credential.id} has expired, attempting to refresh`,
+        );
+        const refreshed = await this.googleOAuthService.refreshToken(
+          credential.id,
+        );
+        if (!refreshed) {
+          return {
+            success: false,
+            message: 'Authentication expired. Please reconnect your Google Analytics account.',
+            errorCode: 'AUTH_EXPIRED',
+          };
+        }
+        // Get updated credential with new token
+        const updatedCredential = await this.gaCredentialsRepository.findOneById(
+          credential.id,
+        );
+        if (!updatedCredential || !updatedCredential.isActive) {
+          return {
+            success: false,
+            message: 'Failed to refresh authentication. Please reconnect your Google Analytics account.',
+            errorCode: 'AUTH_EXPIRED',
+          };
+        }
+        credential = updatedCredential;
+      }
+      // Set up date range - default to last 30 days for manual sync if no dates provided
+      const endDate = query.endDate
+        ? dayjs(query.endDate).format('YYYY-MM-DD')
+        : dayjs().subtract(1, 'day').format('YYYY-MM-DD');
+      const startDate = query.startDate
+        ? dayjs(query.startDate).format('YYYY-MM-DD')
+        : dayjs(endDate).subtract(30, 'day').format('YYYY-MM-DD');
+      this.logger.log(
+        `Fetching GA referral data for brand ${credential.brandId}, dates: ${startDate} to ${endDate}`,
+      );
+      // Set up OAuth client
+      const oauth2Client = new google.auth.OAuth2();
+      oauth2Client.setCredentials({
+        access_token: credential.accessToken,
+      });
+      // Create Analytics Data API client
+      const analyticsDataClient = google.analyticsdata({
+        version: 'v1beta',
+        auth: oauth2Client,
+      });
+      // Fetch referral data using the REST client
+      const referralData = await this.runGAReferralReportWithRest(
+        analyticsDataClient,
+        credential.propertyId,
+        startDate,
+        endDate,
+      );
+      const landingPageId = credential.landingPage?.id;
+      // Clear existing referral data for this date range
+      await this.lpGaReferralMetricsRepository.deleteByDateRange(
+        startDate,
+        endDate,
+        credential.brandId,
+        landingPageId,
+      );
+      // Store new referral data
+      for (const item of referralData) {
+        await this.lpGaReferralMetricsRepository.save({
+          ...item,
+          brandId: credential.brandId,
+          landingPage: credential.landingPage,
+        });
+      }
+      this.logger.log(
+        `Saved Google Analytics Referral Data for brand ${credential.brandId}, landing page ${credential.landingPage?.id || 'N/A'}`,
+      );
+      return {
+        success: true,
+        message: 'Referral data fetched and stored successfully',
+        dateRange: `${startDate} - ${endDate}`,
+      };
+    } catch (error) {
+      this.logger.error(
+        `Error fetching referral data for brand ${credential.brandId}, landing page ${credential.landingPage?.id || 'N/A'}:`,
+        error.message,
+      );
+      return {
+        success: false,
+        message: 'Failed to fetch and store referral data',
+        error: error.message,
+      };
+    }
+  }
+
+  // Helper to fetch referral data from GA4
+  private async runGAReferralReportWithRest(
+    analyticsDataClient: any,
+    propertyId: string,
+    startDate: string,
+    endDate: string,
+  ) {
+    const formattedPropertyId = propertyId.includes('properties/')
+      ? propertyId.replace('properties/', '')
+      : propertyId;
+    const response = await analyticsDataClient.properties.runReport({
+      property: `properties/${formattedPropertyId}`,
+      requestBody: {
+        dateRanges: [
+          {
+            startDate,
+            endDate,
+          },
+        ],
+        metrics: [
+          { name: 'sessions' },
+        ],
+        dimensions: [
+          { name: 'date' },
+          { name: 'sessionSource' },
+        ],
+      },
+    });
+    // Map to entity format
+    const result = [];
+    if (!response.data.rows || response.data.rows.length === 0) {
+      return result;
+    }
+    for (const row of response.data.rows) {
+      const inputDate = row.dimensionValues[0].value;
+      const formattedDate = dayjs(inputDate, 'YYYYMMDD').format('YYYY-MM-DD');
+      result.push({
+        date: formattedDate,
+        source: row.dimensionValues[1].value,
+        sessions: parseInt(row.metricValues[0].value || '0'),
+      });
+    }
+    return result;
   }
 }

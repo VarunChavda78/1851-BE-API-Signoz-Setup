@@ -34,6 +34,8 @@ import { LpGaLocationMetrics } from './lp-ga-location-metrics.entity';
 import { MysqldbModule } from 'src/mysqldb/mysqldb.module';
 import { GaActiveMarketsService } from './services/ga-active-markets.service';
 import { GaHeatmapService } from './services/ga-heatmap.service';
+import { LpGaReferralMetrics } from './lp-ga-referral-metrics.entity';
+import { LpGaReferralMetricsRepository } from './repositories/lp-ga-referral-metrics.repository';
 
 @Module({
   imports: [
@@ -43,6 +45,7 @@ import { GaHeatmapService } from './services/ga-heatmap.service';
       LpGaSummary,
       LpGaSyncStatus,
       LpGaLocationMetrics,
+      LpGaReferralMetrics,
     ]),
     SharedModule,
     UsersModule,
@@ -69,6 +72,7 @@ import { GaHeatmapService } from './services/ga-heatmap.service';
     LpGaLocationMetricsRepository,
     GaActiveMarketsService,
     GaHeatmapService,
+    LpGaReferralMetricsRepository,
   ],
   exports: [GoogleOAuthService, TokenRefreshService, LandingAnalyticsService],
 })
