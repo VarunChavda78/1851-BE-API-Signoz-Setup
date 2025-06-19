@@ -844,6 +844,46 @@ export class LandingAnalyticsService {
     }
   }
 
+  // City metrics for landing page
+  async getCityMetrics(
+    landingPageId: number,
+    startDate: string,
+    endDate: string,
+    sort: string = 'views',
+    order: 'asc' | 'desc' = 'desc',
+    limit: number = 5,
+    page: number = 1,
+  ) {
+    try {
+      const { data, totalRecords } = await this.lpGaLocationMetricsRepository.fetchCityMetrics(
+        landingPageId,
+        startDate,
+        endDate,
+        sort,
+        order,
+        limit,
+        page,
+      );
+      // Format avgSessionDuration to HH:MM:SS
+      const geo = data.map((item: any) => ({
+        name: item.name,
+        views: Number(item.views),
+        avgSessionDuration: this.formatDuration(Number(item.avgSessionDuration)),
+      }));
+      return {
+        geo,
+        pagination: {
+          totalRecords,
+          page: Number(page),
+          limit: Number(limit),
+        },
+      };
+    } catch (error) {
+      this.logger.error('Error fetching city metrics', error.message);
+      throw error;
+    }
+  }
+
   // Helper to format seconds to HH:MM:SS
   private formatDuration(durationInSeconds: number) {
     if (!durationInSeconds || isNaN(durationInSeconds)) return '00:00:00';

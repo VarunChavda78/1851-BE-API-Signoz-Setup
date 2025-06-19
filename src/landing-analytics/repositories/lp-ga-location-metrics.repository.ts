@@ -235,4 +235,48 @@ async fetchHeatmapData(landingPageId: number, startDate: string, endDate: string
     return { data, totalRecords };
   }
 
+  async fetchCityMetrics(
+    landingPageId: number,
+    startDate: string,
+    endDate: string,
+    sort: string = 'views',
+    order: 'asc' | 'desc' = 'desc',
+    limit: number = 5,
+    page: number = 1,
+  ) {
+    const qb = this.repository.createQueryBuilder('ga')
+      .select('ga.city', 'name')
+      .addSelect('SUM(ga.pageViews)', 'views')
+      .addSelect('SUM(ga.avgSessionDuration * ga.sessions) / NULLIF(SUM(ga.sessions), 0)', 'avgSessionDuration')
+      .where('ga.date BETWEEN :startDate AND :endDate', { startDate, endDate })
+      .andWhere("ga.city != '(not set)'")
+      .andWhere("ga.city != ''");
+    if (landingPageId) {
+      qb.andWhere('ga.landingPageId = :landingPageId', { landingPageId });
+    }
+    qb.groupBy('ga.city');
+    // Sorting
+    if (sort === 'avgSessionDuration') {
+      qb.orderBy('avgSessionDuration', order.toUpperCase() as 'ASC' | 'DESC');
+    } else if (sort === 'name') {
+      qb.orderBy('name', order.toUpperCase() as 'ASC' | 'DESC');
+    } else {
+      qb.orderBy('views', order.toUpperCase() as 'ASC' | 'DESC');
+    }
+    // Pagination
+    const countQb = this.repository.createQueryBuilder('ga')
+      .select('COUNT(DISTINCT ga.city)', 'count')
+      .where('ga.date BETWEEN :startDate AND :endDate', { startDate, endDate })
+      .andWhere("ga.city != '(not set)'")
+      .andWhere("ga.city != ''");
+    if (landingPageId) {
+      countQb.andWhere('ga.landingPageId = :landingPageId', { landingPageId });
+    }
+    const totalRecordsResult = await countQb.getRawOne();
+    const totalRecords = Number(totalRecordsResult.count);
+    qb.limit(limit).offset((page - 1) * limit);
+    const data = await qb.getRawMany();
+    return { data, totalRecords };
+  }
+
 }
