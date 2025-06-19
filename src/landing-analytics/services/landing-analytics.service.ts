@@ -823,16 +823,24 @@ export class LandingAnalyticsService {
         avgSessionDuration: this.formatDuration(Number(item.avgSessionDuration)),
       }));
       return {
-        geo,
-        pagination: {
-          totalRecords,
-          page: Number(page),
-          limit: Number(limit),
+        status: true,
+        message: 'Data fetched successfully',
+        data: {
+          geo,
+          pagination: {
+            totalRecords,
+            page: Number(page),
+            limit: Number(limit),
+          },
         },
       };
     } catch (error) {
       this.logger.error('Error fetching country metrics', error.message);
-      throw error;
+      return {
+        status: false,
+        message: 'Data not fetched successfully',
+        error: error?.message,
+      };
     }
   }
 
@@ -863,16 +871,24 @@ export class LandingAnalyticsService {
         avgSessionDuration: this.formatDuration(Number(item.avgSessionDuration)),
       }));
       return {
-        geo,
-        pagination: {
-          totalRecords,
-          page: Number(page),
-          limit: Number(limit),
+        status: true,
+        message: 'Data fetched successfully',
+        data: {
+          geo,
+          pagination: {
+            totalRecords,
+            page: Number(page),
+            limit: Number(limit),
+          },
         },
       };
     } catch (error) {
       this.logger.error('Error fetching state metrics', error.message);
-      throw error;
+      return {
+        status: false,
+        message: 'Data not fetched successfully',
+        error: error?.message,
+      };
     }
   }
 
@@ -903,16 +919,24 @@ export class LandingAnalyticsService {
         avgSessionDuration: this.formatDuration(Number(item.avgSessionDuration)),
       }));
       return {
-        geo,
-        pagination: {
-          totalRecords,
-          page: Number(page),
-          limit: Number(limit),
+        status: true,
+        message: 'Data fetched successfully',
+        data: {
+          geo,
+          pagination: {
+            totalRecords,
+            page: Number(page),
+            limit: Number(limit),
+          },
         },
       };
     } catch (error) {
       this.logger.error('Error fetching city metrics', error.message);
-      throw error;
+      return {
+        status: false,
+        message: 'Data not fetched successfully',
+        error: error?.message,
+      };
     }
   }
 
@@ -950,16 +974,24 @@ export class LandingAnalyticsService {
         sessions: Number(item.sessions),
       }));
       return {
-        geo,
-        pagination: {
-          totalRecords,
-          page: Number(page),
-          limit: Number(limit),
+        status: true,
+        message: 'Data fetched successfully',
+        data: {
+          geo,
+          pagination: {
+            totalRecords,
+            page: Number(page),
+            limit: Number(limit),
+          },
         },
       };
     } catch (error) {
       this.logger.error('Error fetching referral metrics', error.message);
-      throw error;
+      return {
+        status: false,
+        message: 'Data not fetched successfully',
+        error: error?.message,
+      };
     }
   }
 
