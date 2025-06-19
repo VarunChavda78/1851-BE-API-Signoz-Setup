@@ -203,4 +203,29 @@ export class LandingAnalyticsController {
       page ? Number(page) : 1,
     );
   }
+
+  // Referral metrics endpoint
+  @Get('referral/:landingPageId')
+  async fetchReferralMetrics(
+    @Param('landingPageId') landingPageId: number,
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @Query('sort') sort?: string,
+    @Query('order') order?: 'asc' | 'desc',
+    @Query('limit') limit?: number,
+    @Query('page') page?: number,
+  ) {
+    if (!startDate || !endDate) {
+      throw new BadRequestException('startDate and endDate are required');
+    }
+    return await this.landingAnalyticsService.getReferralMetrics(
+      landingPageId,
+      startDate,
+      endDate,
+      sort || 'sessions',
+      order || 'desc',
+      limit ? Number(limit) : 5,
+      page ? Number(page) : 1,
+    );
+  }
 }
