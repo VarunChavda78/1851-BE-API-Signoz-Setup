@@ -162,7 +162,7 @@ async fetchHeatmapData(landingPageId: number, startDate: string, endDate: string
 
     // Sorting
     if (sort === 'avgSessionDuration') {
-      qb.orderBy('avgSessionDuration', order.toUpperCase() as 'ASC' | 'DESC');
+      qb.orderBy('"avgSessionDuration"', order.toUpperCase() as 'ASC' | 'DESC');
     } else if (sort === 'name') {
       qb.orderBy('name', order.toUpperCase() as 'ASC' | 'DESC');
     } else {
@@ -211,7 +211,7 @@ async fetchHeatmapData(landingPageId: number, startDate: string, endDate: string
 
     // Sorting
     if (sort === 'avgSessionDuration') {
-      qb.orderBy('avgSessionDuration', order.toUpperCase() as 'ASC' | 'DESC');
+      qb.orderBy('"avgSessionDuration"', order.toUpperCase() as 'ASC' | 'DESC');
     } else if (sort === 'name') {
       qb.orderBy('name', order.toUpperCase() as 'ASC' | 'DESC');
     } else {
@@ -257,7 +257,7 @@ async fetchHeatmapData(landingPageId: number, startDate: string, endDate: string
     qb.groupBy('ga.city');
     // Sorting
     if (sort === 'avgSessionDuration') {
-      qb.orderBy('avgSessionDuration', order.toUpperCase() as 'ASC' | 'DESC');
+      qb.orderBy('"avgSessionDuration"', order.toUpperCase() as 'ASC' | 'DESC');
     } else if (sort === 'name') {
       qb.orderBy('name', order.toUpperCase() as 'ASC' | 'DESC');
     } else {
