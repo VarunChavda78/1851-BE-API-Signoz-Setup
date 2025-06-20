@@ -3,12 +3,14 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, Repository } from 'typeorm';
 import { LpGaLocationMetrics } from '../lp-ga-location-metrics.entity';
+import { EnvironmentConfigService } from 'src/shared/config/environment-config.service';
 
 @Injectable()
 export class LpGaLocationMetricsRepository {
   constructor(
     @InjectRepository(LpGaLocationMetrics)
     private repository: Repository<LpGaLocationMetrics>,
+    private env: EnvironmentConfigService,
   ) {}
 
   async findByBrandId(
@@ -63,6 +65,10 @@ async fetchMetrics(landingPageId: number, startDate: string, endDate: string) {
     })
     .andWhere("ga.city != '(not set)'")
     .andWhere("ga.city != ''");
+
+  if (this.env.getAppEnv() === 'production') {
+    query.andWhere("ga.country != 'India'");
+  }
 
   if (landingPageId) {
     query.andWhere('ga.landingPageId = :landingPageId', { landingPageId });
@@ -126,6 +132,10 @@ async fetchHeatmapData(landingPageId: number, startDate: string, endDate: string
     .andWhere("metrics.city != '(not set)'")
     .andWhere("metrics.city != ''");
 
+  if (this.env.getAppEnv() === 'production') {
+    query.andWhere("metrics.country != 'India'");
+  }
+
   if (landingPageId) {
     query.andWhere('metrics.landingPageId = :landingPageId', { landingPageId });
   }
@@ -154,6 +164,10 @@ async fetchHeatmapData(landingPageId: number, startDate: string, endDate: string
       .andWhere("ga.country != '(not set)'")
       .andWhere("ga.country != ''");
 
+    if (this.env.getAppEnv() === 'production') {
+      qb.andWhere("ga.country != 'India'");
+    }
+
     if (landingPageId) {
       qb.andWhere('ga.landingPageId = :landingPageId', { landingPageId });
     }
@@ -175,6 +189,9 @@ async fetchHeatmapData(landingPageId: number, startDate: string, endDate: string
       .where('ga.date BETWEEN :startDate AND :endDate', { startDate, endDate })
       .andWhere("ga.country != '(not set)'")
       .andWhere("ga.country != ''");
+    if (this.env.getAppEnv() === 'production') {
+      countQb.andWhere("ga.country != 'India'");
+    }
     if (landingPageId) {
       countQb.andWhere('ga.landingPageId = :landingPageId', { landingPageId });
     }
@@ -203,6 +220,10 @@ async fetchHeatmapData(landingPageId: number, startDate: string, endDate: string
       .andWhere("ga.state != '(not set)'")
       .andWhere("ga.state != ''");
 
+    if (this.env.getAppEnv() === 'production') {
+      qb.andWhere("ga.country != 'India'");
+    }
+
     if (landingPageId) {
       qb.andWhere('ga.landingPageId = :landingPageId', { landingPageId });
     }
@@ -224,6 +245,9 @@ async fetchHeatmapData(landingPageId: number, startDate: string, endDate: string
       .where('ga.date BETWEEN :startDate AND :endDate', { startDate, endDate })
       .andWhere("ga.state != '(not set)'")
       .andWhere("ga.state != ''");
+    if (this.env.getAppEnv() === 'production') {
+      countQb.andWhere("ga.country != 'India'");
+    }
     if (landingPageId) {
       countQb.andWhere('ga.landingPageId = :landingPageId', { landingPageId });
     }
@@ -251,6 +275,9 @@ async fetchHeatmapData(landingPageId: number, startDate: string, endDate: string
       .where('ga.date BETWEEN :startDate AND :endDate', { startDate, endDate })
       .andWhere("ga.city != '(not set)'")
       .andWhere("ga.city != ''");
+    if (this.env.getAppEnv() === 'production') {
+      qb.andWhere("ga.country != 'India'");
+    }
     if (landingPageId) {
       qb.andWhere('ga.landingPageId = :landingPageId', { landingPageId });
     }
@@ -269,6 +296,9 @@ async fetchHeatmapData(landingPageId: number, startDate: string, endDate: string
       .where('ga.date BETWEEN :startDate AND :endDate', { startDate, endDate })
       .andWhere("ga.city != '(not set)'")
       .andWhere("ga.city != ''");
+    if (this.env.getAppEnv() === 'production') {
+      countQb.andWhere("ga.country != 'India'");
+    }
     if (landingPageId) {
       countQb.andWhere('ga.landingPageId = :landingPageId', { landingPageId });
     }
