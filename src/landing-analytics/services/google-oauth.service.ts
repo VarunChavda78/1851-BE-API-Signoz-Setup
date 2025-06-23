@@ -57,8 +57,7 @@ export class GoogleOAuthService {
     return this.oauthClient.generateAuthUrl({
       access_type: 'offline',
       scope: [
-        'https://www.googleapis.com/auth/analytics.readonly',
-        'https://www.googleapis.com/auth/analytics'
+        'https://www.googleapis.com/auth/analytics.readonly'
       ],
       prompt: 'consent',
       include_granted_scopes: true,
