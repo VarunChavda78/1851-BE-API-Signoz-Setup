@@ -885,7 +885,6 @@ export class LandingService {
             formType: leadDataDto.formType || 1,
           }));
       }
-
       // Create and save all fields
       const savedLeads = await this.lpLeadsRepository.save(leadFields);
       if(leadDataDto.type === 5){
@@ -895,6 +894,21 @@ export class LandingService {
           message: 'Lead has been added successfully',
         };
       }
+
+      // Get Page name and url
+      const page = await this.lpPageRepository.findOne({
+        where: { id: leadDataDto.lpId, brandId: brandId, deletedAt: IsNull() },
+        select: ['name', 'domain', 'domainType', 'nameSlug'],
+      });
+
+      const url = page?.domainType == DomainType.SUBDOMAIN
+      ? `https://${page?.nameSlug}.${this.config
+          .getFEUrl()
+          ?.replace('https://', '')}`
+      : page?.domainType == DomainType.CUSTOM_DOMAIN
+        ? `https://${page?.domain}`
+        : '-'
+
       // Get brand details for email
       const brand = await this.usersService.getBrandDetails(brandId);
 
@@ -922,6 +936,7 @@ export class LandingService {
           { email: leadDataDto.email },
           brand,
           inquiryEmails?.email,
+          url, page?.name
         );
 
         // Get PDF content if slug is provided
@@ -950,6 +965,7 @@ export class LandingService {
             leadForEmail,
             brand,
             inquiryEmails?.email,
+            url, page?.name
           ),
         ]);
       }
