@@ -901,12 +901,12 @@ export class LandingService {
         select: ['name', 'domain', 'domainType', 'nameSlug'],
       });
 
-      const url = page.domainType == DomainType.SUBDOMAIN
-      ? `https://${page.nameSlug}.${this.config
+      const url = page?.domainType == DomainType.SUBDOMAIN
+      ? `https://${page?.nameSlug}.${this.config
           .getFEUrl()
           ?.replace('https://', '')}`
-      : page.domainType == DomainType.CUSTOM_DOMAIN
-        ? `https://${page.domain}`
+      : page?.domainType == DomainType.CUSTOM_DOMAIN
+        ? `https://${page?.domain}`
         : '-'
 
       // Get brand details for email
