@@ -8,15 +8,15 @@ export class LeadsUtilService {
     private config: EnvironmentConfigService,
     private commonService: CommonService,
   ) {}
-  async sendPdfEmailToBrand(request, brand, inquiryEmails?: any) {
+  async sendPdfEmailToBrand(request, brand, inquiryEmails?: any, landingPageUrl?: string, landingPageName?: string) {
     const fromEmail = this.config.getFromEmail();
     const toEmail = inquiryEmails?.length > 0 ? inquiryEmails : brand?.email || [];
     const bccMail = [this.config.getBccEmail()];
     const sign = this.commonService.getEmailSign();
-    const subject = `Download Brochure PDF Inquiry`;
+    const subject = `Download Brochure PDF Inquiry for ${landingPageName}`;
 
     const leadData = [{ name: 'Email', value: request?.email || '' }];
-    const content = this.getPdfContent(leadData, brand, sign);
+    const content = this.getPdfContent(leadData, brand, sign, landingPageUrl);
     await this.commonService.sendMassEmailWithCC(
       toEmail,
       bccMail,
@@ -33,18 +33,18 @@ export class LeadsUtilService {
     return content.join('') || '';
   }
 
-  private getPdfContent(data, brand, sign): string {
+  private getPdfContent(data, brand, sign, url: string): string {
     let content = `Hi ${brand?.company},<br><br>
-    There's been a Download PDF lead on your ${sign} landing page.<br><br>`;
+    There's been a Download PDF lead on your ${sign} landing page <a href="${url}" target="_blank">${url}</a>.<br><br>`;
 
     content += this.getPlainContent(data);
     content += `<br>Thanks,<br>${sign} Team`;
     return content;
   }
 
-  private getContent(data, brand, sign): string {
+  private getContent(data, brand, sign, url: string): string {
     let content = `Hi ${brand?.company},<br><br>
-    You've received a new lead from your landing page. The information is below.<br><br>`;
+    You've received a new lead from your landing page <a href="${url}" target="_blank">${url}</a>. The information is below.<br><br>`;
 
     content += this.getPlainContent(data);
     content += `<br><br>Thanks,<br>${sign} Support Team`;
@@ -92,12 +92,12 @@ export class LeadsUtilService {
     );
   }
 
-  async sendEmailToBrand(request: { [key: string]: string }, brand: any, inquiryEmails:any) {
+  async sendEmailToBrand(request: { [key: string]: string }, brand: any, inquiryEmails:any, landingPageUrl?: string, landingPageName?: string) {
     const fromEmail = this.config.getFromEmail();
     const toEmail = inquiryEmails?.length > 0 ? inquiryEmails : brand?.email || [];
     const bccMail = [this.config.getBccEmail()];
     const sign = this.commonService.getEmailSign();
-    const subject = `New Lead from your landing page`;
+    const subject = `New Lead from your landing page - ${landingPageName}`;
 
     // Convert object to leadData format
     const leadData = Object.entries(request).map(([field, value]) => ({
@@ -105,7 +105,7 @@ export class LeadsUtilService {
       value: value || '',
     }));
 
-    const content = this.getContent(leadData, brand, sign);
+    const content = this.getContent(leadData, brand, sign, landingPageUrl);
     await this.commonService.sendMassEmailWithCC(
       toEmail,
       bccMail,
