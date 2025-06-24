@@ -936,7 +936,7 @@ export class LandingService {
           { email: leadDataDto.email },
           brand,
           inquiryEmails?.email,
-          url, page.name
+          url, page?.name
         );
 
         // Get PDF content if slug is provided
@@ -965,7 +965,7 @@ export class LandingService {
             leadForEmail,
             brand,
             inquiryEmails?.email,
-            url, page.name
+            url, page?.name
           ),
         ]);
       }

@@ -35,7 +35,7 @@ export class LeadsUtilService {
 
   private getPdfContent(data, brand, sign, url: string): string {
     let content = `Hi ${brand?.company},<br><br>
-    There's been a Download PDF lead on your ${sign} landing page <a href="${url}" target="_blank">${url}</a>.<br><br>`;
+    There's been a Download PDF lead on your ${sign} landing page${url && url !== '-' ? ` <a href="${url}" target="_blank">${url}</a>` : ''}.<br><br>`;
 
     content += this.getPlainContent(data);
     content += `<br>Thanks,<br>${sign} Team`;
@@ -44,7 +44,7 @@ export class LeadsUtilService {
 
   private getContent(data, brand, sign, url: string): string {
     let content = `Hi ${brand?.company},<br><br>
-    You've received a new lead from your landing page <a href="${url}" target="_blank">${url}</a>. The information is below.<br><br>`;
+    You've received a new lead from your landing page${url && url !== '-' ? ` <a href="${url}" target="_blank">${url}</a>` : ''}. The information is below.<br><br>`;
 
     content += this.getPlainContent(data);
     content += `<br><br>Thanks,<br>${sign} Support Team`;
