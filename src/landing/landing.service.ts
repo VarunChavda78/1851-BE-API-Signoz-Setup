@@ -611,14 +611,14 @@ export class LandingService {
     }
   }
 
-  async publishStatusV2(slug: string) {
+  async publishStatusV2(slug: string, src?: string) {
     try {
       let data = await this.lpPageRepository.find({
         where: { nameSlug: slug, status: PageStatus.PUBLISH },
       });
   
       if (!data || data.length === 0) {
-        throw new Error(`No published pages found for slug: ${slug}`);
+        throw new Error(`No published pages found for slug: ${slug} | src: ${src}`);
       }
       const brand = await this.usersService.getBrandIdBySlug(data[0]?.brandSlug);
       if (!brand) {
