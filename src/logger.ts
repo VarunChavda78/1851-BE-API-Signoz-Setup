@@ -7,7 +7,7 @@ import { WinstonInstrumentation } from '@opentelemetry/instrumentation-winston';
 
 // Create OpenTelemetry Logger Provider
 const logExporter = new OTLPLogExporter({
-  url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT,
+  url: process.env.OTEL_EXPORTER_OTLP_LOGS_ENDPOINT,
 });
 
 const loggerProvider = new LoggerProvider({

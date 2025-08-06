@@ -10,7 +10,7 @@ const { WinstonInstrumentation } = require('@opentelemetry/instrumentation-winst
 
 // Create OpenTelemetry Logger Provider
 const logExporter = new OTLPLogExporter({
-  url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4318/v1/logs',
+  url: process.env.OTEL_EXPORTER_OTLP_LOGS_ENDPOINT,
 });
 
 const loggerProvider = new LoggerProvider({
@@ -43,28 +43,34 @@ const winstonLogger = winston.createLogger({
 // Initialize Winston instrumentation
 new WinstonInstrumentation();
 
-console.log('Testing logging setup...');
-console.log('OTEL_EXPORTER_OTLP_ENDPOINT:', process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4318/v1/logs');
+console.log('=== Logging Test Configuration ===');
+console.log('OTEL_EXPORTER_OTLP_ENDPOINT:', process.env.OTEL_EXPORTER_OTLP_ENDPOINT);
+console.log('OTEL_EXPORTER_OTLP_LOGS_ENDPOINT:', process.env.OTEL_EXPORTER_OTLP_LOGS_ENDPOINT);
+console.log('Using logs endpoint:', logsEndpoint);
 console.log('OTEL_SERVICE_NAME:', process.env.OTEL_SERVICE_NAME);
+console.log('==================================');
 
 // Test different log levels
 winstonLogger.info('Test info message', { 
   test: true, 
   timestamp: new Date().toISOString(),
-  level: 'info'
+  level: 'info',
+  endpoint: logsEndpoint
 });
 
 winstonLogger.warn('Test warning message', { 
   test: true, 
   timestamp: new Date().toISOString(),
-  level: 'warn'
+  level: 'warn',
+  endpoint: logsEndpoint
 });
 
 winstonLogger.error('Test error message', { 
   test: true, 
   timestamp: new Date().toISOString(),
   level: 'error',
-  error: new Error('Test error')
+  error: new Error('Test error'),
+  endpoint: logsEndpoint
 });
 
 console.log('Logging test completed. Check SigNoz UI for logs.');
@@ -78,4 +84,4 @@ setTimeout(() => {
     console.error('Error shutting down logger provider:', error);
     process.exit(1);
   });
-}, 2000); 
+}, 3000); 
