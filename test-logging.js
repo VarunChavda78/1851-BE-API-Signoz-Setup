@@ -41,15 +41,10 @@ const winstonLogger = winston.createLogger({
 });
 
 // Initialize Winston instrumentation
-const winstonInstrumentation = new WinstonInstrumentation({
-  logger: winstonLogger,
-});
-
-// Start the instrumentation
-winstonInstrumentation.enable();
+new WinstonInstrumentation();
 
 console.log('Testing logging setup...');
-console.log('OTEL_EXPORTER_OTLP_ENDPOINT:', process.env.OTEL_EXPORTER_OTLP_ENDPOINT);
+console.log('OTEL_EXPORTER_OTLP_ENDPOINT:', process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4318/v1/logs');
 console.log('OTEL_SERVICE_NAME:', process.env.OTEL_SERVICE_NAME);
 
 // Test different log levels

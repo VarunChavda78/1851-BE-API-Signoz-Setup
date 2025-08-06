@@ -18,7 +18,7 @@ const loggerProvider = new LoggerProvider({
 
 loggerProvider.addLogRecordProcessor(new SimpleLogRecordProcessor(logExporter));
 
-// Create Winston logger with OpenTelemetry integration
+// Create Winston logger
 const winstonLogger = winston.createLogger({
   level: 'info',
   format: winston.format.combine(
@@ -38,11 +38,6 @@ const winstonLogger = winston.createLogger({
 });
 
 // Initialize Winston instrumentation
-const winstonInstrumentation = new WinstonInstrumentation({
-  logger: winstonLogger,
-});
-
-// Start the instrumentation
-winstonInstrumentation.enable();
+new WinstonInstrumentation();
 
 export default winstonLogger; 
